@@ -1,0 +1,121 @@
+// PostgreSQL용 Prisma 스키마
+// Supabase나 다른 PostgreSQL 데이터베이스를 사용할 경우 이 파일을 schema.prisma로 복사하세요
+// 또는 provider만 변경: provider = "postgresql"
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Program {
+  id          String           @id @default(cuid())
+  title       String
+  category    String
+  summary     String?
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  images      ProgramImage[]
+  schedules   ProgramSchedule[]
+  events      Event[]
+
+  @@index([category])
+}
+
+model ProgramImage {
+  id        String   @id @default(cuid())
+  programId String
+  url       String
+  createdAt DateTime @default(now())
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+}
+
+model ProgramSchedule {
+  id          String   @id @default(cuid())
+  programId   String
+  day         Int
+  description String
+  createdAt   DateTime @default(now())
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+}
+
+model School {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  logoUrl    String?
+  themeColor String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  events Event[]
+
+  @@index([name])
+}
+
+model Event {
+  id           String   @id @default(cuid())
+  schoolId     String
+  programId    String
+  date         DateTime
+  location     String
+  studentCount Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  images EventImage[]
+
+  @@index([schoolId])
+  @@index([programId])
+  @@index([date])
+}
+
+model EventImage {
+  id        String   @id @default(cuid())
+  eventId   String
+  url       String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Inquiry {
+  id         String   @id @default(cuid())
+  schoolName String
+  contact    String
+  phone      String
+  email      String
+  message    String?
+  status     String   @default("pending") // pending, completed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  fileUrl   String
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
