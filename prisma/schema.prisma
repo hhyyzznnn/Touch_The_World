@@ -16,6 +16,13 @@ model Program {
   category    String
   summary     String?
   description String?
+  region      String?          // 지역 (예: 경상남도)
+  hashtags    String[]         @default([]) // 해시태그 (예: #진주 #통영)
+  priceFrom   Int?             // 가격 시작 (원)
+  priceTo     Int?             // 가격 끝 (원)
+  rating      Float?           @default(0) // 평점 (0-5)
+  reviewCount Int              @default(0) // 후기 개수
+  thumbnailUrl String?         // 대표 이미지 URL (썸네일)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
@@ -24,6 +31,7 @@ model Program {
   events      Event[]
 
   @@index([category])
+  @@index([region])
 }
 
 model ProgramImage {
@@ -69,6 +77,8 @@ model Event {
   date         DateTime
   location     String
   studentCount Int
+  status       String   @default("in_progress") // in_progress, completed
+  notes        String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -79,6 +89,7 @@ model Event {
   @@index([schoolId])
   @@index([programId])
   @@index([date])
+  @@index([status])
 }
 
 model EventImage {
@@ -128,5 +139,36 @@ model Achievement {
 
   @@index([year])
   @@index([institution])
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  type        String   // university, highschool, corporation, public
+  country     String   @default("KR") // KR, JP, TW 등
+  logoUrl     String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type])
+  @@index([country])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // camp, culture, sports, study_abroad, leadership 등
+  region      String?  // Korea, Japan, Philippines, Global 등
+  duration    String?  // 예: "4박5일"
+  partner     String?  // 협력 기관
+  target      String?  // 학생/교사/청소년 등
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([region])
 }
 

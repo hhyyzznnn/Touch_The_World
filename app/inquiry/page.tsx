@@ -57,7 +57,7 @@ export default function InquiryPage() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="mb-6">
             <div className="text-6xl mb-4">✓</div>
-            <h1 className="text-3xl font-bold mb-4">문의가 접수되었습니다</h1>
+            <h1 className="text-3xl font-medium mb-4">문의가 접수되었습니다</h1>
             <p className="text-gray-600 mb-8">
               빠른 시일 내에 연락드리겠습니다.
             </p>
@@ -65,6 +65,7 @@ export default function InquiryPage() {
               onClick={() => {
                 setIsSuccess(false);
               }}
+              className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
             >
               새 문의하기
             </Button>
@@ -77,7 +78,7 @@ export default function InquiryPage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">문의하기</h1>
+        <h1 className="text-3xl font-medium mb-8">문의하기</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="schoolName" className="block text-sm font-medium mb-2">
@@ -86,7 +87,7 @@ export default function InquiryPage() {
             <input
               id="schoolName"
               {...register("schoolName")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
               placeholder="예: 서울초등학교"
             />
             {errors.schoolName && (
@@ -103,7 +104,7 @@ export default function InquiryPage() {
             <input
               id="contact"
               {...register("contact")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
               placeholder="예: 홍길동"
             />
             {errors.contact && (
@@ -120,7 +121,7 @@ export default function InquiryPage() {
             <input
               id="phone"
               {...register("phone")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
               placeholder="예: 010-1234-5678"
             />
             {errors.phone && (
@@ -138,7 +139,7 @@ export default function InquiryPage() {
               id="email"
               type="email"
               {...register("email")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
               placeholder="example@school.kr"
             />
             {errors.email && (
@@ -156,12 +157,12 @@ export default function InquiryPage() {
               id="message"
               {...register("message")}
               rows={6}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
               placeholder="희망 일정, 학생 수, 특이사항 등을 입력해주세요"
             />
           </div>
 
-          <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+          <Button type="submit" size="lg" disabled={isSubmitting} className="w-full bg-brand-green-primary hover:bg-brand-green-primary/90 text-white">
             {isSubmitting ? "제출 중..." : "문의하기"}
           </Button>
         </form>

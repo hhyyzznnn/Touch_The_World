@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import { ProgramCard } from "@/components/ProgramCard";
 
 async function getPrograms(category?: string) {
   const where = category ? { category } : {};
@@ -41,6 +41,7 @@ export default async function ProgramsPage({
           <Button
             asChild
             variant={!searchParams.category ? "default" : "outline"}
+            className={!searchParams.category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
           >
             <Link href="/programs">전체</Link>
           </Button>
@@ -49,6 +50,7 @@ export default async function ProgramsPage({
               key={category}
               asChild
               variant={searchParams.category === category ? "default" : "outline"}
+              className={searchParams.category === category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
             >
               <Link href={`/programs?category=${encodeURIComponent(category)}`}>
                 {category}
@@ -59,37 +61,27 @@ export default async function ProgramsPage({
       </div>
 
       {programs.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-text-gray">
           등록된 프로그램이 없습니다.
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {programs.map((program) => (
-            <Link
+            <ProgramCard
               key={program.id}
-              href={`/programs/${program.id}`}
-              className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              {program.images[0] && (
-                <div className="relative w-full h-48 bg-gray-100">
-                  <Image
-                    src={program.images[0].url}
-                    alt={program.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
-              <div className="p-6">
-                <div className="text-sm text-primary mb-2">{program.category}</div>
-                <h3 className="text-xl font-semibold mb-2">{program.title}</h3>
-                {program.summary && (
-                  <p className="text-gray-600 text-sm line-clamp-2">
-                    {program.summary}
-                  </p>
-                )}
-              </div>
-            </Link>
+              id={program.id}
+              title={program.title}
+              category={program.category}
+              summary={program.summary}
+              thumbnailUrl={program.thumbnailUrl}
+              region={program.region}
+              hashtags={program.hashtags}
+              priceFrom={program.priceFrom}
+              priceTo={program.priceTo}
+              rating={program.rating}
+              reviewCount={program.reviewCount}
+              imageUrl={program.images[0]?.url}
+            />
           ))}
         </div>
       )}

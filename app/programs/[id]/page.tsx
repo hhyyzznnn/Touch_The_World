@@ -32,16 +32,16 @@ export default async function ProgramDetailPage({
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-6">
-        <Link href="/programs" className="text-primary hover:underline">
+        <Link href="/programs" className="text-brand-green-primary hover:text-brand-green-primary/80 hover:underline">
           ← 프로그램 목록으로
         </Link>
       </div>
 
       <div className="mb-8">
-        <div className="text-sm text-primary mb-2">{program.category}</div>
-        <h1 className="text-4xl font-bold mb-4">{program.title}</h1>
+        <div className="text-sm text-brand-green-primary mb-2">{program.category}</div>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 break-words">{program.title}</h1>
         {program.summary && (
-          <p className="text-xl text-gray-600 mb-6">{program.summary}</p>
+          <p className="text-lg sm:text-xl text-gray-600 mb-6 break-words">{program.summary}</p>
         )}
       </div>
 
@@ -64,19 +64,19 @@ export default async function ProgramDetailPage({
 
       {program.description && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">프로그램 소개</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">프로그램 소개</h2>
           <div className="prose max-w-none">
-            <p className="whitespace-pre-line text-gray-700">{program.description}</p>
+            <p className="whitespace-pre-line text-gray-700 text-sm sm:text-base break-words">{program.description}</p>
           </div>
         </div>
       )}
 
       {program.schedules.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">일정표</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">일정표</h2>
           <div className="space-y-4">
             {program.schedules.map((schedule) => (
-              <div key={schedule.id} className="border-l-4 border-primary pl-4 py-2">
+              <div key={schedule.id} className="border-l-4 border-brand-green-primary pl-4 py-2">
                 <div className="font-semibold mb-1">{schedule.day}일차</div>
                 <p className="text-gray-700 whitespace-pre-line">
                   {schedule.description}

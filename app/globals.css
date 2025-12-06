@@ -66,5 +66,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  select {
+    accent-color: #2E6D45;
+  }
+  input[type="radio"] {
+    accent-color: #2E6D45;
+  }
 }
 

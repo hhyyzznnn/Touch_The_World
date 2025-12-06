@@ -39,13 +39,13 @@ export default async function EventDetailPage({
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-6">
-        <Link href="/events" className="text-primary hover:underline">
+        <Link href="/events" className="text-brand-green-primary hover:underline">
           ← 행사 목록으로
         </Link>
       </div>
 
       <div className="mb-8">
-        <div className="text-sm text-primary mb-2">
+        <div className="text-sm text-brand-green-primary mb-2">
           {format(new Date(event.date), "yyyy년 MM월 dd일")}
         </div>
         <h1 className="text-4xl font-bold mb-4">{event.school.name}</h1>

@@ -101,7 +101,7 @@ export default async function SchoolPage({
                         </div>
                       )}
                       <div className="p-6">
-                        <div className="text-sm text-primary mb-2">
+                        <div className="text-sm text-brand-green-primary mb-2">
                           {format(new Date(event.date), "yyyy년 MM월 dd일")}
                         </div>
                         <h3 className="text-xl font-semibold mb-2">

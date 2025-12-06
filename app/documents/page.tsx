@@ -36,10 +36,10 @@ export default async function DocumentsPage({
           <div className="flex flex-wrap gap-2">
             <a
               href="/documents"
-              className={`px-4 py-2 rounded-md text-sm ${
+              className={`px-4 py-2 rounded-md text-sm transition-colors ${
                 !searchParams.category
-                  ? "bg-primary text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-brand-green-primary text-white hover:bg-brand-green-primary/90"
+                  : "bg-white border border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
               }`}
             >
               전체
@@ -48,10 +48,10 @@ export default async function DocumentsPage({
               <a
                 key={category}
                 href={`/documents?category=${encodeURIComponent(category)}`}
-                className={`px-4 py-2 rounded-md text-sm ${
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
                   searchParams.category === category
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-brand-green-primary text-white hover:bg-brand-green-primary/90"
+                    : "bg-white border border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
                 }`}
               >
                 {category}
@@ -75,7 +75,7 @@ export default async function DocumentsPage({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm text-primary bg-primary/10 px-3 py-1 rounded-full">
+                    <span className="text-sm text-brand-green-primary bg-brand-green-primary/10 px-3 py-1 rounded-full">
                       {document.category}
                     </span>
                     <span className="text-sm text-gray-500">
@@ -88,7 +88,7 @@ export default async function DocumentsPage({
                   href={document.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition"
+                  className="ml-4 px-4 py-2 bg-brand-green-primary text-white rounded-md hover:bg-brand-green-primary/90 transition"
                 >
                   다운로드
                 </a>

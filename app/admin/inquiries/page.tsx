@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { InquiryDetailModal } from "@/components/InquiryDetailModal";
+import { InquiryActions } from "@/components/InquiryActions";
 
 async function getInquiries() {
   return await prisma.inquiry.findMany({
@@ -73,16 +75,7 @@ export default async function AdminInquiriesPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {inquiry.status === "pending" && (
-                      <form
-                        action={`/api/admin/inquiries/${inquiry.id}`}
-                        method="POST"
-                      >
-                        <Button type="submit" size="sm" variant="outline">
-                          완료 처리
-                        </Button>
-                      </form>
-                    )}
+                    <InquiryActions inquiry={inquiry} />
                   </td>
                 </tr>
               ))}

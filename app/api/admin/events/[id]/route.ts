@@ -4,29 +4,70 @@ import { isAdmin } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const body = await request.json();
-    const { schoolId, programId, date, location, studentCount, imageUrls } = body;
+    const {
+      schoolName,
+      schoolId,
+      programId,
+      programName,
+      date,
+      endDate,
+      location,
+      studentCount,
+      content,
+      status,
+      imageUrls,
+    } = body;
+
+    // 학교 찾기 또는 생성
+    let finalSchoolId = schoolId;
+    if (schoolName && !schoolId) {
+      const school = await prisma.school.upsert({
+        where: { name: schoolName },
+        update: {},
+        create: { name: schoolName },
+      });
+      finalSchoolId = school.id;
+    }
+
+    // 프로그램 찾기 또는 생성
+    let finalProgramId = programId;
+    if (programName && !programId) {
+      // 기본 카테고리로 프로그램 생성
+      const program = await prisma.program.create({
+        data: {
+          title: programName,
+          category: "기타",
+        },
+      });
+      finalProgramId = program.id;
+    }
 
     // 기존 이미지 삭제
     await prisma.eventImage.deleteMany({
-      where: { eventId: params.id },
+      where: { eventId: id },
     });
 
     const event = await prisma.event.update({
-      where: { id: params.id },
+      where: { id },
       data: {
-        schoolId,
-        programId,
+        schoolId: finalSchoolId,
+        programId: finalProgramId,
         date: new Date(date),
-        location,
-        studentCount: parseInt(studentCount),
+        location: location || "",
+        studentCount: studentCount ? parseInt(studentCount) : 0,
+        status: status || "in_progress",
+        notes: endDate 
+          ? `${content || ""}\n기간: ${date} ~ ${endDate}`.trim()
+          : content || null,
         images: {
           create: imageUrls?.map((url: string) => ({ url })) || [],
         },
@@ -37,7 +78,7 @@ export async function PUT(
   } catch (error) {
     console.error("Event update error:", error);
     return NextResponse.json(
-      { error: "행사 수정에 실패했습니다." },
+      { error: "진행 내역 수정에 실패했습니다." },
       { status: 500 }
     );
   }
@@ -45,15 +86,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     await prisma.event.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

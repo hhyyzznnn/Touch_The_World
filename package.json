@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:seed": "tsx scripts/seed-achievements.ts"
+    "db:seed": "tsx scripts/seed-all.ts",
+    "db:seed:achievements": "tsx scripts/seed-achievements.ts",
+    "db:seed:clients": "tsx scripts/seed-clients-products.ts",
+    "db:add-image": "tsx scripts/add-program-image.ts",
+    "db:add-all-images": "tsx scripts/add-all-program-images.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

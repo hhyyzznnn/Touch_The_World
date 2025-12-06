@@ -52,6 +52,7 @@ const config: Config = {
         },
         brand: {
           green: "#00954B",
+          "green-primary": "#2E6D45",
         },
         text: {
           gray: "#969696",
@@ -59,7 +60,9 @@ const config: Config = {
         },
       },
       fontFamily: {
+        sans: ["Pretendard", "-apple-system", "BlinkMacSystemFont", "system-ui", "Roboto", "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "sans-serif"],
         serif: ["var(--font-noto-serif)", "serif"],
+        display: ["var(--font-bona-nova)", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

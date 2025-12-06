@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export function Logo() {
   return (
-    <Link href="/" className="flex items-center h-20">
+    <Link href="/" className="flex items-center h-16 sm:h-24">
       <Image
         src="/ttw_logo.png"
         alt="Touch The World"

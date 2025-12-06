@@ -28,7 +28,7 @@ export default async function EditEventPage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">행사 수정</h1>
+      <h1 className="text-3xl font-medium mb-8">진행 내역 수정</h1>
       <EventForm event={event} />
     </div>
   );

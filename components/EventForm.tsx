@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import type { Event, EventImage, School, Program } from "@prisma/client";
+import { Calendar, X, Upload, Link as LinkIcon } from "lucide-react";
+import type { Event, EventImage, Program } from "@prisma/client";
 
 type EventWithRelations = Event & {
-  school: School;
+  school: { id: string; name: string };
   program: Program;
   images: EventImage[];
 };
@@ -18,33 +19,62 @@ interface EventFormProps {
 export function EventForm({ event }: EventFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [schools, setSchools] = useState<School[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
-  const [schoolId, setSchoolId] = useState(event?.schoolId || "");
+  const [schoolName, setSchoolName] = useState(event?.school.name || "");
   const [programId, setProgramId] = useState(event?.programId || "");
+  const [programName, setProgramName] = useState(event?.program.title || "");
+  const [useCustomProgram, setUseCustomProgram] = useState(!event?.programId);
+  // 기간 정보 파싱 (notes에서 "기간: YYYY-MM-DD ~ YYYY-MM-DD" 형식 추출)
+  const parseDateRange = (notes: string | null) => {
+    if (!notes) return { start: "", end: "" };
+    const match = notes.match(/기간:\s*(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})/);
+    if (match) {
+      return { start: match[1], end: match[2] };
+    }
+    return { start: "", end: "" };
+  };
+
+  const eventDateRange = event?.notes ? parseDateRange(event.notes) : { start: "", end: "" };
+  const hasDateRange = eventDateRange.start && eventDateRange.end;
+  
+  const [dateType, setDateType] = useState<"single" | "range">(hasDateRange ? "range" : "single");
   const [date, setDate] = useState(
     event ? new Date(event.date).toISOString().split("T")[0] : ""
   );
+  const [startDate, setStartDate] = useState(
+    hasDateRange ? eventDateRange.start : (event ? new Date(event.date).toISOString().split("T")[0] : "")
+  );
+  const [endDate, setEndDate] = useState(hasDateRange ? eventDateRange.end : "");
   const [location, setLocation] = useState(event?.location || "");
   const [studentCount, setStudentCount] = useState(
-    event?.studentCount.toString() || ""
+    event?.studentCount?.toString() || ""
+  );
+  // content에서 기간 정보 제거
+  const cleanContent = (notes: string | null) => {
+    if (!notes) return "";
+    return notes.replace(/\n기간:\s*\d{4}-\d{2}-\d{2}\s*~\s*\d{4}-\d{2}-\d{2}.*$/, "").trim();
+  };
+
+  const [content, setContent] = useState(cleanContent(event?.notes || null));
+  const [status, setStatus] = useState<"in_progress" | "completed">(
+    (event?.status as "in_progress" | "completed") || "in_progress"
   );
   const [imageUrls, setImageUrls] = useState<string[]>(
     event?.images.map((img) => img.url) || []
   );
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   useEffect(() => {
-    async function loadData() {
-      const [schoolsRes, programsRes] = await Promise.all([
-        fetch("/api/admin/schools"),
-        fetch("/api/admin/programs"),
-      ]);
-      const schoolsData = await schoolsRes.json();
-      const programsData = await programsRes.json();
-      setSchools(schoolsData);
-      setPrograms(programsData);
+    async function loadPrograms() {
+      try {
+        const res = await fetch("/api/admin/programs");
+        const data = await res.json();
+        setPrograms(data);
+      } catch (error) {
+        console.error("Failed to load programs:", error);
+      }
     }
-    loadData();
+    loadPrograms();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,21 +82,45 @@ export function EventForm({ event }: EventFormProps) {
     setIsSubmitting(true);
 
     try {
+      // 이미지 파일 업로드
+      const uploadedImageUrls: string[] = [];
+      for (const file of imageFiles) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const uploadRes = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (uploadRes.ok) {
+          const { url } = await uploadRes.json();
+          uploadedImageUrls.push(url);
+        }
+      }
+
+      const allImageUrls = [...imageUrls, ...uploadedImageUrls].filter(Boolean);
+
       const url = event
         ? `/api/admin/events/${event.id}`
         : "/api/admin/events";
       const method = event ? "PUT" : "POST";
 
+      const finalDate = dateType === "single" ? date : startDate;
+      const finalEndDate = dateType === "range" && endDate ? endDate : null;
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          schoolId,
-          programId,
-          date,
+          schoolName,
+          programId: useCustomProgram ? null : programId,
+          programName: useCustomProgram ? programName : null,
+          date: finalDate,
+          endDate: finalEndDate,
           location,
-          studentCount: parseInt(studentCount),
-          imageUrls,
+          studentCount: studentCount ? parseInt(studentCount) : null,
+          content,
+          status,
+          imageUrls: allImageUrls,
         }),
       });
 
@@ -74,9 +128,11 @@ export function EventForm({ event }: EventFormProps) {
         router.push("/admin/events");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        const error = await response.json();
+        alert(error.error || "저장에 실패했습니다.");
       }
     } catch (error) {
+      console.error("Submit error:", error);
       alert("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
@@ -97,118 +153,326 @@ export function EventForm({ event }: EventFormProps) {
     setImageUrls(imageUrls.filter((_, i) => i !== index));
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setImageFiles([...imageFiles, ...files]);
+  };
+
+  const removeImageFile = (index: number) => {
+    setImageFiles(imageFiles.filter((_, i) => i !== index));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
       <div>
         <label className="block text-sm font-medium mb-2">
           학교 <span className="text-red-500">*</span>
         </label>
-        <select
-          value={schoolId}
-          onChange={(e) => setSchoolId(e.target.value)}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        <input
+          type="text"
+          value={schoolName}
+          onChange={(e) => setSchoolName(e.target.value)}
+          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+          placeholder="학교명을 입력하세요"
           required
-        >
-          <option value="">선택하세요</option>
-          {schools.map((school) => (
-            <option key={school.id} value={school.id}>
-              {school.name}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">
           프로그램 <span className="text-red-500">*</span>
         </label>
-        <select
-          value={programId}
-          onChange={(e) => setProgramId(e.target.value)}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          required
-        >
-          <option value="">선택하세요</option>
-          {programs.map((program) => (
-            <option key={program.id} value={program.id}>
-              {program.title}
-            </option>
-          ))}
-        </select>
+        <div className="space-y-2">
+          {useCustomProgram ? (
+            <>
+              <input
+                type="text"
+                value={programName}
+                onChange={(e) => setProgramName(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="프로그램명을 입력하세요"
+                required
+              />
+              <div className="text-sm text-gray-600">
+                또는{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCustomProgram(false);
+                    setProgramName("");
+                  }}
+                  className="text-brand-green-primary hover:underline"
+                >
+                  목록에서 선택하기
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <select
+                value={programId}
+                onChange={(e) => setProgramId(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary bg-white text-gray-700 appearance-none cursor-pointer"
+                style={{ 
+                  accentColor: '#2E6D45',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232E6D45' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundSize: '12px 12px',
+                  paddingRight: '2.5rem'
+                }}
+                required
+              >
+                <option value="">프로그램을 선택하세요</option>
+                {programs.map((program) => (
+                  <option key={program.id} value={program.id}>
+                    {program.title}
+                  </option>
+                ))}
+              </select>
+              <div className="text-sm text-gray-600">
+                또는{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseCustomProgram(true);
+                    setProgramId("");
+                  }}
+                  className="text-brand-green-primary hover:underline"
+                >
+                  직접 입력하기
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">
           날짜 <span className="text-red-500">*</span>
         </label>
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          required
-        />
+        <div className="space-y-3">
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="dateType"
+                value="single"
+                checked={dateType === "single"}
+                onChange={(e) => setDateType("single")}
+                className="w-4 h-4 text-brand-green-primary focus:ring-brand-green-primary accent-brand-green-primary"
+                style={{ accentColor: '#2E6D45' }}
+              />
+              <span className="text-sm text-gray-700">단일 날짜</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="dateType"
+                value="range"
+                checked={dateType === "range"}
+                onChange={(e) => setDateType("range")}
+                className="w-4 h-4 text-brand-green-primary focus:ring-brand-green-primary accent-brand-green-primary"
+                style={{ accentColor: '#2E6D45' }}
+              />
+              <span className="text-sm text-gray-700">기간</span>
+            </label>
+          </div>
+          {dateType === "single" ? (
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary text-gray-700 bg-white"
+                required
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary text-gray-700 bg-white"
+                  placeholder="시작일"
+                  required
+                />
+              </div>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary text-gray-700 bg-white"
+                  placeholder="종료일"
+                  required={dateType === "range"}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">
-          장소 <span className="text-red-500">*</span>
-        </label>
+        <label className="block text-sm font-medium mb-2">장소</label>
         <input
           type="text"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          required
+          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+          placeholder="장소를 입력하세요"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">
-          학생 수 <span className="text-red-500">*</span>
-        </label>
+        <label className="block text-sm font-medium mb-2">학생 수</label>
         <input
           type="number"
           value={studentCount}
           onChange={(e) => setStudentCount(e.target.value)}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          min="1"
-          required
+          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+          placeholder="학생 수를 입력하세요"
+          min="0"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">상태</label>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="status"
+              value="in_progress"
+              checked={status === "in_progress"}
+              onChange={(e) => setStatus("in_progress")}
+              className="w-4 h-4 text-brand-green-primary focus:ring-brand-green-primary accent-brand-green-primary"
+              style={{ accentColor: '#2E6D45' }}
+            />
+            <span className="text-sm text-gray-700">진행 중</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="status"
+              value="completed"
+              checked={status === "completed"}
+              onChange={(e) => setStatus("completed")}
+              className="w-4 h-4 text-brand-green-primary focus:ring-brand-green-primary accent-brand-green-primary"
+              style={{ accentColor: '#2E6D45' }}
+            />
+            <span className="text-sm text-gray-700">완료</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-2">내용</label>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={6}
+          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary resize-none"
+          placeholder="진행 내역에 대한 내용을 작성하세요"
         />
       </div>
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <label className="block text-sm font-medium">이미지 URL</label>
-          <Button type="button" onClick={addImageUrl} variant="outline" size="sm">
-            이미지 추가
-          </Button>
-        </div>
-        <div className="space-y-4">
-          {imageUrls.map((url, index) => (
-            <div key={index} className="flex gap-4 items-start">
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => updateImageUrl(index, e.target.value)}
-                className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="https://example.com/image.jpg"
-              />
+          <label className="block text-sm font-medium">이미지</label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              onClick={addImageUrl}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <LinkIcon className="w-4 h-4" />
+              URL 추가
+            </Button>
+            <label className="cursor-pointer">
               <Button
                 type="button"
-                onClick={() => removeImageUrl(index)}
-                variant="destructive"
+                variant="outline"
                 size="sm"
+                className="flex items-center gap-1"
               >
-                삭제
+                <Upload className="w-4 h-4" />
+                파일 첨부
               </Button>
-            </div>
-          ))}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
         </div>
+
+        {/* 이미지 URL 목록 */}
+        {imageUrls.length > 0 && (
+          <div className="space-y-3 mb-4">
+            {imageUrls.map((url, index) => (
+              <div key={index} className="flex gap-3 items-start">
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => updateImageUrl(index, e.target.value)}
+                  className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <Button
+                  type="button"
+                  onClick={() => removeImageUrl(index)}
+                  variant="destructive"
+                  size="sm"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 이미지 파일 목록 */}
+        {imageFiles.length > 0 && (
+          <div className="space-y-3">
+            {imageFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 border rounded-md bg-gray-50"
+              >
+                <span className="flex-1 text-sm text-gray-700 truncate">
+                  {file.name}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+                <Button
+                  type="button"
+                  onClick={() => removeImageFile(index)}
+                  variant="destructive"
+                  size="sm"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="bg-brand-green-primary hover:bg-brand-green-primary/90">
           {isSubmitting ? "저장 중..." : "저장"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
@@ -218,4 +482,3 @@ export function EventForm({ event }: EventFormProps) {
     </form>
   );
 }
-
