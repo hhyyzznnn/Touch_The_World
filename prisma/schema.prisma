@@ -172,3 +172,75 @@ model Product {
   @@index([region])
 }
 
+model User {
+  id            String   @id @default(cuid())
+  email         String?  @unique
+  password      String?  // bcrypt 해시된 비밀번호 (소셜 로그인 시 null)
+  name          String
+  phone         String?
+  phoneVerified Boolean  @default(false)
+  school        String?  // 소속 학교
+  role          String   @default("user") // user, admin
+  emailVerified Boolean  @default(false)
+  image         String?  // 프로필 이미지 (소셜 로그인)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  emailVerifications EmailVerification[]
+  accounts          Account[]
+
+  @@index([email])
+  @@index([role])
+  @@index([emailVerified])
+  @@index([phoneVerified])
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model PhoneVerification {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  verified  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([code])
+  @@index([expiresAt])
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+

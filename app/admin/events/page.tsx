@@ -18,9 +18,9 @@ export default async function AdminEventsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">진행 내역 관리</h1>
-        <Button asChild>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold">진행 내역 관리</h1>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/admin/events/new">새 진행 내역 추가</Link>
         </Button>
       </div>
@@ -31,7 +31,8 @@ export default async function AdminEventsPage() {
         </div>
       ) : (
         <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -85,6 +86,7 @@ export default async function AdminEventsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

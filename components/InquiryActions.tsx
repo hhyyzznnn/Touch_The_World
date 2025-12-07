@@ -21,6 +21,11 @@ interface InquiryActionsProps {
 
 export function InquiryActions({ inquiry }: InquiryActionsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentInquiry, setCurrentInquiry] = useState(inquiry);
+
+  const handleStatusUpdate = (updatedInquiry: Inquiry) => {
+    setCurrentInquiry(updatedInquiry);
+  };
 
   return (
     <>
@@ -32,11 +37,28 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
         >
           내용 보기
         </Button>
-        {inquiry.status === "pending" && (
+        {currentInquiry.status === "pending" && (
           <form
-            action={`/api/admin/inquiries/${inquiry.id}`}
+            action={`/api/admin/inquiries/${currentInquiry.id}`}
             method="POST"
             className="inline"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const response = await fetch(`/api/admin/inquiries/${currentInquiry.id}`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ status: "completed" }),
+                });
+                if (response.ok) {
+                  window.location.reload();
+                }
+              } catch (error) {
+                console.error("Error updating status:", error);
+              }
+            }}
           >
             <Button type="submit" size="sm" variant="outline">
               완료 처리
@@ -45,9 +67,10 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
         )}
       </div>
       <InquiryDetailModal
-        inquiry={inquiry}
+        inquiry={currentInquiry}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onStatusUpdate={handleStatusUpdate}
       />
     </>
   );

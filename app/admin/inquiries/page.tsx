@@ -15,7 +15,7 @@ export default async function AdminInquiriesPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">문의 관리</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-8">문의 관리</h1>
 
       {inquiries.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
@@ -23,7 +23,8 @@ export default async function AdminInquiriesPage() {
         </div>
       ) : (
         <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -81,6 +82,7 @@ export default async function AdminInquiriesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

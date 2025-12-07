@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -19,14 +20,54 @@ interface InquiryDetailModalProps {
   inquiry: Inquiry | null;
   isOpen: boolean;
   onClose: () => void;
+  onStatusUpdate?: (inquiry: Inquiry) => void;
 }
 
 export function InquiryDetailModal({
   inquiry,
   isOpen,
   onClose,
+  onStatusUpdate,
 }: InquiryDetailModalProps) {
+  const [status, setStatus] = useState(inquiry?.status || "pending");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    if (inquiry) {
+      setStatus(inquiry.status);
+    }
+  }, [inquiry]);
+
   if (!isOpen || !inquiry) return null;
+
+  const handleStatusChange = async (newStatus: string) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/admin/inquiries/${inquiry.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        setStatus(newStatus);
+        if (onStatusUpdate) {
+          onStatusUpdate({ ...inquiry, status: newStatus });
+        }
+        // 페이지 새로고침하여 테이블 업데이트
+        window.location.reload();
+      } else {
+        alert("상태 변경에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Status update error:", error);
+      alert("상태 변경에 실패했습니다.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div
@@ -57,17 +98,37 @@ export function InquiryDetailModal({
             </div>
             <div>
               <label className="text-sm font-medium text-gray-500">상태</label>
-              <p className="mt-1">
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    inquiry.status === "pending"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-green-100 text-green-800"
-                  }`}
-                >
-                  {inquiry.status === "pending" ? "대기" : "완료"}
-                </span>
-              </p>
+              <div className="mt-1 flex items-center gap-3">
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="pending"
+                      checked={status === "pending"}
+                      onChange={(e) => handleStatusChange(e.target.value)}
+                      disabled={isUpdating}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">대기</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="status"
+                      value="completed"
+                      checked={status === "completed"}
+                      onChange={(e) => handleStatusChange(e.target.value)}
+                      disabled={isUpdating}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm">완료</span>
+                  </label>
+                </div>
+                {isUpdating && (
+                  <span className="text-xs text-gray-500">업데이트 중...</span>
+                )}
+              </div>
             </div>
           </div>
 

@@ -34,25 +34,32 @@
 - ✅ **홈페이지**: 히어로 섹션, 프로그램 카테고리, 핵심 가치, 최근 행사
 - ✅ **회사 소개**: 회사 정보, 핵심 가치, 연혁
 - ✅ **프로그램 목록/상세**: 카테고리별 필터링, 프로그램 상세 정보
-- ✅ **행사 포트폴리오**: 학교별/연도별 필터링, 행사 상세 페이지
-- ✅ **학교별 페이지**: 각 학교의 행사 기록 자동 생성
-- ✅ **사업 실적**: 연도별/기관별 필터링, 실적 목록
+- ✅ **행사 포트폴리오**: 연도/행사 종류/지역/키워드 필터링, 행사 목록
+- ✅ **사업 실적**: 연도별/기관별 필터링, 실적 목록, 최근 행사 섹션
 - ✅ **자료실**: 문서 다운로드
 - ✅ **문의하기**: 견적 요청 및 문의 폼
+- ✅ **소셜 미디어**: 인스타그램, 페이스북 링크
 
 #### 관리자 페이지
-- ✅ **프로그램 관리**: CRUD 기능
-- ✅ **행사 관리**: 행사 등록 및 관리
-- ✅ **학교 관리**: 학교 정보 관리
+- ✅ **대시보드**: 운영 현황 요약, 진행 중인 프로그램, 빠른 링크
+- ✅ **상품 관리**: 상품(프로그램) CRUD 기능, 이미지 업로드
+- ✅ **진행 내역 관리**: 행사 등록 및 관리, 상태 관리 (진행 중/완료)
+- ✅ **문의 관리**: 문의 내역 조회, 상세 보기 모달, 상태 변경 (대기/완료)
 - ✅ **사업 실적 관리**: 실적 등록 및 관리
-- ✅ **문의 관리**: 문의 내역 조회 및 상태 변경
 - ✅ **자료실 관리**: 문서 업로드 및 관리
+- ✅ **고객사 관리**: 고객사 정보 관리
+- ✅ **전역 검색**: 상품, 진행 내역, 학교 검색
+
+#### 기술적 기능
+- ✅ **이미지 업로드**: UploadThing 연동 (프로그램, 상품, 행사 이미지)
+- ✅ **파일 업로드**: 자료실 문서 업로드
+- ✅ **모바일 반응형**: 모든 페이지 모바일 최적화
+- ✅ **관리자 인증**: NextAuth 기반 인증 시스템
 
 ### 🔄 진행 중 / 예정
-- 이미지 업로드 기능 (UploadThing 연동)
-- 관리자 인증 시스템 완성
-- 검색 기능
 - 페이지네이션
+- 고급 검색 필터
+- 통계 및 리포트 기능
 
 ## 🗄️ 데이터베이스 스키마
 
@@ -60,12 +67,14 @@
 - **Program**: 프로그램 정보 (카테고리, 제목, 설명, 일정)
 - **ProgramImage**: 프로그램 이미지
 - **ProgramSchedule**: 프로그램 일정
+- **Product**: 상품 정보 (카테고리, 지역)
 - **School**: 학교 정보
-- **Event**: 행사 정보 (학교, 프로그램, 날짜, 장소, 학생 수)
+- **Event**: 행사 정보 (학교, 프로그램, 날짜, 장소, 학생 수, 상태, 메모)
 - **EventImage**: 행사 이미지
-- **Inquiry**: 문의 내역
+- **Inquiry**: 문의 내역 (학교명, 담당자, 연락처, 문의 내용, 상태)
 - **Document**: 자료실 문서
 - **Achievement**: 사업 실적 (기관, 연도, 내용)
+- **Client**: 고객사 정보
 
 ## 🏗️ 프로젝트 구조
 
@@ -76,11 +85,12 @@ Touch_The_World/
 │   ├── achievements/             # 사업 실적 페이지
 │   ├── admin/                    # 관리자 페이지
 │   │   ├── achievements/         # 사업 실적 관리
+│   │   ├── clients/             # 고객사 관리
 │   │   ├── documents/           # 자료실 관리
-│   │   ├── events/              # 행사 관리
+│   │   ├── events/              # 진행 내역 관리
 │   │   ├── inquiries/           # 문의 관리
-│   │   ├── programs/            # 프로그램 관리
-│   │   └── schools/             # 학교 관리
+│   │   ├── programs/            # 상품 관리
+│   │   └── products/           # 상품 관리 (기존)
 │   ├── api/                      # API 라우트
 │   │   ├── admin/               # 관리자 API
 │   │   └── inquiry/             # 문의 API
@@ -97,7 +107,10 @@ Touch_The_World/
 │   ├── Header.tsx                # 헤더
 │   ├── Footer.tsx                # 푸터
 │   ├── Logo.tsx                  # 로고
-│   ├── AdminNav.tsx              # 관리자 네비게이션
+│   ├── AdminNav.tsx              # 관리자 네비게이션 (모바일 반응형)
+│   ├── GlobalSearchBar.tsx       # 전역 검색 바
+│   ├── InquiryDetailModal.tsx    # 문의 상세 모달
+│   ├── InquiryActions.tsx        # 문의 작업 버튼
 │   └── *Form.tsx                 # 폼 컴포넌트들
 ├── lib/                          # 유틸리티 및 설정
 │   ├── constants.ts              # 상수 정의
@@ -137,20 +150,41 @@ npm install
 
 ```env
 # 데이터베이스 연결 문자열 (Supabase PostgreSQL)
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:6543/postgres?sslmode=require"
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:6543/postgres?sslmode=require&pgbouncer=true"
 
 # 관리자 로그인 비밀번호 (반드시 변경하세요!)
 ADMIN_PASSWORD="your-secure-password"
 
-# NextAuth 설정 (필요시)
+# NextAuth 설정
 NEXTAUTH_SECRET="your-nextauth-secret"
 NEXTAUTH_URL="http://localhost:3000"
+
+# 이메일 인증 (Resend) - 선택사항
+# 개발 환경에서는 설정하지 않으면 터미널에 인증 링크가 출력됩니다
+RESEND_API_KEY="re_xxxxxxxxxxxxx"
+RESEND_FROM_EMAIL="noreply@yourdomain.com"
+
+# SMS 인증 (Twilio) - 선택사항
+# 개발 환경에서는 설정하지 않으면 터미널에 인증 코드가 출력됩니다
+TWILIO_ACCOUNT_SID="your-twilio-account-sid"
+TWILIO_AUTH_TOKEN="your-twilio-auth-token"
+TWILIO_PHONE_NUMBER="+1234567890"
+
+# 소셜 로그인 (선택사항)
+KAKAO_CLIENT_ID="your-kakao-client-id"
+KAKAO_CLIENT_SECRET="your-kakao-client-secret"
+NAVER_CLIENT_ID="your-naver-client-id"
+NAVER_CLIENT_SECRET="your-naver-client-secret"
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 **중요**: 
 - `DATABASE_URL`을 실제 Supabase 연결 정보로 변경하세요
-- Supabase Connection Pooling을 사용하는 경우 포트는 `6543`을 사용하세요
+- Supabase Connection Pooling을 사용하는 경우 포트는 `6543`을 사용하고 `&pgbouncer=true`를 추가하세요
 - `.env` 파일은 Git에 커밋되지 않습니다 (`.gitignore`에 포함됨)
+- **이메일 인증**: `RESEND_API_KEY`를 설정하지 않으면 개발 환경에서 터미널에 인증 링크가 출력됩니다
+- **SMS 인증**: `TWILIO_ACCOUNT_SID`를 설정하지 않으면 개발 환경에서 터미널에 인증 코드가 출력됩니다
 
 **📚 데이터베이스 설정 가이드**: 
 → [DATABASE_SETUP.md](./DATABASE_SETUP.md) 파일을 참고하세요.
@@ -199,6 +233,12 @@ npm run db:push
 
 # 사업 실적 시드 데이터 추가
 npm run db:seed
+
+# 클라이언트 및 상품 시드 데이터 추가
+npm run db:seed:clients
+
+# 사업 실적만 시드 데이터 추가
+npm run db:seed:achievements
 ```
 
 ## 🎨 디자인 시스템
@@ -212,11 +252,20 @@ npm run db:seed
 ### 폰트
 - **본문**: Inter
 - **포인트**: Noto Serif KR (서체)
+- **폰트 굵기**: 주로 `font-medium` 사용 (일관성 있는 디자인)
 
 ### 주요 컴포넌트 스타일
 - 버튼: Primary (그린 배경), Secondary (아웃라인)
 - 카드: 흰색 배경, 그림자 효과, 호버 시 확대
 - 섹션: 회색 배경 (`bg-gray-50`)으로 구분
+- 입력 필드: 초록색 포커스 링 (`focus:ring-brand-green-primary`)
+- 라디오/체크박스: 초록색 강조 (`accent-color: #2E6D45`)
+
+### 반응형 디자인
+- **모바일 우선**: Mobile-first 접근 방식
+- **브레이크포인트**: `sm:`, `md:`, `lg:` 사용
+- **테이블**: 모바일에서 가로 스크롤 (`overflow-x-auto`)
+- **네비게이션**: 모바일에서 햄버거 메뉴
 
 ## 🔧 코드 최적화
 
@@ -225,11 +274,15 @@ npm run db:seed
 - ✅ 타입 안정성 개선: 타입 정의 파일 생성 (`types/index.ts`)
 - ✅ 이미지 최적화: Next.js Image 컴포넌트 `sizes` 속성 추가
 - ✅ 컴포넌트 재사용성 향상: 공통 상수 및 타입 활용
+- ✅ 모바일 반응형: 모든 페이지 모바일 최적화
+- ✅ 폼 검증: React Hook Form + Zod로 타입 안전한 폼 관리
 
 ### 코드 구조 개선
-- 상수 중앙 관리: 프로그램 카테고리, 회사 정보 등
+- 상수 중앙 관리: 프로그램 카테고리, 회사 정보, 소셜 미디어 링크 등
 - 타입 안정성: Prisma 타입 확장 및 공통 타입 정의
 - 컴포넌트 모듈화: 재사용 가능한 컴포넌트 구조
+- 모달 컴포넌트: 문의 상세 보기 등 재사용 가능한 모달
+- API 라우트: RESTful API 구조로 일관성 유지
 
 ## 📦 배포
 
@@ -242,6 +295,9 @@ npm run db:seed
    - `ADMIN_PASSWORD`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL`
+   - `RESEND_API_KEY` (이메일 인증용, 선택사항)
+   - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
+   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (SMS 인증용, 선택사항)
 4. 빌드 설정 확인:
    - Build Command: `npm run build`
    - Output Directory: `.next`
@@ -256,12 +312,36 @@ DATABASE_URL=your-database-url
 ADMIN_PASSWORD=your-admin-password
 NEXTAUTH_SECRET=your-nextauth-secret
 NEXTAUTH_URL=https://your-domain.vercel.app
+RESEND_API_KEY=re_xxxxxxxxxxxxx
+RESEND_FROM_EMAIL=noreply@yourdomain.com
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=+1234567890
 ```
+
+## 🎯 주요 업데이트 내역
+
+### 2025년 업데이트
+- ✅ 용어 정리: "프로그램" → "상품", "행사" → "진행 내역"
+- ✅ 문의 관리 개선: 상세 보기 모달, 상태 변경 기능
+- ✅ 이미지 업로드: UploadThing 연동 완료
+- ✅ 모바일 반응형: 모든 admin 페이지 모바일 최적화
+- ✅ 소셜 미디어: 인스타그램, 페이스북 링크 추가
+- ✅ Event 모델 확장: 상태(status), 메모(notes) 필드 추가
+- ✅ 행사 포트폴리오: 필터링 시스템 개선 (학교 제거, 연도 통합)
 
 ## 📚 추가 문서
 
+### 데이터베이스
 - [DATABASE_SETUP.md](./DATABASE_SETUP.md) - 데이터베이스 설정 가이드
 - [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) - Supabase 연결 가이드
+
+### 인증 기능 설정
+- [docs/SOCIAL_LOGIN_SETUP.md](./docs/SOCIAL_LOGIN_SETUP.md) - 소셜 로그인 설정 가이드 (카카오, 네이버, 구글)
+- [docs/KAKAO_LOGIN_REST_API.md](./docs/KAKAO_LOGIN_REST_API.md) - 카카오 로그인 REST API 상세 가이드
+- [docs/EMAIL_VERIFICATION_SETUP.md](./docs/EMAIL_VERIFICATION_SETUP.md) - 이메일 인증 설정 가이드 (Resend)
+- [docs/SMS_VERIFICATION_SETUP.md](./docs/SMS_VERIFICATION_SETUP.md) - SMS 인증 설정 가이드 (Twilio)
+- [docs/AUTH_IMPLEMENTATION.md](./docs/AUTH_IMPLEMENTATION.md) - 인증 기능 구현 가이드
 
 ## 🤝 기여
 

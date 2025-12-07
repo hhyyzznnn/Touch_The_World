@@ -28,9 +28,10 @@ async function getCategories() {
 export default async function ProgramsPage({
   searchParams,
 }: {
-  searchParams: { category?: string };
+  searchParams: Promise<{ category?: string }>;
 }) {
-  const programs = await getPrograms(searchParams.category);
+  const params = await searchParams;
+  const programs = await getPrograms(params.category);
   const categories = await getCategories();
 
   return (
@@ -40,8 +41,8 @@ export default async function ProgramsPage({
         <div className="flex flex-wrap gap-2">
           <Button
             asChild
-            variant={!searchParams.category ? "default" : "outline"}
-            className={!searchParams.category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
+            variant={!params.category ? "default" : "outline"}
+            className={!params.category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
           >
             <Link href="/programs">전체</Link>
           </Button>
@@ -49,8 +50,8 @@ export default async function ProgramsPage({
             <Button
               key={category}
               asChild
-              variant={searchParams.category === category ? "default" : "outline"}
-              className={searchParams.category === category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
+              variant={params.category === category ? "default" : "outline"}
+              className={params.category === category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
             >
               <Link href={`/programs?category=${encodeURIComponent(category)}`}>
                 {category}

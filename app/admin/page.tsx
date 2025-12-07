@@ -151,10 +151,10 @@ export default async function AdminDashboard() {
   const ongoingPrograms = await getOngoingPrograms();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-medium">대시보드</h1>
+          <h1 className="text-2xl sm:text-3xl font-medium">대시보드</h1>
           <p className="text-text-gray text-sm">운영 현황을 한눈에 확인하세요.</p>
         </div>
         <div className="w-full md:w-96">
@@ -205,13 +205,13 @@ export default async function AdminDashboard() {
       </div>
 
       {/* 진행 중인 프로그램 */}
-      <div className="bg-white p-5 rounded-xl border mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+      <div className="bg-white p-4 sm:p-5 rounded-xl border mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Activity className="w-5 h-5 text-brand-green-primary" />
             진행 중인 프로그램 ({ongoingPrograms.length}건)
           </h2>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
             <Link href="/admin/events">전체 보기</Link>
           </Button>
         </div>
@@ -223,20 +223,20 @@ export default async function AdminDashboard() {
               <Link
                 key={event.id}
                 href={`/admin/events/${event.id}/edit`}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 border rounded-lg hover:bg-gray-50 transition"
               >
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="font-medium">{event.program.title}</div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <div className="font-medium text-sm sm:text-base">{event.program.title}</div>
                     <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
                       진행 중
                     </span>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     {event.school.name} · {event.location} · 학생 {event.studentCount}명
                   </div>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500">
                   {format(new Date(event.date), "yyyy-MM-dd", { locale: ko })}
                 </div>
               </Link>
@@ -264,14 +264,14 @@ export default async function AdminDashboard() {
       </div>
 
       {/* 빠른 링크 */}
-      <div className="bg-white p-5 rounded-xl border mb-6">
+      <div className="bg-white p-4 sm:p-5 rounded-xl border mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Plus className="w-5 h-5 text-brand-green-primary" />
             빠른 링크
           </h2>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
             <Link href="/admin/programs/new" className="flex flex-col items-center gap-3">
               <BookOpen className="w-5 h-5" />
@@ -300,9 +300,9 @@ export default async function AdminDashboard() {
       </div>
 
       {/* 최근 활동 로그 */}
-      <div className="bg-white p-5 rounded-xl border mb-6">
+      <div className="bg-white p-4 sm:p-5 rounded-xl border mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
             <Activity className="w-5 h-5 text-brand-green-primary" />
             최근 활동 로그
           </h2>

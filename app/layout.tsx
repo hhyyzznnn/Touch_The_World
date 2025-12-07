@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
 import "./globals.css";
-import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
 
 const notoSerif = Noto_Serif_KR({ 
@@ -59,7 +59,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`}>
-        <ConditionalHeader />
+        <Header />
         <main className="min-h-screen">{children}</main>
         <ConditionalFooter />
       </body>

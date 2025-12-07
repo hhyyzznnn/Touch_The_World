@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Logo } from "./Logo";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { GlobalSearchBar } from "./GlobalSearchBar";
+import { UserMenu } from "./UserMenu";
 import { Menu, X, ChevronDown } from "lucide-react";
 
 export function Header() {
@@ -94,6 +95,11 @@ export function Header() {
             </Link>
           </nav>
 
+          {/* 사용자 메뉴 */}
+          <div className="hidden xl:flex items-center ml-6">
+            <UserMenu />
+          </div>
+
           {/* 모바일 햄버거 메뉴 버튼 */}
           <button
             onClick={toggleMenu}
@@ -180,6 +186,11 @@ export function Header() {
               >
                 견적 문의
               </Link>
+            </div>
+            
+            {/* 모바일 사용자 메뉴 */}
+            <div className="px-4 pt-4 border-t">
+              <UserMenu />
             </div>
           </nav>
         </div>
