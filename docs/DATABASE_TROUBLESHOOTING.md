@@ -46,26 +46,57 @@ DATABASE_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-1-ap-southeast-
 
 ### 3. 연결 문자열 형식 확인
 
-#### Connection Pooling 사용 (권장)
+#### Transaction Pooling (권장) - Prisma/Next.js에 최적화
 
-**포트 6543 사용:**
+**포트 6543, Transaction 모드:**
 ```env
 DATABASE_URL="postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_pw@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
 ```
 
 **특징:**
 - 포트: `6543` (Connection Pooling)
-- `pgbouncer=true` 파라미터 포함
-- `pooler.supabase.com` 도메인 사용
+- `pgbouncer=true` 파라미터 포함 (Transaction 모드)
+- Prisma 트랜잭션 완벽 지원
+- 연결 풀링으로 성능 최적화
+- **Prisma와 Next.js 사용 시 권장**
 
-#### 직접 연결 (대안)
+**장점:**
+- ✅ Prisma의 트랜잭션 기능 완벽 지원
+- ✅ 연결 수 제한 완화 (무료 플랜에서 중요)
+- ✅ 높은 동시성 처리
+- ✅ 프로덕션 환경에 최적화
+
+#### Session Pooling (대안)
+
+**포트 6543, Session 모드:**
+```env
+DATABASE_URL="postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_pw@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require"
+```
+
+**특징:**
+- 포트: `6543` (Connection Pooling)
+- `pgbouncer=true` 파라미터 없음 (Session 모드)
+- 세션 레벨 변수 사용 가능
+- Prepared statements 지원
+
+**사용 시기:**
+- 세션 레벨 설정이 필요한 경우
+- Prepared statements를 직접 사용하는 경우
+- Prisma를 사용하지 않는 경우
+
+**주의:** Prisma는 Session 모드에서 일부 제한이 있을 수 있습니다.
+
+#### 직접 연결 (비권장)
 
 **포트 5432 사용:**
 ```env
 DATABASE_URL="postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_pw@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
 ```
 
-**주의:** 직접 연결은 연결 수 제한이 있어 프로덕션에서는 권장하지 않습니다.
+**주의:** 
+- ❌ 연결 수 제한이 엄격함 (무료 플랜: 최대 4개)
+- ❌ 프로덕션 환경에서 권장하지 않음
+- ✅ 개발 환경에서만 사용 고려
 
 ### 4. Supabase에서 최신 연결 정보 확인
 
