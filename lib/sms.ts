@@ -16,18 +16,23 @@ export async function sendVerificationSMS(phone: string, code: string) {
   // 프로덕션: Twilio 사용
   try {
     // 동적 import로 twilio 모듈 로드 (프로덕션에서만)
+    // 빌드 시점에 모듈이 없어도 런타임에 처리
     let twilioModule;
     try {
+      // @ts-ignore - twilio는 optional dependency이므로 타입 체크 무시
       twilioModule = await import("twilio");
-    } catch (importError) {
+    } catch (importError: any) {
       // twilio가 설치되지 않은 경우 개발 모드로 처리
-      console.log("=".repeat(60));
-      console.log("📱 SMS 인증 코드 (개발 모드 - Twilio 미설치)");
-      console.log("=".repeat(60));
-      console.log(`받는 번호: ${phone}`);
-      console.log(`인증 코드: ${code}`);
-      console.log("=".repeat(60));
-      return { success: true };
+      if (importError?.code === "MODULE_NOT_FOUND" || importError?.message?.includes("Cannot find module")) {
+        console.log("=".repeat(60));
+        console.log("📱 SMS 인증 코드 (개발 모드 - Twilio 미설치)");
+        console.log("=".repeat(60));
+        console.log(`받는 번호: ${phone}`);
+        console.log(`인증 코드: ${code}`);
+        console.log("=".repeat(60));
+        return { success: true };
+      }
+      throw importError;
     }
 
     const twilio = twilioModule.default || twilioModule;

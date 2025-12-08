@@ -39,6 +39,9 @@
     "uploadthing": "^7.3.0",
     "zod": "^3.23.8"
   },
+  "optionalDependencies": {
+    "twilio": "^5.3.5"
+  },
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@types/react": "^19.0.1",
