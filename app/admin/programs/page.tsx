@@ -108,7 +108,6 @@ export default async function AdminProgramsPage() {
                 ))}
               </tbody>
             </table>
-            </div>
           </div>
         )}
       </div>
