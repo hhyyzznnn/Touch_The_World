@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 
 interface User {
   id: string;
-  email: string;
+  email: string | null;
   name: string;
   phone: string | null;
   school: string | null;
+  role?: string;
 }
 
 interface ProfileFormProps {
@@ -72,7 +73,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         </label>
         <input
           type="email"
-          value={user.email}
+          value={user.email || ""}
           disabled
           className="w-full px-4 py-2 border rounded-md bg-gray-50 text-gray-500"
         />

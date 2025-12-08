@@ -17,21 +17,24 @@ export function Footer() {
           </p>
           <div className="flex flex-col items-center">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 w-full">
-              {COMPANY_INFO.kakaoChannel ? (
-                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
-                  <a 
-                    href={typeof COMPANY_INFO.kakaoChannel === 'string' && COMPANY_INFO.kakaoChannel.startsWith('http') 
-                      ? COMPANY_INFO.kakaoChannel 
-                      : `https://pf.kakao.com/_${COMPANY_INFO.kakaoChannel}`}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    카카오톡 문의
-                  </a>
-                </Button>
-              ) : (
+              {(() => {
+                const kakaoChannel = COMPANY_INFO.kakaoChannel as string;
+                return kakaoChannel && kakaoChannel.length > 0 ? (
+                  <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
+                    <a 
+                      href={kakaoChannel.startsWith('http') 
+                        ? kakaoChannel 
+                        : `https://pf.kakao.com/_${kakaoChannel}`}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      카카오톡 문의
+                    </a>
+                  </Button>
+                ) : null;
+              })() || (
                 <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
                   <Link href="/inquiry" className="flex items-center justify-center gap-2">
                     <MessageCircle className="w-5 h-5" />
