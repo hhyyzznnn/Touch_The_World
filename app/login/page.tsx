@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SocialLoginButtons } from "@/components/SocialLoginButtons";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -144,6 +144,27 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-0 pb-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-6">
+          <div>
+            <h2 className="text-center text-3xl font-medium text-text-dark">
+              로그인
+            </h2>
+            <p className="mt-2 text-center text-sm text-text-gray">
+              로딩 중...
+            </p>
+          </div>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
 
