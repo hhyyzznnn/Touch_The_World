@@ -262,7 +262,7 @@ async function main() {
           priceTo: null,
           rating: null,
           reviewCount: 0,
-          thumbnailUrl: productData.imageUrl || null,
+          thumbnailUrl: ('imageUrl' in productData && typeof (productData as any).imageUrl === 'string' ? (productData as any).imageUrl : null),
         },
       });
       programCount++;

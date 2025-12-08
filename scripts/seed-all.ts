@@ -425,11 +425,17 @@ async function main() {
 
   // 3. 행사 데이터 생성
   console.log("🎉 행사 데이터 생성 중...");
+  
+  // null 체크
+  if (!schools[0] || !programs[0]) {
+    throw new Error("학교 또는 프로그램 데이터가 없습니다.");
+  }
+  
   const events = await Promise.all([
     prisma.event.create({
       data: {
-        schoolId: schools[0].id,
-        programId: programs[0].id,
+        schoolId: schools[0]!.id,
+        programId: programs[0]!.id,
         date: new Date("2024-05-15"),
         location: "제주도",
         studentCount: 120,
@@ -447,8 +453,8 @@ async function main() {
     }),
     prisma.event.create({
       data: {
-        schoolId: schools[1].id,
-        programId: programs[1].id,
+        schoolId: schools[1]!.id,
+        programId: programs[1]!.id,
         date: new Date("2024-06-20"),
         location: "부산",
         studentCount: 150,
@@ -463,8 +469,8 @@ async function main() {
     }),
     prisma.event.create({
       data: {
-        schoolId: schools[2].id,
-        programId: programs[2].id,
+        schoolId: schools[2]!.id,
+        programId: programs[2]!.id,
         date: new Date("2024-04-10"),
         location: "경주",
         studentCount: 200,
@@ -479,8 +485,8 @@ async function main() {
     }),
     prisma.event.create({
       data: {
-        schoolId: schools[0].id,
-        programId: programs[3].id,
+        schoolId: schools[0]!.id,
+        programId: programs[3]!.id,
         date: new Date("2024-07-05"),
         location: "일본 도쿄",
         studentCount: 80,
@@ -495,8 +501,8 @@ async function main() {
     }),
     prisma.event.create({
       data: {
-        schoolId: schools[1].id,
-        programId: programs[4].id,
+        schoolId: schools[1]!.id,
+        programId: programs[4]!.id,
         date: new Date("2024-08-15"),
         location: "서울",
         studentCount: 100,
@@ -511,8 +517,8 @@ async function main() {
     }),
     prisma.event.create({
       data: {
-        schoolId: schools[2].id,
-        programId: programs[5].id,
+        schoolId: schools[2]!.id,
+        programId: programs[5]!.id,
         date: new Date("2024-09-20"),
         location: "서울",
         studentCount: 180,
