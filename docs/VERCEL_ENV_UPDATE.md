@@ -62,9 +62,19 @@ postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_pw@aws-1-ap-sou
 ### 여전히 연결 오류가 발생하면
 
 1. **환경 변수 형식 확인:**
-   - 포트가 `6543`인지 확인
+   - 포트가 `6543`인지 확인 (에러 메시지에 `:5432`가 보이면 아직 업데이트 안 됨)
    - `pgbouncer=true` 파라미터가 있는지 확인
-   - 따옴표가 올바르게 설정되었는지 확인
+   - **Vercel에서는 따옴표 없이 입력**: `"..."` 형태가 아닌 그냥 값만 입력
+   - 환경 변수 저장 후 재배포가 완료되었는지 확인
+
+2. **재배포 강제 실행:**
+   - Deployments 탭에서 최신 배포 클릭
+   - **Redeploy** 버튼 클릭
+   - 또는 환경 변수 저장 후 자동 재배포 대기 (몇 분 소요)
+
+3. **환경 변수 값 확인:**
+   - Settings > Environment Variables에서 `DATABASE_URL` 값 직접 확인
+   - 복사해서 텍스트 에디터에 붙여넣어 포트 번호 확인
 
 2. **Supabase 프로젝트 상태 확인:**
    - Supabase Dashboard에서 프로젝트가 Active 상태인지 확인

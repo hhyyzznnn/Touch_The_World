@@ -13,13 +13,13 @@
 연결 문자열은 `.env` 파일의 `DATABASE_URL`에 설정되어 있습니다.
 
 ```env
-DATABASE_URL="postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_pw@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require&connection_limit=10&pool_timeout=20"
+DATABASE_URL="postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_pw@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
 ```
 
 ### 연결 파라미터 설명
 - `sslmode=require`: SSL 연결 필수
-- `connection_limit=10`: 최대 연결 수 제한
-- `pool_timeout=20`: 연결 풀 타임아웃 (초)
+- `pgbouncer=true`: Transaction Pooling 모드 (Prisma에 최적화)
+- 포트 `6543`: Connection Pooling 사용 (포트 5432는 직접 연결, 비권장)
 
 ### 연결 오류 해결 방법
 

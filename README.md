@@ -362,6 +362,7 @@ TWILIO_PHONE_NUMBER=+1234567890
 - [DATABASE_SETUP.md](./DATABASE_SETUP.md) - 데이터베이스 설정 가이드
 - [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) - Supabase 연결 가이드
 - [docs/DATABASE_TROUBLESHOOTING.md](./docs/DATABASE_TROUBLESHOOTING.md) - 데이터베이스 연결 오류 해결 가이드
+- [docs/QUICK_FIX_DATABASE.md](./docs/QUICK_FIX_DATABASE.md) - 데이터베이스 연결 오류 빠른 해결 가이드
 
 ### 인증 기능 설정
 - [docs/SOCIAL_LOGIN_SETUP.md](./docs/SOCIAL_LOGIN_SETUP.md) - 소셜 로그인 설정 가이드 (카카오, 네이버, 구글)
