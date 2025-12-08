@@ -365,6 +365,9 @@ TWILIO_PHONE_NUMBER=+1234567890
 - [docs/SMS_VERIFICATION_SETUP.md](./docs/SMS_VERIFICATION_SETUP.md) - SMS 인증 설정 가이드 (Twilio)
 - [docs/AUTH_IMPLEMENTATION.md](./docs/AUTH_IMPLEMENTATION.md) - 인증 기능 구현 가이드
 
+### 도메인 연결
+- [docs/DOMAIN_SETUP.md](./docs/DOMAIN_SETUP.md) - 가비아 도메인을 Vercel에 연결하는 가이드
+
 ## 🤝 기여
 
 이 프로젝트는 터치더월드의 내부 프로젝트입니다.
