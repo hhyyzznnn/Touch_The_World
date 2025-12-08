@@ -368,6 +368,9 @@ TWILIO_PHONE_NUMBER=+1234567890
 ### 도메인 연결
 - [docs/DOMAIN_SETUP.md](./docs/DOMAIN_SETUP.md) - 가비아 도메인을 Vercel에 연결하는 가이드
 
+### 모니터링 및 로깅
+- [docs/VERCEL_MONITORING.md](./docs/VERCEL_MONITORING.md) - Vercel 에러 모니터링 및 로그 확인 가이드
+
 ## 🤝 기여
 
 이 프로젝트는 터치더월드의 내부 프로젝트입니다.
