@@ -82,17 +82,22 @@ postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-1-ap-southeast-1.pooler.supab
 
 ## 🔧 해결 방법
 
-### 방법 1: Connection Pooling 포트 변경 (6543)
+### 방법 1: Transaction Pooling으로 변경 (권장)
 
-현재 포트 5432를 사용 중이라면 6543으로 변경:
+현재 포트 5432 또는 Session 모드를 사용 중이라면 Transaction Pooling으로 변경:
 
 ```env
-# 기존 (포트 5432)
+# 기존 (포트 5432 - 직접 연결)
 DATABASE_URL="...@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres..."
 
-# 수정 (포트 6543)
+# 수정 (포트 6543 - Transaction Pooling, 권장)
 DATABASE_URL="...@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
 ```
+
+**중요:**
+- 포트 `6543` 사용
+- `pgbouncer=true` 파라미터 포함 (Transaction 모드)
+- Prisma와 Next.js에 최적화
 
 ### 방법 2: Supabase에서 최신 연결 정보 가져오기
 

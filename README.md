@@ -182,8 +182,12 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 **중요**: 
 - `DATABASE_URL`을 실제 Supabase 연결 정보로 변경하세요
-- Supabase Connection Pooling을 사용하는 경우 포트는 `6543`을 사용하고 `&pgbouncer=true`를 추가하세요
+- **Prisma + Next.js 사용 시 Transaction Pooling 권장**: 포트 `6543` 사용하고 `&pgbouncer=true` 추가
+  ```env
+  DATABASE_URL="postgresql://...@pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
+  ```
 - `.env` 파일은 Git에 커밋되지 않습니다 (`.gitignore`에 포함됨)
+- 상세한 연결 모드 비교는 [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) 참고
 - **이메일 인증**: `RESEND_API_KEY`를 설정하지 않으면 개발 환경에서 터미널에 인증 링크가 출력됩니다
 - **SMS 인증**: `TWILIO_ACCOUNT_SID`를 설정하지 않으면 개발 환경에서 터미널에 인증 코드가 출력됩니다
 
