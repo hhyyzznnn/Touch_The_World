@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import Image from "next/image";
 import { Building2, GraduationCap, Globe, Briefcase } from "lucide-react";
 
 async function getClients() {
@@ -99,9 +100,11 @@ export default async function ClientsPage() {
                       >
                         <div className="flex items-start gap-4">
                           {client.logoUrl ? (
-                            <img
+                            <Image
                               src={client.logoUrl}
                               alt={client.name}
+                              width={48}
+                              height={48}
                               className="w-12 h-12 object-contain"
                             />
                           ) : (

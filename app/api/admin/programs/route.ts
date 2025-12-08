@@ -18,7 +18,15 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const body = await parseRequestBody(request);
+    const body = await parseRequestBody<{
+      title: string;
+      category: string;
+      summary?: string;
+      description?: string;
+      schedules?: Array<{ day: number; description: string }>;
+      imageUrls?: string[];
+      thumbnailUrl?: string;
+    }>(request);
     const { title, category, summary, description, schedules, imageUrls, thumbnailUrl } = body;
 
     const program = await prisma.program.create({

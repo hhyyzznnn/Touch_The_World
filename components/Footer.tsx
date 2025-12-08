@@ -20,7 +20,7 @@ export function Footer() {
               {COMPANY_INFO.kakaoChannel ? (
                 <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
                   <a 
-                    href={COMPANY_INFO.kakaoChannel.startsWith('http') 
+                    href={typeof COMPANY_INFO.kakaoChannel === 'string' && COMPANY_INFO.kakaoChannel.startsWith('http') 
                       ? COMPANY_INFO.kakaoChannel 
                       : `https://pf.kakao.com/_${COMPANY_INFO.kakaoChannel}`}
                     target="_blank" 

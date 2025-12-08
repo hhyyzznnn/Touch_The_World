@@ -100,7 +100,7 @@ export default async function SearchPage({
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">
-          {query ? `"${query}" 검색 결과` : "검색"}
+          {query ? `&quot;${query}&quot; 검색 결과` : "검색"}
         </h1>
         {query && (
           <p className="text-text-gray">
@@ -115,7 +115,7 @@ export default async function SearchPage({
         </div>
       ) : totalResults === 0 ? (
         <div className="text-center py-12 text-text-gray">
-          "{query}"에 대한 검색 결과가 없습니다.
+          &quot;{query}&quot;에 대한 검색 결과가 없습니다.
         </div>
       ) : (
         <div className="space-y-12">

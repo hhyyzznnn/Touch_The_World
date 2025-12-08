@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, MapPin, Users, Building2 } from "lucide-react";
 
 async function getProducts() {
@@ -94,11 +95,13 @@ export default async function ProductsPage() {
                       className="p-6 border-2 border-gray-200 rounded-xl bg-white hover:border-brand-green hover:shadow-lg transition-all group"
                     >
                       {product.imageUrl && (
-                        <div className="mb-4 aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                          <img
+                        <div className="mb-4 aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+                          <Image
                             src={product.imageUrl}
                             alt={product.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover group-hover:scale-105 transition-transform duration-200"
                           />
                         </div>
                       )}

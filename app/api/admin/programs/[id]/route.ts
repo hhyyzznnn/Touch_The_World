@@ -11,7 +11,15 @@ export async function PUT(
 
   try {
     const { id } = await params;
-    const body = await parseRequestBody(request);
+    const body = await parseRequestBody<{
+      title: string;
+      category: string;
+      summary?: string;
+      description?: string;
+      schedules?: Array<{ day: number; description: string }>;
+      imageUrls?: string[];
+      thumbnailUrl?: string;
+    }>(request);
     const { title, category, summary, description, schedules, imageUrls, thumbnailUrl } = body;
 
     // 기존 일정 및 이미지 삭제
