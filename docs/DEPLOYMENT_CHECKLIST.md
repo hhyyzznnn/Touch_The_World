@@ -28,7 +28,7 @@
 - [ ] 구조화된 데이터 (JSON-LD)
 
 ### 5. 성능 최적화
-- [ ] 이미지 최적화 확인 (Next.js Image 컴포넌트 사용 중)
+- [x] 이미지 최적화 확인 (Next.js Image 컴포넌트 사용 중) - ✅ 모든 `<img>` 태그를 `<Image>`로 변경 완료
 - [ ] 페이지 로딩 상태 개선 (Skeleton UI)
 - [ ] API 응답 캐싱 전략
 - [ ] 번들 크기 최적화 확인
@@ -139,9 +139,13 @@ GOOGLE_CLIENT_SECRET=...
 ## 📝 배포 체크리스트
 
 ### 배포 전 최종 확인
-- [ ] 모든 필수 환경 변수 설정
-- [ ] 데이터베이스 마이그레이션 완료
-- [ ] 빌드 테스트 통과 (`npm run build`)
+- [x] 모든 필수 환경 변수 설정
+- [x] 데이터베이스 마이그레이션 완료
+- [x] 빌드 테스트 통과 (`npm run build`) - ✅ Next.js 15 호환성 문제 해결 완료
+- [x] TypeScript 타입 오류 수정 완료
+- [x] Prisma Client 빌드 시 자동 생성 설정 완료
+- [x] NextAuth v5 라우트 핸들러 호환성 해결 완료
+- [x] useSearchParams Suspense boundary 설정 완료
 - [ ] 프로덕션 환경 테스트
 - [ ] 관리자 계정 생성 및 테스트
 - [ ] 주요 페이지 접근 테스트
@@ -150,12 +154,22 @@ GOOGLE_CLIENT_SECRET=...
 - [ ] 문의 폼 테스트
 
 ### 배포 후 확인
+- [x] Vercel 배포 성공 - ✅ 빌드 오류 모두 해결 완료
 - [ ] 도메인 연결 확인
-- [ ] SSL 인증서 확인
+- [ ] SSL 인증서 확인 (Vercel 자동 설정)
 - [ ] 모든 페이지 정상 작동 확인
 - [ ] 관리자 페이지 접근 확인
 - [ ] 에러 로깅 작동 확인
 - [ ] 성능 모니터링 확인
+
+### 해결된 배포 문제들 ✅
+- ✅ Next.js 15 호환성: params와 searchParams를 Promise 타입으로 변경
+- ✅ NextAuth v5: handlers를 올바르게 export
+- ✅ Suspense Boundary: useSearchParams()를 Suspense로 감싸기
+- ✅ Prisma Client: 빌드 시 자동 생성 설정
+- ✅ TypeScript 타입 오류: 모든 타입 오류 수정 완료
+- ✅ ESLint 오류: 이스케이프 따옴표, img 태그 경고 해결
+- ✅ JSX 구문 오류: 중복 닫는 태그 수정
 
 ---
 

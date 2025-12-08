@@ -22,9 +22,10 @@
 
 ### 개발 도구
 - **패키지 관리**: npm
-- **타입 체크**: TypeScript
+- **타입 체크**: TypeScript 5.7
 - **린터**: ESLint + Next.js Config
 - **빌드 도구**: Next.js Built-in
+- **선택적 의존성**: Twilio (SMS 인증용, optional)
 
 ## 📋 주요 기능
 
@@ -286,6 +287,11 @@ npm run db:seed:achievements
 
 ## 📦 배포
 
+### ✅ 배포 상태
+- **현재 상태**: Vercel에 성공적으로 배포 완료
+- **빌드 상태**: 모든 오류 해결 완료
+- **호환성**: Next.js 15, NextAuth v5 완전 호환
+
 ### Vercel 배포
 
 1. GitHub에 프로젝트를 푸시
@@ -294,14 +300,20 @@ npm run db:seed:achievements
    - `DATABASE_URL`
    - `ADMIN_PASSWORD`
    - `NEXTAUTH_SECRET`
-   - `NEXTAUTH_URL`
+   - `NEXTAUTH_URL` (배포된 도메인 URL)
    - `RESEND_API_KEY` (이메일 인증용, 선택사항)
    - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (SMS 인증용, 선택사항)
 4. 빌드 설정 확인:
-   - Build Command: `npm run build`
+   - Build Command: `npm run build` (자동으로 `prisma generate` 포함)
    - Output Directory: `.next`
+   - Install Command: `npm install` (기본값)
 5. 배포 완료 후 데이터베이스 연결 확인
+
+**참고**: 
+- Prisma Client는 빌드 과정에서 자동으로 생성됩니다 (`package.json`의 `build` 스크립트에 포함)
+- Next.js 15와 NextAuth v5 호환성 문제는 모두 해결되었습니다
+- 모든 타입 오류와 빌드 경고가 해결되어 안정적으로 배포됩니다
 
 ### 환경 변수 설정 (Vercel)
 
@@ -322,6 +334,16 @@ TWILIO_PHONE_NUMBER=+1234567890
 ## 🎯 주요 업데이트 내역
 
 ### 2025년 업데이트
+
+#### 최근 업데이트 (배포 최적화)
+- ✅ **Next.js 15 호환성**: params와 searchParams를 Promise 타입으로 변경
+- ✅ **NextAuth v5**: handlers를 올바르게 export하여 라우트 핸들러 호환성 확보
+- ✅ **Suspense Boundary**: useSearchParams()를 Suspense로 감싸서 빌드 오류 해결
+- ✅ **Prisma Client**: Vercel 빌드 시 자동 생성 설정 추가
+- ✅ **타입 안정성**: 모든 TypeScript 타입 오류 수정
+- ✅ **빌드 최적화**: ESLint 오류 및 이미지 최적화 경고 해결
+
+#### 기능 업데이트
 - ✅ 용어 정리: "프로그램" → "상품", "행사" → "진행 내역"
 - ✅ 문의 관리 개선: 상세 보기 모달, 상태 변경 기능
 - ✅ 이미지 업로드: UploadThing 연동 완료
