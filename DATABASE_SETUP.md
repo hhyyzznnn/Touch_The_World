@@ -22,11 +22,20 @@ DATABASE_URL="postgresql://postgres.futafhvqfxktxnraqbhd:tTw_2025%21Project_DB_p
 - `pool_timeout=20`: 연결 풀 타임아웃 (초)
 
 ### 연결 오류 해결 방법
-만약 `Error { kind: Closed, cause: None }` 오류가 발생하면:
-1. Supabase 프로젝트가 활성화되어 있는지 확인
-2. 연결 문자열이 올바른지 확인
-3. 네트워크 연결 상태 확인
-4. 개발 서버 재시작: `npm run dev`
+
+**일반적인 오류:**
+- `Can't reach database server`: 연결 문자열 또는 Supabase 프로젝트 상태 확인
+- `Error { kind: Closed, cause: None }`: 연결이 끊어짐, 재시도 필요
+
+**빠른 해결:**
+1. Supabase 프로젝트가 활성화되어 있는지 확인 (일시 중지된 경우 재개)
+2. 연결 문자열이 올바른지 확인 (포트 6543 권장)
+3. Vercel 환경 변수 확인 (프로덕션 환경)
+4. 네트워크 연결 상태 확인
+5. 개발 서버 재시작: `npm run dev`
+
+**상세한 문제 해결 가이드:**
+→ [docs/DATABASE_TROUBLESHOOTING.md](./docs/DATABASE_TROUBLESHOOTING.md) 파일을 참고하세요.
 
 ## 📋 주요 명령어
 

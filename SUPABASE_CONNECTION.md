@@ -13,15 +13,20 @@ IPv4/IPv6 호환 문제로 인해 Supabase Connection Pooler를 사용해야 합
 
 일반적으로 다음과 같은 형식입니다:
 
+**Transaction 모드 (권장):**
 ```
-postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true
 ```
 
-또는 Transaction 모드:
+**Session 모드:**
+```
+postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
+```
 
-```
-postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true
-```
+**중요:**
+- 포트 `6543` 사용 (Connection Pooling)
+- 포트 `5432`는 직접 연결용 (프로덕션에서 권장하지 않음)
+- `pgbouncer=true` 파라미터는 Transaction 모드에서 사용
 
 ## 현재 설정
 
