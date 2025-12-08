@@ -1,10 +1,11 @@
+import NextAuth from "next-auth";
 import KakaoProvider from "next-auth/providers/kakao";
 import NaverProvider from "next-auth/providers/naver";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
-export const authOptions = {
+export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma) as any,
   providers: [
     KakaoProvider({
@@ -105,4 +106,4 @@ export const authOptions = {
   pages: {
     signIn: "/login",
   },
-};
+});
