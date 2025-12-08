@@ -20,9 +20,10 @@ async function getCategories() {
 export default async function DocumentsPage({
   searchParams,
 }: {
-  searchParams: { category?: string };
+  searchParams: Promise<{ category?: string }>;
 }) {
-  const documents = await getDocuments(searchParams.category);
+  const params = await searchParams;
+  const documents = await getDocuments(params.category);
   const categories = await getCategories();
 
   return (
@@ -37,7 +38,7 @@ export default async function DocumentsPage({
             <a
               href="/documents"
               className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                !searchParams.category
+                !params.category
                   ? "bg-brand-green-primary text-white hover:bg-brand-green-primary/90"
                   : "bg-white border border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
               }`}
@@ -49,7 +50,7 @@ export default async function DocumentsPage({
                 key={category}
                 href={`/documents?category=${encodeURIComponent(category)}`}
                 className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  searchParams.category === category
+                  params.category === category
                     ? "bg-brand-green-primary text-white hover:bg-brand-green-primary/90"
                     : "bg-white border border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
                 }`}

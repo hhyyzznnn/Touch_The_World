@@ -4,25 +4,26 @@ import { requireAdmin, apiError, apiSuccess, parseRequestBody } from "@/lib/api-
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin();
   if (authError) return authError;
 
   try {
+    const { id } = await params;
     const body = await parseRequestBody(request);
     const { title, category, summary, description, schedules, imageUrls, thumbnailUrl } = body;
 
     // 기존 일정 및 이미지 삭제
     await prisma.programSchedule.deleteMany({
-      where: { programId: params.id },
+      where: { programId: id },
     });
     await prisma.programImage.deleteMany({
-      where: { programId: params.id },
+      where: { programId: id },
     });
 
     const program = await prisma.program.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         category,
@@ -49,14 +50,15 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin();
   if (authError) return authError;
 
   try {
+    const { id } = await params;
     await prisma.program.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return apiSuccess({ success: true });

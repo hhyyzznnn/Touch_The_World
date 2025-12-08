@@ -84,9 +84,10 @@ async function searchAll(query: string) {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const query = searchParams.q || "";
+  const params = await searchParams;
+  const query = params.q || "";
   const results = await searchAll(query);
 
   const totalResults =

@@ -19,9 +19,10 @@ async function getProgram(id: string) {
 export default async function EditProgramPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const program = await getProgram(params.id);
+  const { id } = await params;
+  const program = await getProgram(id);
 
   if (!program) {
     notFound();

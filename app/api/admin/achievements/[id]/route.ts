@@ -4,18 +4,19 @@ import { isAdmin } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const body = await request.json();
     const { institution, year, content } = body;
 
     const achievement = await prisma.achievement.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         institution,
         year: parseInt(year),
@@ -35,15 +36,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     await prisma.achievement.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

@@ -4,13 +4,14 @@ import { isAdmin } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
@@ -22,7 +23,7 @@ export async function POST(
     }
 
     await prisma.inquiry.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
     });
 
@@ -38,13 +39,14 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
@@ -56,7 +58,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.inquiry.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
     });
 

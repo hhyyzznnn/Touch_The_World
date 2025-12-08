@@ -4,18 +4,19 @@ import { isAdmin } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, logoUrl, themeColor } = body;
 
     const school = await prisma.school.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         logoUrl: logoUrl || null,

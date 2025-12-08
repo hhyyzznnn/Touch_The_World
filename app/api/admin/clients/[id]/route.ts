@@ -4,15 +4,16 @@ import { isAdmin } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const client = await prisma.client.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!client) {
@@ -34,18 +35,19 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     const body = await request.json();
     const { name, type, country, logoUrl, description } = body;
 
     const client = await prisma.client.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         type,
@@ -67,15 +69,16 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { id } = await params;
     await prisma.client.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

@@ -11,9 +11,10 @@ async function getAchievement(id: string) {
 export default async function EditAchievementPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const achievement = await getAchievement(params.id);
+  const { id } = await params;
+  const achievement = await getAchievement(id);
 
   if (!achievement) {
     notFound();

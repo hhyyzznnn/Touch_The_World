@@ -18,9 +18,10 @@ async function getEvent(id: string) {
 export default async function EditEventPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const event = await getEvent(params.id);
+  const { id } = await params;
+  const event = await getEvent(id);
 
   if (!event) {
     notFound();

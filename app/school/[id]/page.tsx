@@ -32,9 +32,10 @@ async function getSchool(id: string) {
 export default async function SchoolPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const school = await getSchool(params.id);
+  const { id } = await params;
+  const school = await getSchool(id);
 
   if (!school) {
     notFound();
