@@ -16,8 +16,13 @@ Can't reach database server at `aws-1-ap-southeast-1.pooler.supabase.com:5432`
 2. 프로젝트 선택
 3. **Settings** → **Environment Variables**
 4. `DATABASE_URL` 찾기
-5. **Edit** 클릭
-6. 값 확인: **포트가 `:5432`인지 `:6543`인지 확인**
+5. **중요**: 환경 변수가 어떤 환경에 설정되어 있는지 확인
+   - **Production** (프로덕션 배포용)
+   - **Preview** (프리뷰 배포용)
+   - **Development** (로컬 개발용)
+6. **Edit** 클릭
+7. 값 확인: **포트가 `:5432`인지 `:6543`인지 확인**
+8. **모든 환경에 설정되어 있는지 확인** (Production, Preview 체크)
 
 **만약 `:5432`라면:**
 - `:5432` → `:6543`으로 변경
@@ -101,19 +106,56 @@ postgresql://...@pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=tru
 
 ## 🆘 여전히 안 되면
 
-1. **Supabase 프로젝트 상태 확인:**
-   - [Supabase Dashboard](https://supabase.com/dashboard)
-   - 프로젝트가 **Active** 상태인지 확인
-   - 일시 중지된 경우 **Restore Project** 클릭
+### 1. 환경 변수 환경 확인 (중요!)
 
-2. **Supabase에서 최신 연결 정보 가져오기:**
-   - Settings > Database > Connection Pooling
-   - **Transaction** 모드 URL 복사
-   - Vercel 환경 변수에 붙여넣기
+Vercel은 환경 변수를 3가지 환경으로 나눕니다:
+- **Production**: 프로덕션 도메인 배포
+- **Preview**: PR/브랜치별 프리뷰 배포
+- **Development**: 로컬 개발 (vercel dev)
 
-3. **Vercel 로그 확인:**
-   - Deployments > Functions 탭
-   - 에러 메시지 자세히 확인
+**확인 방법:**
+1. Settings > Environment Variables
+2. `DATABASE_URL` 옆에 체크박스 확인:
+   - ✅ Production 체크되어 있는지
+   - ✅ Preview 체크되어 있는지
+3. **모두 체크되어 있어야 합니다!**
+
+**수정 방법:**
+1. `DATABASE_URL` Edit 클릭
+2. **Production** 체크박스 확인
+3. **Preview** 체크박스 확인
+4. Save 클릭
+
+### 2. Supabase 프로젝트 상태 확인
+
+1. [Supabase Dashboard](https://supabase.com/dashboard) 접속
+2. 프로젝트 `futafhvqfxktxnraqbhd` 선택
+3. 프로젝트 상태 확인:
+   - ✅ **Active**: 정상
+   - ⏸️ **Paused**: 일시 중지됨 → **Restore Project** 클릭
+   - ❌ **Deleted**: 삭제됨
+
+### 3. Supabase에서 최신 연결 정보 가져오기
+
+1. Supabase Dashboard > Settings > Database
+2. **Connection Pooling** 섹션
+3. **Transaction** 모드 URL 복사
+4. Vercel 환경 변수에 붙여넣기 (모든 환경에)
+
+### 4. Vercel 로그 확인
+
+1. Deployments > 최신 배포 클릭
+2. **Functions** 탭
+3. 에러 메시지 자세히 확인
+4. **Build Logs**에서 Prisma 연결 시도 확인
+
+### 5. 강제 재배포
+
+환경 변수를 수정했는데도 재배포가 안 되면:
+1. Deployments 탭
+2. 최신 배포 클릭
+3. **Redeploy** 버튼 클릭
+4. 배포 완료 대기
 
 ---
 
