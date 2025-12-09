@@ -29,12 +29,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password, name, phone, school } = await request.json();
+    const { email, username, password, name, phone, school } = await request.json();
 
     // 입력 검증
-    if (!email || !password || !name || !phone) {
+    if (!email || !username || !password || !name || !phone) {
       return NextResponse.json(
-        { error: "이메일, 비밀번호, 이름, 전화번호는 필수입니다." },
+        { error: "아이디, 이메일, 비밀번호, 이름, 전화번호는 필수입니다." },
+        { status: 400 }
+      );
+    }
+
+    // 아이디 형식 검증 (영문/숫자/언더스코어, 3~20자)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      return NextResponse.json(
+        { error: "아이디는 3~20자의 영문, 숫자, 언더스코어만 사용할 수 있습니다." },
         { status: 400 }
       );
     }
@@ -64,6 +73,18 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { error: "이미 사용 중인 이메일입니다." },
+        { status: 409 }
+      );
+    }
+
+    // 중복 아이디 확인
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: "이미 사용 중인 아이디입니다." },
         { status: 409 }
       );
     }
@@ -110,6 +131,7 @@ export async function POST(request: NextRequest) {
     // 사용자 생성
     const user = await prisma.user.create({
       data: {
+        username,
         email,
         password: hashedPassword,
         name,

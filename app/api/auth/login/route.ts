@@ -30,17 +30,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, password } = await request.json();
+    const { identifier, password } = await request.json();
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: "이메일과 비밀번호를 입력해주세요." },
+        { error: "아이디/이메일과 비밀번호를 입력해주세요." },
         { status: 400 }
       );
     }
 
     // 관리자 계정(아이디: admin) 특수 처리
-    if (email.trim().toLowerCase() === "admin") {
+    if (identifier.trim().toLowerCase() === "admin") {
       if (password !== ADMIN_PASSWORD) {
         return NextResponse.json(
           { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
@@ -84,9 +84,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 사용자 찾기
+    // 사용자 찾기 (아이디 or 이메일)
+    const isEmail = identifier.includes("@");
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: isEmail ? { email: identifier } : { username: identifier },
     });
 
     if (!user || !user.password) {

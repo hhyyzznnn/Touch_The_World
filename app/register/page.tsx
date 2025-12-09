@@ -9,6 +9,7 @@ import { SocialLoginButtons } from "@/components/SocialLoginButtons";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -53,6 +54,7 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          username: formData.username,
           email: formData.email,
           password: formData.password,
           name: formData.name,
@@ -95,6 +97,27 @@ export default function RegisterPage() {
         </div>
         <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                아이디 <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                minLength={3}
+                maxLength={20}
+                pattern="[a-zA-Z0-9_]{3,20}"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="영문/숫자/언더스코어 3~20자"
+              />
+            </div>
             <div>
               <label
                 htmlFor="email"
