@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
 export async function POST(request: NextRequest) {
   // Rate Limiting: IP당 1분에 5회 제한
   const clientIP = getClientIP(request);
@@ -34,6 +36,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "이메일과 비밀번호를 입력해주세요." },
         { status: 400 }
+      );
+    }
+
+    // 관리자 계정(아이디: admin) 특수 처리
+    if (email.trim().toLowerCase() === "admin") {
+      if (password !== ADMIN_PASSWORD) {
+        return NextResponse.json(
+          { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
+          { status: 401 }
+        );
+      }
+      const cookieStore = await cookies();
+      // admin-auth 쿠키 설정 (기존 관리자 보호와 동일)
+      cookieStore.set("admin-auth", "true", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      // 사용자 쿠키도 설정하여 공용 영역에서 식별 가능
+      cookieStore.set("user-id", "admin", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+          user: {
+            id: "admin",
+            email: "admin",
+            name: "관리자",
+            role: "admin",
+          },
+          redirect: "/admin",
+        },
+        {
+          headers: {
+            "X-RateLimit-Limit": "5",
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
+          },
+        }
       );
     }
 

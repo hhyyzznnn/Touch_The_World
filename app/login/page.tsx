@@ -36,8 +36,11 @@ function LoginForm() {
       const data = await response.json();
 
       if (response.ok) {
-        // 전체 페이지 리로드하여 사용자 정보 즉시 반영
-        window.location.href = "/";
+        if (data?.user?.role === "admin" || data?.redirect === "/admin") {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
+        }
       } else {
         setError(data.error || "로그인에 실패했습니다.");
       }

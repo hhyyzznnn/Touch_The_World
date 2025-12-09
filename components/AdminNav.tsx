@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,17 @@ import { Menu, X } from "lucide-react";
 
 export function AdminNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+      router.push("/admin/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Admin logout failed", error);
+    }
+  };
 
   return (
     <nav className="bg-white border-b sticky top-0 z-50">
@@ -68,11 +80,9 @@ export function AdminNav() {
             >
               고객사
             </Link>
-            <form action="/api/admin/logout" method="POST">
-              <Button type="submit" variant="outline" size="sm">
-                로그아웃
-              </Button>
-            </form>
+            <Button type="button" variant="outline" size="sm" onClick={handleLogout}>
+              로그아웃
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -131,11 +141,20 @@ export function AdminNav() {
               >
                 고객사
               </Link>
-              <form action="/api/admin/logout" method="POST" className="pt-2">
-                <Button type="submit" variant="outline" size="sm" className="w-full">
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogout();
+                  }}
+                >
                   로그아웃
                 </Button>
-              </form>
+              </div>
             </div>
           </div>
         )}
