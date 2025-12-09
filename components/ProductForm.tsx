@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Upload, Link as LinkIcon, X } from "lucide-react";
+import { UploadButton } from "@/lib/uploadthing";
 import type { Product } from "@prisma/client";
 
 interface ProductFormProps {
@@ -21,27 +22,13 @@ export function ProductForm({ product }: ProductFormProps) {
   const [target, setTarget] = useState(product?.target || "");
   const [description, setDescription] = useState(product?.description || "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
-  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // 이미지 파일 업로드
-      let finalImageUrl = imageUrl || null;
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append("file", imageFile);
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (uploadRes.ok) {
-          const { url } = await uploadRes.json();
-          finalImageUrl = url;
-        }
-      }
+      const finalImageUrl = imageUrl.trim() || null;
 
       const url = product
         ? `/api/admin/products/${product.id}`
@@ -76,13 +63,6 @@ export function ProductForm({ product }: ProductFormProps) {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImageUrl("");
-    }
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
@@ -193,45 +173,36 @@ export function ProductForm({ product }: ProductFormProps) {
             <input
               type="url"
               value={imageUrl}
-              onChange={(e) => {
-                setImageUrl(e.target.value);
-                setImageFile(null);
-              }}
+              onChange={(e) => setImageUrl(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://example.com/image.jpg 또는 업로드 버튼 사용"
             />
-            <label className="cursor-pointer">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-                asChild
-              >
-                <span>
-                  <Upload className="w-4 h-4" />
-                  파일
-                </span>
-              </Button>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
           </div>
-          {imageFile && (
+          <div>
+            <UploadButton
+              endpoint="imageUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res[0]) {
+                  setImageUrl(res[0].url);
+                }
+              }}
+              onUploadError={(error: Error) => {
+                alert(`업로드 실패: ${error.message}`);
+              }}
+              appearance={{
+                button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                allowedContent: "text-gray-500 text-xs",
+              }}
+            />
+          </div>
+          {imageUrl && (
             <div className="flex items-center gap-3 p-3 border rounded-md bg-gray-50">
               <span className="flex-1 text-sm text-gray-700 truncate">
-                {imageFile.name}
-              </span>
-              <span className="text-xs text-gray-500">
-                {(imageFile.size / 1024 / 1024).toFixed(2)} MB
+                {imageUrl}
               </span>
               <Button
                 type="button"
-                onClick={() => setImageFile(null)}
+                onClick={() => setImageUrl("")}
                 variant="destructive"
                 size="sm"
               >

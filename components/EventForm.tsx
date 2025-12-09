@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar, X, Upload, Link as LinkIcon } from "lucide-react";
+import { UploadButton } from "@/lib/uploadthing";
 import type { Event, EventImage, Program } from "@prisma/client";
 
 type EventWithRelations = Event & {
@@ -62,7 +63,6 @@ export function EventForm({ event }: EventFormProps) {
   const [imageUrls, setImageUrls] = useState<string[]>(
     event?.images.map((img) => img.url) || []
   );
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
 
   useEffect(() => {
     async function loadPrograms() {
@@ -82,22 +82,7 @@ export function EventForm({ event }: EventFormProps) {
     setIsSubmitting(true);
 
     try {
-      // 이미지 파일 업로드
-      const uploadedImageUrls: string[] = [];
-      for (const file of imageFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (uploadRes.ok) {
-          const { url } = await uploadRes.json();
-          uploadedImageUrls.push(url);
-        }
-      }
-
-      const allImageUrls = [...imageUrls, ...uploadedImageUrls].filter(Boolean);
+      const allImageUrls = imageUrls.filter(Boolean);
 
       const url = event
         ? `/api/admin/events/${event.id}`
@@ -151,15 +136,6 @@ export function EventForm({ event }: EventFormProps) {
 
   const removeImageUrl = (index: number) => {
     setImageUrls(imageUrls.filter((_, i) => i !== index));
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setImageFiles([...imageFiles, ...files]);
-  };
-
-  const removeImageFile = (index: number) => {
-    setImageFiles(imageFiles.filter((_, i) => i !== index));
   };
 
   return (
@@ -397,25 +373,27 @@ export function EventForm({ event }: EventFormProps) {
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <label className="cursor-pointer">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-              >
-                <Upload className="w-4 h-4" />
-                파일 첨부
-              </Button>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
           </div>
+        </div>
+
+        {/* UploadThing 이미지 업로드 버튼 */}
+        <div className="mb-4">
+          <UploadButton
+            endpoint="imageUploader"
+            onClientUploadComplete={(res) => {
+              if (res && res.length > 0) {
+                const newUrls = res.map((file) => file.url);
+                setImageUrls([...imageUrls, ...newUrls]);
+              }
+            }}
+            onUploadError={(error: Error) => {
+              alert(`업로드 실패: ${error.message}`);
+            }}
+            appearance={{
+              button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+              allowedContent: "text-gray-500 text-xs",
+            }}
+          />
         </div>
 
         {/* 이미지 URL 목록 */}
@@ -443,32 +421,6 @@ export function EventForm({ event }: EventFormProps) {
           </div>
         )}
 
-        {/* 이미지 파일 목록 */}
-        {imageFiles.length > 0 && (
-          <div className="space-y-3">
-            {imageFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-3 p-3 border rounded-md bg-gray-50"
-              >
-                <span className="flex-1 text-sm text-gray-700 truncate">
-                  {file.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </span>
-                <Button
-                  type="button"
-                  onClick={() => removeImageFile(index)}
-                  variant="destructive"
-                  size="sm"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="flex gap-4">

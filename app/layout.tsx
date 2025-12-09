@@ -3,6 +3,9 @@ import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "@/app/api/uploadthing/core";
 
 const notoSerif = Noto_Serif_KR({ 
   subsets: ["latin"],
@@ -59,6 +62,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`}>
+        <NextSSRPlugin
+          routerConfig={extractRouterConfig(ourFileRouter)}
+        />
         <Header />
         <main className="min-h-screen">{children}</main>
         <ConditionalFooter />

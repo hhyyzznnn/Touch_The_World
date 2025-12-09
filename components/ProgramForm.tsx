@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Upload, Link as LinkIcon, X } from "lucide-react";
+import { UploadButton } from "@/lib/uploadthing";
 import type { ProgramWithRelations } from "@/types";
 
 interface ProgramFormProps {
@@ -28,49 +29,15 @@ export function ProgramForm({ program }: ProgramFormProps) {
   const [imageUrls, setImageUrls] = useState<string[]>(
     program?.images.map((img) => img.url) || []
   );
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [thumbnailUrl, setThumbnailUrl] = useState(program?.thumbnailUrl || "");
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // 이미지 파일 업로드
-      const uploadedImageUrls: string[] = [];
-      for (const file of imageFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (uploadRes.ok) {
-          const { url } = await uploadRes.json();
-          uploadedImageUrls.push(url);
-        }
-      }
-
-      // 썸네일 파일 업로드
-      let finalThumbnailUrl = thumbnailUrl.trim() || null;
-      if (thumbnailFile) {
-        const formData = new FormData();
-        formData.append("file", thumbnailFile);
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (uploadRes.ok) {
-          const { url } = await uploadRes.json();
-          finalThumbnailUrl = url;
-        }
-      }
-
-      const allImageUrls = [
-        ...imageUrls.filter((url) => url.trim() !== ""),
-        ...uploadedImageUrls,
-      ];
+      const allImageUrls = imageUrls.filter((url) => url.trim() !== "");
+      const finalThumbnailUrl = thumbnailUrl.trim() || null;
 
       const url = program
         ? `/api/admin/programs/${program.id}`
@@ -132,22 +99,6 @@ export function ProgramForm({ program }: ProgramFormProps) {
     setImageUrls(imageUrls.filter((_, i) => i !== index));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setImageFiles([...imageFiles, ...files]);
-  };
-
-  const removeImageFile = (index: number) => {
-    setImageFiles(imageFiles.filter((_, i) => i !== index));
-  };
-
-  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setThumbnailFile(file);
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
       <div>
@@ -203,45 +154,36 @@ export function ProgramForm({ program }: ProgramFormProps) {
             <input
               type="url"
               value={thumbnailUrl}
-              onChange={(e) => {
-                setThumbnailUrl(e.target.value);
-                setThumbnailFile(null);
-              }}
+              onChange={(e) => setThumbnailUrl(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="/images/programs/thumbnail.jpg 또는 https://example.com/image.jpg"
+              placeholder="https://example.com/image.jpg 또는 업로드 버튼 사용"
             />
-            <label className="cursor-pointer">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-                asChild
-              >
-                <span>
-                  <Upload className="w-4 h-4" />
-                  파일
-                </span>
-              </Button>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleThumbnailUpload}
-                className="hidden"
-              />
-            </label>
           </div>
-          {thumbnailFile && (
+          <div>
+            <UploadButton
+              endpoint="thumbnailUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res[0]) {
+                  setThumbnailUrl(res[0].url);
+                }
+              }}
+              onUploadError={(error: Error) => {
+                alert(`업로드 실패: ${error.message}`);
+              }}
+              appearance={{
+                button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                allowedContent: "text-gray-500 text-xs",
+              }}
+            />
+          </div>
+          {thumbnailUrl && (
             <div className="flex items-center gap-3 p-3 border rounded-md bg-gray-50">
               <span className="flex-1 text-sm text-gray-700 truncate">
-                {thumbnailFile.name}
-              </span>
-              <span className="text-xs text-gray-500">
-                {(thumbnailFile.size / 1024 / 1024).toFixed(2)} MB
+                {thumbnailUrl}
               </span>
               <Button
                 type="button"
-                onClick={() => setThumbnailFile(null)}
+                onClick={() => setThumbnailUrl("")}
                 variant="destructive"
                 size="sm"
               >
@@ -251,7 +193,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
           )}
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          권장 사이즈: 1200x800px (16:9 비율), 파일 크기: 500KB 이하
+          권장 사이즈: 1200x800px (16:9 비율), 파일 크기: 4MB 이하
         </p>
       </div>
 
@@ -269,28 +211,27 @@ export function ProgramForm({ program }: ProgramFormProps) {
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <label className="cursor-pointer">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-                asChild
-              >
-                <span>
-                  <Upload className="w-4 h-4" />
-                  파일 첨부
-                </span>
-              </Button>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
           </div>
+        </div>
+
+        {/* UploadThing 이미지 업로드 버튼 */}
+        <div className="mb-4">
+          <UploadButton
+            endpoint="imageUploader"
+            onClientUploadComplete={(res) => {
+              if (res && res.length > 0) {
+                const newUrls = res.map((file) => file.url);
+                setImageUrls([...imageUrls, ...newUrls]);
+              }
+            }}
+            onUploadError={(error: Error) => {
+              alert(`업로드 실패: ${error.message}`);
+            }}
+            appearance={{
+              button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+              allowedContent: "text-gray-500 text-xs",
+            }}
+          />
         </div>
 
         {/* 이미지 URL 목록 */}
@@ -303,7 +244,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
                   value={url}
                   onChange={(e) => updateImageUrl(index, e.target.value)}
                   className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                  placeholder="/images/programs/image.jpg 또는 https://example.com/image.jpg"
+                  placeholder="https://example.com/image.jpg"
                 />
                 <Button
                   type="button"
@@ -318,35 +259,8 @@ export function ProgramForm({ program }: ProgramFormProps) {
           </div>
         )}
 
-        {/* 이미지 파일 목록 */}
-        {imageFiles.length > 0 && (
-          <div className="space-y-3">
-            {imageFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-3 p-3 border rounded-md bg-gray-50"
-              >
-                <span className="flex-1 text-sm text-gray-700 truncate">
-                  {file.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </span>
-                <Button
-                  type="button"
-                  onClick={() => removeImageFile(index)}
-                  variant="destructive"
-                  size="sm"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-
         <p className="text-xs text-gray-500 mt-2">
-          권장 사이즈: 1920x1080px (Full HD), 파일 크기: 1MB 이하
+          권장 사이즈: 1920x1080px (Full HD), 파일 크기: 4MB 이하
         </p>
       </div>
 
