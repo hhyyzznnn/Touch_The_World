@@ -150,31 +150,31 @@ export function ProgramForm({ program }: ProgramFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">썸네일</label>
         <div className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <input
               type="url"
               value={thumbnailUrl}
               onChange={(e) => setThumbnailUrl(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="https://example.com/image.jpg 또는 업로드 버튼 사용"
+              placeholder="https://example.com/image.jpg"
             />
-          </div>
-          <div>
-            <UploadButton
-              endpoint="thumbnailUploader"
-              onClientUploadComplete={(res) => {
-                if (res && res[0]) {
-                  setThumbnailUrl(res[0].url);
-                }
-              }}
-              onUploadError={(error: Error) => {
-                alert(`업로드 실패: ${error.message}`);
-              }}
-              appearance={{
-                button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                allowedContent: "text-gray-500 text-xs",
-              }}
-            />
+            <div className="w-36">
+              <UploadButton
+                endpoint="thumbnailUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res[0]) {
+                    setThumbnailUrl(res[0].url);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  alert(`업로드 실패: ${error.message}`);
+                }}
+                appearance={{
+                  button: "w-full ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                  allowedContent: "text-gray-500 text-[11px]",
+                }}
+              />
+            </div>
           </div>
           {thumbnailUrl && (
             <div className="flex items-center gap-3 p-3 border rounded-md bg-gray-50">
@@ -192,13 +192,13 @@ export function ProgramForm({ program }: ProgramFormProps) {
             </div>
           )}
         </div>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-[11px] text-gray-500 mt-1">
           권장 사이즈: 1200x800px (16:9 비율), 파일 크기: 4MB 이하
         </p>
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 gap-2">
           <label className="block text-sm font-medium">이미지</label>
           <div className="flex gap-2">
             <Button
@@ -211,27 +211,25 @@ export function ProgramForm({ program }: ProgramFormProps) {
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
+            <div className="w-36">
+              <UploadButton
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res.length > 0) {
+                    const newUrls = res.map((file) => file.url);
+                    setImageUrls([...imageUrls, ...newUrls]);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  alert(`업로드 실패: ${error.message}`);
+                }}
+                appearance={{
+                  button: "w-full ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                  allowedContent: "text-gray-500 text-[11px]",
+                }}
+              />
+            </div>
           </div>
-        </div>
-
-        {/* UploadThing 이미지 업로드 버튼 */}
-        <div className="mb-4">
-          <UploadButton
-            endpoint="imageUploader"
-            onClientUploadComplete={(res) => {
-              if (res && res.length > 0) {
-                const newUrls = res.map((file) => file.url);
-                setImageUrls([...imageUrls, ...newUrls]);
-              }
-            }}
-            onUploadError={(error: Error) => {
-              alert(`업로드 실패: ${error.message}`);
-            }}
-            appearance={{
-              button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-              allowedContent: "text-gray-500 text-xs",
-            }}
-          />
         </div>
 
         {/* 이미지 URL 목록 */}

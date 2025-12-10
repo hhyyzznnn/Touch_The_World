@@ -169,31 +169,31 @@ export function ProductForm({ product }: ProductFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">이미지</label>
         <div className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <input
               type="url"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="https://example.com/image.jpg 또는 업로드 버튼 사용"
+              placeholder="https://example.com/image.jpg"
             />
-          </div>
-          <div>
-            <UploadButton
-              endpoint="imageUploader"
-              onClientUploadComplete={(res) => {
-                if (res && res[0]) {
-                  setImageUrl(res[0].url);
-                }
-              }}
-              onUploadError={(error: Error) => {
-                alert(`업로드 실패: ${error.message}`);
-              }}
-              appearance={{
-                button: "ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                allowedContent: "text-gray-500 text-xs",
-              }}
-            />
+            <div className="w-36">
+              <UploadButton
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res[0]) {
+                    setImageUrl(res[0].url);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  alert(`업로드 실패: ${error.message}`);
+                }}
+                appearance={{
+                  button: "w-full ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                  allowedContent: "text-gray-500 text-[11px]",
+                }}
+              />
+            </div>
           </div>
           {imageUrl && (
             <div className="flex items-center gap-3 p-3 border rounded-md bg-gray-50">
