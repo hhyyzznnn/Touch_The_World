@@ -39,48 +39,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 관리자 계정(아이디: admin) 특수 처리
+    // 관리자 계정은 일반 로그인 페이지에서 허용하지 않음
     if (identifier.trim().toLowerCase() === "admin") {
-      if (password !== ADMIN_PASSWORD) {
-        return NextResponse.json(
-          { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
-          { status: 401 }
-        );
-      }
-      const cookieStore = await cookies();
-      // admin-auth 쿠키 설정 (기존 관리자 보호와 동일)
-      cookieStore.set("admin-auth", "true", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      // 사용자 쿠키도 설정하여 공용 영역에서 식별 가능
-      cookieStore.set("user-id", "admin", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
       return NextResponse.json(
-        {
-          success: true,
-          user: {
-            id: "admin",
-            email: "admin",
-            name: "관리자",
-            role: "admin",
-          },
-          redirect: "/admin",
-        },
-        {
-          headers: {
-            "X-RateLimit-Limit": "5",
-            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-          },
-        }
+        { error: "관리자 로그인은 /admin/login에서만 가능합니다." },
+        { status: 403 }
       );
     }
 
