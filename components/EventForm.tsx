@@ -373,7 +373,7 @@ export function EventForm({ event }: EventFormProps) {
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <div className="w-36">
+            <div className="w-[140px] shrink-0">
               <UploadButton
                 endpoint="imageUploader"
                 onClientUploadComplete={(res) => {
@@ -386,8 +386,16 @@ export function EventForm({ event }: EventFormProps) {
                   alert(`업로드 실패: ${error.message}`);
                 }}
                 appearance={{
-                  button: "w-full ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                  button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
                   allowedContent: "text-gray-500 text-[11px]",
+                }}
+                content={{
+                  button({ ready }) {
+                    return ready ? "파일 선택" : "파일 선택";
+                  },
+                  allowedContent({ ready }) {
+                    return ready ? "이미지(jpg/png/webp) · 최대 4MB" : "";
+                  },
                 }}
               />
             </div>
