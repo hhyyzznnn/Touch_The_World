@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 아이디 형식 검증 (영문/숫자/언더스코어, 3~20자)
-    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    // 아이디 형식 검증 (영문/숫자, 3~20자)
+    const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
     if (!usernameRegex.test(username)) {
       return NextResponse.json(
         { error: "아이디는 3~20자의 영문, 숫자, 언더스코어만 사용할 수 있습니다." },

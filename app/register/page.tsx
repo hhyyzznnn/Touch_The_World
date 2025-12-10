@@ -111,11 +111,11 @@ export default function RegisterPage() {
                 required
                 minLength={3}
                 maxLength={20}
-                pattern="[a-zA-Z0-9_]{3,20}"
+                pattern="[a-zA-Z0-9]{3,20}"
                 value={formData.username}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                placeholder="영문/숫자/언더스코어 3~20자"
+                placeholder="영문/숫자 3~20자"
               />
             </div>
             <div>

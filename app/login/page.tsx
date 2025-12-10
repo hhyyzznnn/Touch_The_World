@@ -75,7 +75,7 @@ function LoginForm() {
               htmlFor="identifier"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              아이디 또는 이메일
+              아이디
             </label>
             <input
               id="identifier"
@@ -85,7 +85,7 @@ function LoginForm() {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="admin 또는 example@email.com"
+              placeholder="아이디를 입력하세요"
             />
             </div>
             <div>

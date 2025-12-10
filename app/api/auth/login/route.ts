@@ -34,23 +34,58 @@ export async function POST(request: NextRequest) {
 
     if (!identifier || !password) {
       return NextResponse.json(
-        { error: "아이디/이메일과 비밀번호를 입력해주세요." },
+        { error: "아이디와 비밀번호를 입력해주세요." },
         { status: 400 }
       );
     }
 
-    // 관리자 계정은 일반 로그인 페이지에서 허용하지 않음
-    if (identifier.trim().toLowerCase() === "admin") {
+    const normalizedId = identifier.trim().toLowerCase();
+
+    // 관리자 계정 특수 처리 (아이디: admin)
+    if (normalizedId === "admin") {
+      if (password !== ADMIN_PASSWORD) {
+        return NextResponse.json(
+          { error: "아이디 또는 비밀번호가 올바르지 않습니다." },
+          { status: 401 }
+        );
+      }
+      const cookieStore = await cookies();
+      cookieStore.set("admin-auth", "true", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      cookieStore.set("user-id", "admin", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+      });
       return NextResponse.json(
-        { error: "관리자 로그인은 /admin/login에서만 가능합니다." },
-        { status: 403 }
+        {
+          success: true,
+          user: {
+            id: "admin",
+            email: "admin",
+            name: "관리자",
+            role: "admin",
+          },
+          redirect: "/admin",
+        },
+        {
+          headers: {
+            "X-RateLimit-Limit": "5",
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
+          },
+        }
       );
     }
 
-    // 사용자 찾기 (아이디 or 이메일)
-    const isEmail = identifier.includes("@");
+    // 사용자 찾기 (아이디 전용)
     const user = await prisma.user.findUnique({
-      where: isEmail ? { email: identifier } : { username: identifier },
+      where: { username: normalizedId },
     });
 
     if (!user || !user.password) {
