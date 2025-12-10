@@ -39,9 +39,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       });
 
       if (!dbUser) {
+        // username 생성 (이메일의 @ 앞부분 사용, 중복 시 숫자 추가)
+        let baseUsername = user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g, "_");
+        if (baseUsername.length < 3) {
+          baseUsername = baseUsername + "_user";
+        }
+        if (baseUsername.length > 20) {
+          baseUsername = baseUsername.substring(0, 20);
+        }
+        
+        let username = baseUsername;
+        let counter = 1;
+        while (await prisma.user.findUnique({ where: { username } })) {
+          const suffix = `_${counter}`;
+          const maxLength = 20 - suffix.length;
+          username = baseUsername.substring(0, maxLength) + suffix;
+          counter++;
+        }
+
         // 새 사용자 생성 (소셜 로그인)
         dbUser = await prisma.user.create({
           data: {
+            username,
             email: user.email,
             name: user.name || "사용자",
             image: user.image || null,
