@@ -9,6 +9,7 @@ async function main() {
   // 샘플 사용자 계정들
   const users = [
     {
+      username: "testuser",
       email: "test@example.com",
       password: "test123",
       name: "테스트 사용자",
@@ -17,6 +18,7 @@ async function main() {
       role: "user",
     },
     {
+      username: "admin",
       email: "admin@example.com",
       password: "admin123",
       name: "관리자",
@@ -25,6 +27,7 @@ async function main() {
       role: "admin",
     },
     {
+      username: "user1",
       email: "user@example.com",
       password: "user123",
       name: "일반 사용자",
@@ -35,13 +38,16 @@ async function main() {
   ];
 
   for (const userData of users) {
-    // 기존 사용자 확인
-    const existingUser = await prisma.user.findUnique({
+    // 기존 사용자 확인 (이메일 또는 username)
+    const existingUserByEmail = await prisma.user.findUnique({
       where: { email: userData.email },
     });
+    const existingUserByUsername = await prisma.user.findUnique({
+      where: { username: userData.username },
+    });
 
-    if (existingUser) {
-      console.log(`⏭️  ${userData.email} 이미 존재함, 건너뜀`);
+    if (existingUserByEmail || existingUserByUsername) {
+      console.log(`⏭️  ${userData.email} 또는 ${userData.username} 이미 존재함, 건너뜀`);
       continue;
     }
 
@@ -51,6 +57,7 @@ async function main() {
     // 사용자 생성
     await prisma.user.create({
       data: {
+        username: userData.username,
         email: userData.email,
         password: hashedPassword,
         name: userData.name,
@@ -60,12 +67,13 @@ async function main() {
       },
     });
 
-    console.log(`✅ ${userData.email} 생성 완료`);
+    console.log(`✅ ${userData.username} (${userData.email}) 생성 완료`);
   }
 
   console.log("\n📋 샘플 계정 정보:");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   users.forEach((user) => {
+    console.log(`아이디: ${user.username}`);
     console.log(`이메일: ${user.email}`);
     console.log(`비밀번호: ${user.password}`);
     console.log(`이름: ${user.name}`);
