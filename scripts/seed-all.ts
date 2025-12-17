@@ -72,7 +72,7 @@ async function main() {
   const programs = await Promise.all([
     createProgramIfNotExists("제주도 수학여행 3박 4일", {
       title: "제주도 수학여행 3박 4일",
-      category: "수학여행",
+      category: "국내외교육여행",
       summary: "제주도의 아름다운 자연과 문화를 체험하는 수학여행 프로그램입니다.",
       region: "제주특별자치도",
       hashtags: ["#제주도", "#한라산", "#해녀", "#제주민속촌"],
@@ -199,7 +199,7 @@ async function main() {
     }),
     createProgramIfNotExists("경주 역사 문화 탐방", {
       title: "경주 역사 문화 탐방",
-      category: "현장 체험학습",
+      category: "체험학습",
       summary: "신라 천년의 고도 경주를 탐방하는 역사 문화 체험 프로그램입니다.",
       region: "경상북도",
       hashtags: ["#경주", "#불국사", "#석굴암", "#신라"],
@@ -258,7 +258,7 @@ async function main() {
     }),
     createProgramIfNotExists("일본 교류 프로그램", {
       title: "일본 교류 프로그램",
-      category: "해외탐방",
+      category: "해외취업및유학",
       summary: "일본 현지 학교와의 교류를 통한 국제 이해 증진 프로그램입니다.",
       region: "일본 도쿄",
       hashtags: ["#일본", "#도쿄", "#국제교류", "#홈스테이"],
@@ -322,7 +322,7 @@ async function main() {
     }),
     createProgramIfNotExists("AI 융합 교육 프로그램", {
       title: "AI 융합 교육 프로그램",
-      category: "교육연수",
+      category: "교사연수",
       summary: "AI 기술을 활용한 미래 교육 프로그램입니다.",
       region: "서울특별시",
       hashtags: ["#AI", "#인공지능", "#교육혁신"],
@@ -379,7 +379,7 @@ async function main() {
     }),
     createProgramIfNotExists("진로 탐색 특강", {
       title: "진로 탐색 특강",
-      category: "진로특강",
+      category: "특성화고교프로그램",
       summary: "다양한 직업군을 탐색하고 진로를 설계하는 특강 프로그램입니다.",
       region: "서울특별시",
       hashtags: ["#진로", "#직업탐색", "#진로상담"],

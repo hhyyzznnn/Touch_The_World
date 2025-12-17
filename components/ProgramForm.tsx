@@ -118,13 +118,22 @@ export function ProgramForm({ program }: ProgramFormProps) {
         <label className="block text-sm font-medium mb-2">
           카테고리 <span className="text-red-500">*</span>
         </label>
-        <input
-          type="text"
+        <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
           required
-        />
+        >
+          <option value="">카테고리를 선택하세요</option>
+          <option value="국내외교육여행">국내외 교육여행</option>
+          <option value="체험학습">체험학습(숙박형, 비숙박형)</option>
+          <option value="수련활동">수련활동</option>
+          <option value="교사연수">교사 연수</option>
+          <option value="해외취업및유학">해외 취업 및 유학</option>
+          <option value="지자체및대학RISE사업">지자체 및 대학 RISE 사업</option>
+          <option value="특성화고교프로그램">특성화고교 프로그램</option>
+          <option value="기타프로그램">기타 프로그램</option>
+        </select>
       </div>
 
       <div>

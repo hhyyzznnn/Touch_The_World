@@ -1,10 +1,12 @@
 import { 
-  Bus, 
+  MapPin,
+  BookOpen,
   Mountain, 
-  Plane, 
-  Briefcase, 
   GraduationCap, 
-  Globe,
+  Plane, 
+  Building2, 
+  School,
+  MoreHorizontal,
   LucideIcon
 } from "lucide-react";
 
@@ -15,12 +17,14 @@ export interface ProgramCategory {
 }
 
 export const PROGRAM_CATEGORIES: ProgramCategory[] = [
-  { name: "수학여행", icon: Bus, href: "/programs?category=수학여행" },
+  { name: "국내외 교육여행", icon: MapPin, href: "/programs?category=국내외교육여행" },
+  { name: "체험학습(숙박형, 비숙박형)", icon: BookOpen, href: "/programs?category=체험학습" },
   { name: "수련활동", icon: Mountain, href: "/programs?category=수련활동" },
-  { name: "현장 체험학습", icon: Briefcase, href: "/programs?category=현장체험학습" },
-  { name: "교육연수(교사/학생)", icon: GraduationCap, href: "/programs?category=교육연수" },
-  { name: "해외탐방/유학", icon: Plane, href: "/programs?category=해외탐방" },
-  { name: "진로 특강/교육행사", icon: Globe, href: "/programs?category=진로특강" },
+  { name: "교사 연수", icon: GraduationCap, href: "/programs?category=교사연수" },
+  { name: "해외 취업 및 유학", icon: Plane, href: "/programs?category=해외취업및유학" },
+  { name: "지자체 및 대학 RISE 사업", icon: Building2, href: "/programs?category=지자체및대학RISE사업" },
+  { name: "특성화고교 프로그램", icon: School, href: "/programs?category=특성화고교프로그램" },
+  { name: "기타 프로그램", icon: MoreHorizontal, href: "/programs?category=기타프로그램" },
 ];
 
 export const COMPANY_INFO = {

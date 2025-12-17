@@ -31,6 +31,7 @@
 
 ### ✅ 구현 완료
 
+
 #### 사용자 페이지
 - ✅ **홈페이지**: 히어로 섹션, 프로그램 카테고리, 핵심 가치, 최근 행사
 - ✅ **회사 소개**: 회사 정보, 핵심 가치, 연혁
@@ -53,9 +54,15 @@
 
 #### 기술적 기능
 - ✅ **이미지 업로드**: UploadThing 연동 (프로그램, 상품, 행사 이미지)
+  - URL 입력 또는 파일 업로드 버튼으로 이미지 추가 가능
+  - 이미지 형식: JPG, PNG, WebP
+  - 최대 파일 크기: 4MB
 - ✅ **파일 업로드**: 자료실 문서 업로드
 - ✅ **모바일 반응형**: 모든 페이지 모바일 최적화
-- ✅ **관리자 인증**: NextAuth 기반 인증 시스템
+- ✅ **사용자 인증**: 아이디 기반 로그인 시스템
+  - 아이디와 이메일 분리 (아이디: 영문/숫자 3~20자)
+  - 일반 로그인에서 `admin` 아이디로 관리자 로그인 가능
+  - 소셜 로그인 지원 (카카오, 네이버, 구글)
 
 ### 🔄 진행 중 / 예정
 - 페이지네이션
@@ -76,6 +83,10 @@
 - **Document**: 자료실 문서
 - **Achievement**: 사업 실적 (기관, 연도, 내용)
 - **Client**: 고객사 정보
+- **User**: 사용자 정보 (아이디, 이메일, 이름, 전화번호, 역할)
+  - 아이디(`username`): 영문/숫자 3~20자, 고유값
+  - 이메일(`email`): 선택사항, 고유값
+  - 역할(`role`): user, admin
 
 ## 🏗️ 프로젝트 구조
 
@@ -160,6 +171,10 @@ ADMIN_PASSWORD="your-secure-password"
 NEXTAUTH_SECRET="your-nextauth-secret"
 NEXTAUTH_URL="http://localhost:3000"
 
+# 파일 업로드 (UploadThing) - 필수
+UPLOADTHING_TOKEN="sk_live_xxxxxxxxxxxxx"
+UPLOADTHING_APP_ID="your-uploadthing-app-id"
+
 # 이메일 인증 (Resend) - 선택사항
 # 개발 환경에서는 설정하지 않으면 터미널에 인증 링크가 출력됩니다
 RESEND_API_KEY="re_xxxxxxxxxxxxx"
@@ -186,6 +201,7 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
   ```env
   DATABASE_URL="postgresql://...@pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
   ```
+- **UploadThing 설정**: `UPLOADTHING_TOKEN`과 `UPLOADTHING_APP_ID`는 필수입니다. [UploadThing Dashboard](https://uploadthing.com/dashboard)에서 발급받으세요.
 - `.env` 파일은 Git에 커밋되지 않습니다 (`.gitignore`에 포함됨)
 - 상세한 연결 모드 비교는 [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) 참고
 - **이메일 인증**: `RESEND_API_KEY`를 설정하지 않으면 개발 환경에서 터미널에 인증 링크가 출력됩니다
@@ -301,10 +317,12 @@ npm run db:seed:achievements
 1. GitHub에 프로젝트를 푸시
 2. [Vercel](https://vercel.com)에서 프로젝트 import
 3. 환경 변수 설정:
-   - `DATABASE_URL`
-   - `ADMIN_PASSWORD`
-   - `NEXTAUTH_SECRET`
-   - `NEXTAUTH_URL` (배포된 도메인 URL)
+   - `DATABASE_URL` (필수)
+   - `ADMIN_PASSWORD` (필수)
+   - `NEXTAUTH_SECRET` (필수)
+   - `NEXTAUTH_URL` (배포된 도메인 URL, 필수)
+   - `UPLOADTHING_TOKEN` (필수, 이미지 업로드용)
+   - `UPLOADTHING_APP_ID` (필수, 이미지 업로드용)
    - `RESEND_API_KEY` (이메일 인증용, 선택사항)
    - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (SMS 인증용, 선택사항)
@@ -328,6 +346,8 @@ DATABASE_URL=your-database-url
 ADMIN_PASSWORD=your-admin-password
 NEXTAUTH_SECRET=your-nextauth-secret
 NEXTAUTH_URL=https://your-domain.vercel.app
+UPLOADTHING_TOKEN=sk_live_xxxxxxxxxxxxx
+UPLOADTHING_APP_ID=your-uploadthing-app-id
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 RESEND_FROM_EMAIL=noreply@yourdomain.com
 TWILIO_ACCOUNT_SID=your-twilio-account-sid
@@ -344,13 +364,22 @@ TWILIO_PHONE_NUMBER=+1234567890
 - ✅ **NextAuth v5**: handlers를 올바르게 export하여 라우트 핸들러 호환성 확보
 - ✅ **Suspense Boundary**: useSearchParams()를 Suspense로 감싸서 빌드 오류 해결
 - ✅ **Prisma Client**: Vercel 빌드 시 자동 생성 설정 추가
+- ✅ **Prisma 최적화**: PgBouncer + Vercel Serverless 환경에 최적화된 클라이언트 설정
 - ✅ **타입 안정성**: 모든 TypeScript 타입 오류 수정
 - ✅ **빌드 최적화**: ESLint 오류 및 이미지 최적화 경고 해결
+- ✅ **Sitemap 최적화**: force-static 및 revalidate 설정으로 SEO 개선
 
 #### 기능 업데이트
+- ✅ **로그인 시스템 개선**: 아이디와 이메일 분리, 아이디 전용 로그인
+  - 아이디 형식: 영문/숫자 3~20자 (언더스코어 제거)
+  - 일반 로그인에서 `admin` 아이디로 관리자 로그인 가능
+  - 관리자 로그아웃 시 홈페이지로 이동
+- ✅ **UploadThing 파일 업로드**: 완전한 통합 및 UI 개선
+  - URL 입력과 파일 업로드 버튼을 같은 줄에 배치
+  - 버튼 라벨 한글화 ("파일 선택")
+  - 이미지 조건 안내 문구 한글화 및 크기 축소
 - ✅ 용어 정리: "프로그램" → "상품", "행사" → "진행 내역"
 - ✅ 문의 관리 개선: 상세 보기 모달, 상태 변경 기능
-- ✅ 이미지 업로드: UploadThing 연동 완료
 - ✅ 모바일 반응형: 모든 admin 페이지 모바일 최적화
 - ✅ 소셜 미디어: 인스타그램, 페이스북 링크 추가
 - ✅ Event 모델 확장: 상태(status), 메모(notes) 필드 추가
