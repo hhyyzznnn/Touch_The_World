@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getCategoryDisplayName } from "@/lib/category-utils";
 
 async function getProgram(id: string) {
   return await prisma.program.findUnique({
@@ -39,7 +40,7 @@ export default async function ProgramDetailPage({
       </div>
 
       <div className="mb-8">
-        <div className="text-sm text-brand-green-primary mb-2">{program.category}</div>
+        <div className="text-sm text-brand-green-primary mb-2">{getCategoryDisplayName(program.category)}</div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 break-words">{program.title}</h1>
         {program.summary && (
           <p className="text-lg sm:text-xl text-gray-600 mb-6 break-words">{program.summary}</p>

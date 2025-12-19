@@ -3,9 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Heart, Star, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
+import { getCategoryDisplayName } from "@/lib/category-utils";
 
 interface ProgramCardProps {
   id: string;
@@ -37,12 +38,61 @@ export function ProgramCard({
   imageUrl,
 }: ProgramCardProps) {
   const [isLiked, setIsLiked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLikeClick = (e: React.MouseEvent) => {
+  // 초기 좋아요 상태 확인
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      try {
+        const response = await fetch(`/api/programs/${id}/favorite`);
+        if (response.ok) {
+          const data = await response.json();
+          setIsLiked(data.liked);
+        }
+      } catch (error) {
+        // 로그인하지 않은 경우 무시
+        console.error("좋아요 상태 확인 실패:", error);
+      }
+    };
+    checkLikeStatus();
+  }, [id]);
+
+  const handleLikeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isLoading) return;
+
+    setIsLoading(true);
+    const previousLiked = isLiked;
+
+    // 낙관적 업데이트
     setIsLiked(!isLiked);
-    // TODO: API 호출로 서버에 저장
+
+    try {
+      const method = previousLiked ? "DELETE" : "POST";
+      const response = await fetch(`/api/programs/${id}/favorite`, {
+        method,
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        // 실패 시 원래 상태로 복구
+        setIsLiked(previousLiked);
+        if (response.status === 401) {
+          alert("로그인이 필요합니다.");
+        } else {
+          alert(data.error || "좋아요 처리에 실패했습니다.");
+        }
+      }
+    } catch (error) {
+      // 실패 시 원래 상태로 복구
+      setIsLiked(previousLiked);
+      console.error("좋아요 처리 오류:", error);
+      alert("좋아요 처리에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatPrice = () => {
@@ -95,7 +145,7 @@ export function ProgramCard({
         {/* 카테고리 배지 */}
         <div className="absolute top-3 left-3">
           <span className="px-3 py-1 bg-brand-green text-white text-xs font-semibold rounded-full shadow-md">
-            {category}
+            {getCategoryDisplayName(category)}
           </span>
         </div>
       </div>

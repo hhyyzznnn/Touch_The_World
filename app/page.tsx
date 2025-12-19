@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
+import { getCategoryDisplayName } from "@/lib/category-utils";
 
 async function getRecentEvents() {
   try {
@@ -176,7 +177,7 @@ export default async function HomePage() {
                     )}
                     <div className="p-4 sm:p-6">
                       <div className="text-xs sm:text-sm text-brand-green font-medium mb-1 sm:mb-2">
-                        {event.program.category}
+                        {getCategoryDisplayName(event.program.category)}
                       </div>
                       <div className="text-xs sm:text-sm text-text-gray mb-1 sm:mb-2">
                         {format(new Date(event.date), "yyyy.MM.dd")}

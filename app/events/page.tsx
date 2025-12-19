@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -177,7 +178,7 @@ export default async function EventsPage({
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-xs px-2 py-1 bg-brand-green-primary/10 text-brand-green-primary rounded-full font-medium">
-                      {event.program.category}
+                      {getCategoryDisplayName(event.program.category)}
                     </span>
                     <span className="text-xs text-text-gray">
                       {format(new Date(event.date), "yyyy.MM.dd")}

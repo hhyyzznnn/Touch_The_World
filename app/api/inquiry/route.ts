@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 import { validateAndSanitize, isValidEmail, isValidPhone } from "@/lib/security";
+import { sendInquiryNotificationEmail } from "@/lib/email";
 
 const inquirySchema = z.object({
   schoolName: z.string().min(1).max(100),
@@ -109,7 +110,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: 이메일 알림 기능 추가
+    // 이메일 알림 전송 (비동기로 실행, 실패해도 문의 등록은 성공 처리)
+    sendInquiryNotificationEmail({
+      schoolName: data.schoolName,
+      contact: data.contact,
+      phone: data.phone,
+      email: data.email,
+      message: data.message || null,
+    }).catch((error) => {
+      console.error("이메일 알림 전송 실패:", error);
+      // 이메일 전송 실패는 로그만 남기고 사용자에게는 에러를 반환하지 않음
+    });
 
     return NextResponse.json(
       { success: true, id: inquiry.id },

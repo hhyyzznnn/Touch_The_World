@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProgramCard } from "@/components/ProgramCard";
+import { getCategoryDisplayName } from "@/lib/category-utils";
 
 async function getPrograms(category?: string) {
   const where = category ? { category } : {};
@@ -54,7 +55,7 @@ export default async function ProgramsPage({
               className={params.category === category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
             >
               <Link href={`/programs?category=${encodeURIComponent(category)}`}>
-                {category}
+                {getCategoryDisplayName(category)}
               </Link>
             </Button>
           ))}
@@ -72,7 +73,7 @@ export default async function ProgramsPage({
               key={program.id}
               id={program.id}
               title={program.title}
-              category={program.category}
+              category={getCategoryDisplayName(program.category)}
               summary={program.summary}
               thumbnailUrl={program.thumbnailUrl}
               region={program.region}

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -80,7 +81,7 @@ export default async function AdminProgramsPage() {
                       <div className="font-medium">{program.title}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600">{program.category}</span>
+                      <span className="text-sm text-gray-600">{getCategoryDisplayName(program.category)}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-600">
