@@ -26,6 +26,11 @@ export const metadata: Metadata = {
     icon: "/ttw_logo.png",
     apple: "/ttw_logo.png",
   },
+  verification: {
+    other: {
+      "naver-site-verification": "7d713c24d0a2bc5a9a32549a03dcd7bd86348d87",
+    },
+  },
   openGraph: {
     title: "Touch The World - 교육·체험·AI 융합 프로그램 전문 기업",
     description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
