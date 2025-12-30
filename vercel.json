@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/g2b-notification",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
+
