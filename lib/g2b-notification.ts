@@ -43,8 +43,9 @@ function matchesNotificationSetting(
 
   // 지역 매칭
   if (setting.regions.length > 0 && notice.region) {
+    const region = notice.region; // null 체크 후 명시적 할당
     const regionMatched = setting.regions.some(
-      (r) => notice.region?.includes(r) || r.includes(notice.region)
+      (r) => region.includes(r) || r.includes(region)
     );
     if (!regionMatched) {
       return { matched: false, matchedKeywords: [] };
