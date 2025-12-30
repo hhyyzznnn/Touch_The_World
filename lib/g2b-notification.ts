@@ -54,8 +54,9 @@ function matchesNotificationSetting(
 
   // 분류 매칭
   if (setting.categories.length > 0 && notice.category) {
+    const category = notice.category; // null 체크 후 명시적 할당
     const categoryMatched = setting.categories.some(
-      (c) => notice.category?.includes(c) || c.includes(notice.category)
+      (c) => category.includes(c) || c.includes(category)
     );
     if (!categoryMatched) {
       return { matched: false, matchedKeywords: [] };
@@ -471,7 +472,7 @@ export async function processG2BNotifications() {
     }
 
     // 4. 수신자별로 일괄 이메일 발송 (하루 분량을 하나의 메일로)
-    for (const [email, notices] of recipientNoticesMap.entries()) {
+    for (const [email, notices] of Array.from(recipientNoticesMap.entries())) {
       if (notices.length === 0) continue;
 
       try {
