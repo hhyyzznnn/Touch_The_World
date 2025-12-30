@@ -43,7 +43,7 @@ async function test() {
       return `${year}${month}${day}${hour}${minute}`;
     };
     
-    const notices = await fetchG2BNotices({
+    const notices = await fetchG2BNotices("Servc", {
       pageNo: 1,
       numOfRows: 5,
       inqryDiv: 1,

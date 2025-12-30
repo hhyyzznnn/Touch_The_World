@@ -29,6 +29,7 @@ interface G2BNoticeItem {
   bidNtceDtlUrl?: string; // 상세URL
   bidNtceUrl?: string; // 상세URL (대체 필드명)
   // 기타 필드는 API 응답에 따라 추가 가능
+  [key: string]: any; // 인덱스 시그니처: 동적 키 접근 허용
 }
 
 interface G2BApiResponse {
