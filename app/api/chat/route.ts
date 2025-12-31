@@ -8,14 +8,18 @@ const openai = new OpenAI({
 });
 
 // 카테고리 목록 문자열 생성 (줄바꿈 문자를 공백으로 변환)
-const categoryList = PROGRAM_CATEGORIES.map((cat, idx) => `${idx + 1}. ${cat.name.replace(/\n/g, " ")}`).join("\n");
+const categoryList = PROGRAM_CATEGORIES.map((cat, idx) => {
+  const name = cat.name.replace(/\n/g, " ");
+  return `${idx + 1}. ${name}`;
+}).join("\n");
 
-const getSystemPrompt = (landingCategory?: string) => {
-  const categoryContext = landingCategory 
-    ? "\n**중요:** 사용자가 랜딩 페이지에서 \"" + landingCategory + "\" 카테고리로 접근했습니다. 초기 대화에서 이 카테고리를 먼저 언급하고, 해당 카테고리에 맞춘 상담을 진행하세요."
-    : "";
+const getSystemPrompt = (landingCategory?: string): string => {
+  let categoryContext = "";
+  if (landingCategory) {
+    categoryContext = "\n**중요:** 사용자가 랜딩 페이지에서 \"" + landingCategory + "\" 카테고리로 접근했습니다. 초기 대화에서 이 카테고리를 먼저 언급하고, 해당 카테고리에 맞춘 상담을 진행하세요.";
+  }
 
-  return "당신은 '터치더월드'의 전문 교육 컨설턴트입니다. 친절하고 신뢰감 있으며, 특히 '안전'과 '교육적 목적'을 강조하는 말투를 사용하세요.\n\n" +
+  const prompt = "당신은 '터치더월드'의 전문 교육 컨설턴트입니다. 친절하고 신뢰감 있으며, 특히 '안전'과 '교육적 목적'을 강조하는 말투를 사용하세요.\n\n" +
     "**회사 정보:**\n" +
     "- 회사명: 주식회사 터치더월드 (Touch The World)\n" +
     "- 설립: 1996년 (28년 이상의 운영 경험)\n" +
@@ -41,6 +45,9 @@ const getSystemPrompt = (landingCategory?: string) => {
     "- 안전과 교육적 가치 강조\n" +
     "- 간결하고 명확한 답변\n" +
     "- 사용자가 카테고리를 선택했다면 바로 해당 카테고리에 대한 상담을 시작하세요";
+  
+  return prompt;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -217,4 +224,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
