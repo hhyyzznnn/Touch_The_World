@@ -65,13 +65,13 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-green/5 to-white py-20 md:py-24">
+      <section className="bg-gradient-to-b from-brand-green/5 to-white pt-20 pb-12 md:pt-24 md:pb-16">
         <div className="container mx-auto px-4">
           <div className="text-center space-y-6 max-w-4xl mx-auto">
             <h1 className="font-serif text-5xl md:text-6xl font-semibold tracking-wide text-text-dark mb-4">
-              Learn the World
+              Learn the <span className="text-brand-green-primary">World</span>
               <br />
-              Lead the Future
+              Lead the <span className="text-brand-green-primary">Future</span>
             </h1>
             <p className="text-xl md:text-2xl font-semibold text-text-dark leading-relaxed">
               미래를 위해 항상 노력하는 터치더월드가 되겠습니다.

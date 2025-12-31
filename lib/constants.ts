@@ -18,7 +18,7 @@ export interface ProgramCategory {
 
 export const PROGRAM_CATEGORIES: ProgramCategory[] = [
   { name: "국내외 교육여행", icon: MapPin, href: "/programs?category=국내외교육여행" },
-  { name: "체험학습(숙박형, 비숙박형)", icon: BookOpen, href: "/programs?category=체험학습" },
+  { name: "체험학습\n(숙박형, 비숙박형)", icon: BookOpen, href: "/programs?category=체험학습" },
   { name: "수련활동", icon: Mountain, href: "/programs?category=수련활동" },
   { name: "교사 연수", icon: GraduationCap, href: "/programs?category=교사연수" },
   { name: "해외 취업 및 유학", icon: Plane, href: "/programs?category=해외취업및유학" },
@@ -41,7 +41,7 @@ export const COMPANY_INFO = {
   businessHours: "평일 09:00 - 18:00 (점심시간 12:00 - 13:00)",
   kakaoChannel: "", // 카카오톡 채널 링크를 여기에 입력하세요 (예: https://pf.kakao.com/_xxxxx 또는 카카오톡 채널 ID)
   instagram: "https://www.instagram.com/touch_tw", // 인스타그램 링크
-  facebook: "https://www.facebook.com/", // 페이스북 링크
+  facebook: "https://www.facebook.com/pjjttw", // 페이스북 링크
 } as const;
 
 export const NAVIGATION_LINKS = [

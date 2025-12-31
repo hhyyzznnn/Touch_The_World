@@ -193,6 +193,7 @@ model User {
   favorites            Favorite[]
   notificationSetting  NotificationSetting?
   notificationLogs     NotificationLog[]
+  consultingLogs       ConsultingLog[]
 
   @@index([username])
   @@index([email])
@@ -325,5 +326,43 @@ model NotificationLog {
   @@index([noticeId])
   @@index([status])
   @@index([createdAt])
+}
+
+model ConsultingLog {
+  id              String   @id @default(cuid())
+  sessionId       String   // 채팅 세션 ID
+  userId          String?  // 사용자 ID (회원인 경우)
+  contactName     String?  // 연락처 이름
+  contactPhone    String?  // 연락처 전화번호
+  contactEmail    String?  // 연락처 이메일
+  category        String?  // 선택한 카테고리
+  participantCount Int?   // 예상 인원
+  region          String?  // 희망 지역
+  purpose         String?  // 여행 목적/성격
+  hasInstructor   Boolean? // 인솔자 필요 여부
+  preferredTransport String? // 선호 이동수단 (전세버스, KTX, 항공, 기타)
+  mealPreference  String?  // 식사 취향/요구사항
+  specialRequests String?  // 특별 요구사항 (알러지, 장애 지원 등)
+  estimatedBudget BigInt?  // 예상 예산
+  estimatedQuote  String?  // 예상 견적가 가이드
+  canQuoteImmediately Boolean @default(false) // 즉시 견적 가능 여부
+  conversation    Json     // 전체 대화 내용 (메시지 배열)
+  summary         String?  // 요약본
+  emailSent       Boolean  @default(false) // 이메일 발송 여부
+  emailSentAt     DateTime?
+  kakaoSent       Boolean  @default(false) // 카카오 알림톡 발송 여부
+  kakaoSentAt     DateTime?
+  status          String   @default("pending") // pending, quoted, contacted, completed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+  @@index([emailSent])
 }
 

@@ -3,6 +3,7 @@ import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
+import { FloatingChatButton } from "@/components/FloatingChatButton";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
@@ -73,6 +74,7 @@ export default function RootLayout({
         <Header />
         <main className="min-h-screen">{children}</main>
         <ConditionalFooter />
+        <FloatingChatButton />
       </body>
     </html>
   );

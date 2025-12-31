@@ -14,6 +14,7 @@ import Image from "next/image";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
+import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
 
 async function getRecentEvents() {
   try {
@@ -34,7 +35,12 @@ async function getRecentEvents() {
   }
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
   const recentEvents = await getRecentEvents();
 
   return (
@@ -57,6 +63,12 @@ export default async function HomePage() {
               <br />
               학습자의 세계를 확장합니다.
             </p>
+            
+            {/* AI Chat Input */}
+            <div className="pt-4 sm:pt-6">
+              <HeroChatInputWrapper category={resolvedSearchParams?.category} />
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
               <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200">
                 <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
@@ -94,7 +106,7 @@ export default async function HomePage() {
                     <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-8 md:h-8 text-brand-green" />
                   </div>
                   <span
-                    className="text-center text-text-dark text-xs sm:text-base md:text-lg leading-snug break-keep"
+                    className="text-center text-text-dark text-xs sm:text-base md:text-lg leading-snug break-keep whitespace-pre-line"
                     style={{ fontWeight: 350 }}
                   >
                     {category.name}
@@ -107,7 +119,7 @@ export default async function HomePage() {
       </section>
 
       {/* Core Values */}
-      <section className="py-10 sm:py-16 bg-gray-50">
+      <section className="py-10 sm:py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
             <div className="text-center p-4 sm:p-8">
@@ -142,7 +154,7 @@ export default async function HomePage() {
       </section>
 
       {/* Recent Events */}
-      <section className="py-10 sm:py-16 bg-white">
+      <section className="py-10 sm:py-16 bg-white border-t border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
