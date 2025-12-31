@@ -4,10 +4,10 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { PROGRAM_CATEGORIES } from "@/lib/constants";
+import { PROGRAM_CATEGORIES, COMPANY_INFO } from "@/lib/constants";
 import { GlobalSearchBar } from "./GlobalSearchBar";
 import { UserMenu } from "./UserMenu";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Instagram, Facebook } from "lucide-react";
 
 export function Header() {
   const pathname = usePathname();
@@ -49,12 +49,6 @@ export function Header() {
           {/* 데스크톱 네비게이션 */}
           <nav className="hidden xl:flex items-center gap-6 text-base font-medium">
             <Link
-              href="/"
-              className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
-            >
-              Home
-            </Link>
-            <Link
               href="/about"
               className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
             >
@@ -95,8 +89,35 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* 사용자 메뉴 */}
-          <div className="hidden xl:flex items-center ml-6">
+          {/* 사용자 메뉴 및 SNS 버튼 */}
+          <div className="hidden xl:flex items-center ml-6 gap-3">
+            {/* SNS 버튼 */}
+            {(COMPANY_INFO.instagram || COMPANY_INFO.facebook) && (
+              <div className="flex items-center gap-2">
+                {COMPANY_INFO.instagram && (
+                  <a
+                    href={COMPANY_INFO.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
+                {COMPANY_INFO.facebook && (
+                  <a
+                    href={COMPANY_INFO.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
+            )}
             <UserMenu />
           </div>
 
@@ -125,13 +146,6 @@ export function Header() {
         <div className="xl:hidden bg-white border-t border-gray-100 shadow-lg">
           <nav className="container mx-auto px-4 py-4">
             <div className="flex flex-col space-y-1">
-              <Link
-                href="/"
-                onClick={closeMenu}
-                className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
-              >
-                Home
-              </Link>
               <Link
                 href="/about"
                 onClick={closeMenu}
@@ -188,8 +202,37 @@ export function Header() {
               </Link>
             </div>
             
-            {/* 모바일 사용자 메뉴 */}
+            {/* 모바일 사용자 메뉴 및 SNS 버튼 */}
             <div className="px-4 pt-4 border-t">
+              {/* 모바일 SNS 버튼 */}
+              {(COMPANY_INFO.instagram || COMPANY_INFO.facebook) && (
+                <div className="flex items-center gap-2 mb-4">
+                  {COMPANY_INFO.instagram && (
+                    <a
+                      href={COMPANY_INFO.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                      aria-label="Instagram"
+                      onClick={closeMenu}
+                    >
+                      <Instagram className="w-4 h-4" />
+                    </a>
+                  )}
+                  {COMPANY_INFO.facebook && (
+                    <a
+                      href={COMPANY_INFO.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                      aria-label="Facebook"
+                      onClick={closeMenu}
+                    >
+                      <Facebook className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
+              )}
               <UserMenu />
             </div>
           </nav>

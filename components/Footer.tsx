@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Phone, MessageCircle, Mail, Instagram, Facebook } from "lucide-react";
+import { Phone, MessageCircle, Mail } from "lucide-react";
 import { COMPANY_INFO } from "@/lib/constants";
 
 export function Footer() {
@@ -49,34 +49,6 @@ export function Footer() {
                 </Link>
               </Button>
             </div>
-            
-            {/* Social Media Links */}
-            {(COMPANY_INFO.instagram || COMPANY_INFO.facebook) && (
-              <div className="flex justify-center items-center gap-6 mt-6">
-                {COMPANY_INFO.instagram && (
-                  <a
-                    href={COMPANY_INFO.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 hover:bg-brand-green-primary text-text-gray hover:text-white transition-all duration-300 transform hover:scale-110"
-                    aria-label="Instagram"
-                  >
-                    <Instagram className="w-6 h-6" />
-                  </a>
-                )}
-                {COMPANY_INFO.facebook && (
-                  <a
-                    href={COMPANY_INFO.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 hover:bg-brand-green-primary text-text-gray hover:text-white transition-all duration-300 transform hover:scale-110"
-                    aria-label="Facebook"
-                  >
-                    <Facebook className="w-6 h-6" />
-                  </a>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
