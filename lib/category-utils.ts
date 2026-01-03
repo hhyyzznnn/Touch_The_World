@@ -23,3 +23,40 @@ export function getCategoryDisplayName(category: string): string {
   return categoryMap[category] || category;
 }
 
+/**
+ * 카테고리 표시명을 키로 변환하는 유틸리티 함수
+ */
+export function getCategoryKey(categoryName: string): string | null {
+  const keyMap: Record<string, string> = {
+    "국내외 교육여행": "국내외교육여행",
+    "체험학습\n(숙박형, 비숙박형)": "체험학습",
+    "체험학습(숙박형, 비숙박형)": "체험학습",
+    "수련활동": "수련활동",
+    "교사 연수": "교사연수",
+    "해외 취업 및 유학": "해외취업및유학",
+    "지자체 및 대학 RISE 사업": "지자체및대학RISE사업",
+    "특성화고교 프로그램": "특성화고교프로그램",
+    "기타 프로그램": "기타프로그램",
+  };
+
+  return keyMap[categoryName] || null;
+}
+
+/**
+ * 카테고리 값을 키로 변환하는 유틸리티 함수 (DB 값 -> 상세 정보 키)
+ */
+export function getCategoryDetailKey(category: string): string | null {
+  const keyMap: Record<string, string> = {
+    "국내외교육여행": "국내외교육여행",
+    "체험학습": "체험학습",
+    "수련활동": "수련활동",
+    "교사연수": "교사연수",
+    "해외취업및유학": "해외취업및유학",
+    "지자체및대학RISE사업": "지자체및대학RISE사업",
+    "특성화고교프로그램": "특성화고교프로그램",
+    "기타프로그램": "기타프로그램",
+  };
+
+  return keyMap[category] || null;
+}
+

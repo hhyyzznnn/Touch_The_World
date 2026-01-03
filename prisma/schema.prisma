@@ -105,15 +105,23 @@ model EventImage {
 }
 
 model Inquiry {
-  id         String   @id @default(cuid())
-  schoolName String
-  contact    String
-  phone      String
-  email      String
-  message    String?
-  status     String   @default("pending") // pending, completed
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String   @id @default(cuid())
+  schoolName        String
+  contact           String
+  phone             String
+  email             String
+  message           String?
+  expectedDate      String?  // 예상 일정
+  participantCount  Int?     // 예상 인원
+  purpose           String?  // 여행 목적/성격
+  hasInstructor     Boolean? // 인솔자 필요 여부
+  preferredTransport String? // 선호 이동수단
+  mealPreference    String?  // 식사 취향/요구사항
+  specialRequests   String?  // 특별 요구사항
+  estimatedBudget   Int?     // 예상 예산 (원)
+  status            String   @default("pending") // pending, completed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])

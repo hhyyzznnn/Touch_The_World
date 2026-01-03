@@ -12,6 +12,14 @@ interface Inquiry {
   phone: string;
   email: string;
   message: string | null;
+  expectedDate: string | null;
+  participantCount: number | null;
+  purpose: string | null;
+  hasInstructor: boolean | null;
+  preferredTransport: string | null;
+  mealPreference: string | null;
+  specialRequests: string | null;
+  estimatedBudget: number | null;
   status: string;
   createdAt: Date;
 }
@@ -160,8 +168,75 @@ export function InquiryDetailModal({
             </div>
           </div>
 
+          {/* 프로그램 정보 */}
+          {(inquiry.expectedDate || inquiry.participantCount || inquiry.purpose || inquiry.hasInstructor !== null || inquiry.preferredTransport || inquiry.mealPreference || inquiry.estimatedBudget) && (
+            <div className="border-t pt-6 space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">프로그램 정보</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {inquiry.expectedDate && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">예상 일정</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.expectedDate}</p>
+                  </div>
+                )}
+                {inquiry.participantCount && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">예상 인원</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.participantCount}명</p>
+                  </div>
+                )}
+              </div>
+
+              {inquiry.purpose && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">여행 목적/성격</label>
+                  <p className="mt-1 text-sm text-gray-900">{inquiry.purpose}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                {inquiry.hasInstructor !== null && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">인솔자 필요 여부</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.hasInstructor ? "필요" : "불필요"}</p>
+                  </div>
+                )}
+                {inquiry.preferredTransport && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">선호 이동수단</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.preferredTransport}</p>
+                  </div>
+                )}
+              </div>
+
+              {inquiry.mealPreference && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">식사 취향/요구사항</label>
+                  <p className="mt-1 text-sm text-gray-900">{inquiry.mealPreference}</p>
+                </div>
+              )}
+
+              {inquiry.estimatedBudget && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">예상 예산</label>
+                  <p className="mt-1 text-sm text-gray-900">{inquiry.estimatedBudget.toLocaleString()}원</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {inquiry.specialRequests && (
+            <div>
+              <label className="text-sm font-medium text-gray-500">특별 요구사항</label>
+              <div className="mt-1 p-4 bg-gray-50 rounded-md">
+                <p className="text-sm text-gray-900 whitespace-pre-wrap">{inquiry.specialRequests}</p>
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="text-sm font-medium text-gray-500">문의 내용</label>
+            <label className="text-sm font-medium text-gray-500">기타 문의 내용</label>
             <div className="mt-1 p-4 bg-gray-50 rounded-md min-h-[150px]">
               <p className="text-sm text-gray-900 whitespace-pre-wrap">
                 {inquiry.message || "문의 내용이 없습니다."}

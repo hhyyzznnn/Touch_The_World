@@ -11,6 +11,14 @@ const inquirySchema = z.object({
   contact: z.string().min(1, "담당자명을 입력해주세요"),
   phone: z.string().min(1, "연락처를 입력해주세요"),
   email: z.string().email("올바른 이메일을 입력해주세요"),
+  expectedDate: z.string().optional(),
+  participantCount: z.string().optional().transform((val) => val ? parseInt(val) : undefined),
+  purpose: z.string().optional(),
+  hasInstructor: z.string().optional().transform((val) => val === "true" ? true : val === "false" ? false : undefined),
+  preferredTransport: z.string().optional(),
+  mealPreference: z.string().optional(),
+  specialRequests: z.string().optional(),
+  estimatedBudget: z.string().optional().transform((val) => val ? parseInt(val) : undefined),
   message: z.string().optional(),
 });
 
@@ -79,87 +87,237 @@ export default function InquiryPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-medium mb-8">문의하기</h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div>
-            <label htmlFor="schoolName" className="block text-sm font-medium mb-2">
-              학교명 <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="schoolName"
-              {...register("schoolName")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="예: 서울초등학교"
-            />
-            {errors.schoolName && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.schoolName.message}
-              </p>
-            )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {/* 기본 정보 */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-medium text-text-dark border-b border-gray-200 pb-2">
+              기본 정보
+            </h2>
+            
+            <div>
+              <label htmlFor="schoolName" className="block text-sm font-medium mb-2">
+                학교명 <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="schoolName"
+                {...register("schoolName")}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 서울초등학교"
+              />
+              {errors.schoolName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.schoolName.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="contact" className="block text-sm font-medium mb-2">
+                담당자명 <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="contact"
+                {...register("contact")}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 홍길동"
+              />
+              {errors.contact && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.contact.message}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium mb-2">
+                  연락처 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="phone"
+                  {...register("phone")}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                  placeholder="예: 010-1234-5678"
+                />
+                {errors.phone && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.phone.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium mb-2">
+                  이메일 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                  placeholder="example@school.kr"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="contact" className="block text-sm font-medium mb-2">
-              담당자명 <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="contact"
-              {...register("contact")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="예: 홍길동"
-            />
-            {errors.contact && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.contact.message}
-              </p>
-            )}
+          {/* 프로그램 정보 */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-medium text-text-dark border-b border-gray-200 pb-2">
+              프로그램 정보
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="expectedDate" className="block text-sm font-medium mb-2">
+                  예상 일정
+                </label>
+                <input
+                  id="expectedDate"
+                  type="text"
+                  {...register("expectedDate")}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                  placeholder="예: 2025년 3월 중순"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="participantCount" className="block text-sm font-medium mb-2">
+                  예상 인원 (명)
+                </label>
+                <input
+                  id="participantCount"
+                  type="number"
+                  min="1"
+                  {...register("participantCount")}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                  placeholder="예: 50"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="purpose" className="block text-sm font-medium mb-2">
+                여행 목적/성격
+              </label>
+              <input
+                id="purpose"
+                type="text"
+                {...register("purpose")}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 역사 탐방, 문화 체험, 자연 학습 등"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  인솔자 필요 여부
+                </label>
+                <div className="flex gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="true"
+                      {...register("hasInstructor")}
+                      className="mr-2 accent-brand-green-primary"
+                    />
+                    필요
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="false"
+                      {...register("hasInstructor")}
+                      className="mr-2 accent-brand-green-primary"
+                    />
+                    불필요
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="preferredTransport" className="block text-sm font-medium mb-2">
+                  선호 이동수단
+                </label>
+                <select
+                  id="preferredTransport"
+                  {...register("preferredTransport")}
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                >
+                  <option value="">선택해주세요</option>
+                  <option value="전세버스">전세버스</option>
+                  <option value="KTX">KTX</option>
+                  <option value="항공">항공</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="mealPreference" className="block text-sm font-medium mb-2">
+                식사 취향/요구사항
+              </label>
+              <input
+                id="mealPreference"
+                type="text"
+                {...register("mealPreference")}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 할랄, 채식, 알러지 등"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="estimatedBudget" className="block text-sm font-medium mb-2">
+                예상 예산 (원)
+              </label>
+              <input
+                id="estimatedBudget"
+                type="number"
+                min="0"
+                {...register("estimatedBudget")}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 5000000"
+              />
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium mb-2">
-              연락처 <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="phone"
-              {...register("phone")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="예: 010-1234-5678"
-            />
-            {errors.phone && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.phone.message}
-              </p>
-            )}
-          </div>
+          {/* 추가 정보 */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-medium text-text-dark border-b border-gray-200 pb-2">
+              추가 정보
+            </h2>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              이메일 <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="email"
-              type="email"
-              {...register("email")}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="example@school.kr"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
+            <div>
+              <label htmlFor="specialRequests" className="block text-sm font-medium mb-2">
+                특별 요구사항
+              </label>
+              <textarea
+                id="specialRequests"
+                {...register("specialRequests")}
+                rows={3}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 알러지, 장애 학생 지원, 특정 견학지 포함 등"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="message" className="block text-sm font-medium mb-2">
-              문의 내용
-            </label>
-            <textarea
-              id="message"
-              {...register("message")}
-              rows={6}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="희망 일정, 학생 수, 특이사항 등을 입력해주세요"
-            />
+            <div>
+              <label htmlFor="message" className="block text-sm font-medium mb-2">
+                기타 문의 내용
+              </label>
+              <textarea
+                id="message"
+                {...register("message")}
+                rows={6}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="추가로 전달하고 싶은 내용을 입력해주세요"
+              />
+            </div>
           </div>
 
           <Button type="submit" size="lg" disabled={isSubmitting} className="w-full bg-brand-green-primary hover:bg-brand-green-primary/90 text-white">
@@ -170,4 +328,3 @@ export default function InquiryPage() {
     </div>
   );
 }
-

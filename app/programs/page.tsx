@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProgramCard } from "@/components/ProgramCard";
-import { getCategoryDisplayName } from "@/lib/category-utils";
+import { getCategoryDisplayName, getCategoryDetailKey } from "@/lib/category-utils";
+import { CATEGORY_DETAILS } from "@/lib/category-details";
+import { CategoryCardNews } from "@/components/CategoryCardNews";
 
 async function getPrograms(category?: string) {
   const where = category ? { category } : {};
@@ -34,6 +36,10 @@ export default async function ProgramsPage({
   const params = await searchParams;
   const programs = await getPrograms(params.category);
   const categories = await getCategories();
+  
+  // 카테고리별 상세 정보 가져오기
+  const categoryDetailKey = params.category ? getCategoryDetailKey(params.category) : null;
+  const categoryDetail = categoryDetailKey ? CATEGORY_DETAILS[categoryDetailKey] : null;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -61,6 +67,11 @@ export default async function ProgramsPage({
           ))}
         </div>
       </div>
+
+      {/* 카테고리별 카드뉴스 */}
+      {categoryDetail && (
+        <CategoryCardNews categoryDetail={categoryDetail} />
+      )}
 
       {programs.length === 0 ? (
         <div className="text-center py-12 text-text-gray">

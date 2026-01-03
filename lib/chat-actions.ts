@@ -149,3 +149,112 @@ ${summary.category || "미선택"}
   }
 }
 
+/**
+ * 고객 요구사항에 맞는 프로그램 검색
+ */
+export async function searchPrograms(criteria: {
+  category?: string;
+  region?: string;
+  participantCount?: number;
+  purpose?: string;
+  estimatedBudget?: number;
+  limit?: number;
+}) {
+  try {
+    const where: any = {};
+
+    // 카테고리 필터
+    if (criteria.category) {
+      where.category = criteria.category;
+    }
+
+    // 지역 필터 (부분 일치)
+    if (criteria.region) {
+      where.OR = [
+        { region: { contains: criteria.region, mode: "insensitive" } },
+        { hashtags: { hasSome: [criteria.region] } },
+      ];
+    }
+
+    // 목적/성격 필터 (제목, 요약, 설명에서 검색)
+    if (criteria.purpose) {
+      const purposeWhere = {
+        OR: [
+          { title: { contains: criteria.purpose, mode: "insensitive" } },
+          { summary: { contains: criteria.purpose, mode: "insensitive" } },
+          { description: { contains: criteria.purpose, mode: "insensitive" } },
+        ],
+      };
+      
+      if (where.OR) {
+        // 이미 OR 조건이 있으면 AND로 결합
+        where.AND = [
+          { OR: where.OR },
+          purposeWhere,
+        ];
+        delete where.OR;
+      } else {
+        Object.assign(where, purposeWhere);
+      }
+    }
+
+    // 예산 필터 (인원당 예산 계산)
+    if (criteria.estimatedBudget && criteria.participantCount) {
+      const budgetPerPerson = criteria.estimatedBudget / criteria.participantCount;
+      where.OR = where.OR || [];
+      where.OR.push(
+        { priceTo: { lte: budgetPerPerson * 1.2 } }, // 예산의 120% 이하
+        { priceFrom: { gte: budgetPerPerson * 0.8 } }, // 예산의 80% 이상
+        { AND: [
+          { priceFrom: { lte: budgetPerPerson * 1.2 } },
+          { priceTo: { gte: budgetPerPerson * 0.8 } },
+        ]}
+      );
+    } else if (criteria.estimatedBudget) {
+      // 인원 정보가 없으면 전체 예산으로 필터링
+      where.OR = where.OR || [];
+      where.OR.push(
+        { priceTo: { lte: criteria.estimatedBudget * 1.2 } },
+        { priceFrom: { gte: criteria.estimatedBudget * 0.8 } },
+      );
+    }
+
+    const programs = await prisma.program.findMany({
+      where,
+      include: {
+        images: {
+          take: 1,
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      take: criteria.limit || 5,
+      orderBy: [
+        { rating: "desc" },
+        { reviewCount: "desc" },
+        { createdAt: "desc" },
+      ],
+    });
+
+    return {
+      success: true,
+      programs: programs.map((p) => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        summary: p.summary,
+        region: p.region,
+        priceFrom: p.priceFrom,
+        priceTo: p.priceTo,
+        rating: p.rating,
+        reviewCount: p.reviewCount,
+        thumbnailUrl: p.thumbnailUrl,
+        imageUrl: p.images[0]?.url,
+      })),
+      count: programs.length,
+    };
+  } catch (error: any) {
+    console.error("프로그램 검색 실패:", error);
+    return { success: false, error: error.message, programs: [], count: 0 };
+  }
+}
+

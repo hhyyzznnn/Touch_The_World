@@ -19,6 +19,7 @@
 - **데이터베이스**: PostgreSQL (Supabase)
 - **인증**: NextAuth v5 (Beta)
 - **파일 업로드**: UploadThing
+- **AI**: OpenAI GPT-4o-mini (채팅 상담)
 
 ### 개발 도구
 - **패키지 관리**: npm
@@ -34,6 +35,7 @@
 
 #### 사용자 페이지
 - ✅ **홈페이지**: 히어로 섹션, 프로그램 카테고리, 핵심 가치, 최근 행사
+- ✅ **AI 채팅 상담**: 히어로 섹션 입력창 및 플로팅 버튼, 프로그램 카테고리 선택, 실시간 상담
 - ✅ **회사 소개**: 회사 정보, 핵심 가치, 연혁
 - ✅ **프로그램 목록/상세**: 카테고리별 필터링, 프로그램 상세 정보
 - ✅ **행사 포트폴리오**: 연도/행사 종류/지역/키워드 필터링, 행사 목록
@@ -53,6 +55,11 @@
 - ✅ **전역 검색**: 상품, 진행 내역, 학교 검색
 
 #### 기술적 기능
+- ✅ **AI 채팅 상담**: OpenAI GPT-4o-mini 기반 실시간 상담
+  - 히어로 섹션 입력창 확장형 채팅 인터페이스
+  - 플로팅 버튼 채팅 위젯
+  - 채팅 기록 sessionStorage 공유
+  - 프로그램 카테고리 선택 및 맞춤형 상담
 - ✅ **이미지 업로드**: UploadThing 연동 (프로그램, 상품, 행사 이미지)
   - URL 입력 또는 파일 업로드 버튼으로 이미지 추가 가능
   - 이미지 형식: JPG, PNG, WebP
@@ -105,6 +112,7 @@ Touch_The_World/
 │   │   └── products/           # 상품 관리 (기존)
 │   ├── api/                      # API 라우트
 │   │   ├── admin/               # 관리자 API
+│   │   ├── chat/                # AI 채팅 API
 │   │   └── inquiry/             # 문의 API
 │   ├── documents/                # 자료실 페이지
 │   ├── events/                   # 행사 포트폴리오
@@ -121,6 +129,9 @@ Touch_The_World/
 │   ├── Logo.tsx                  # 로고
 │   ├── AdminNav.tsx              # 관리자 네비게이션 (모바일 반응형)
 │   ├── GlobalSearchBar.tsx       # 전역 검색 바
+│   ├── HeroChatInput.tsx         # 히어로 섹션 AI 채팅 입력창
+│   ├── ChatWidget.tsx            # 채팅 위젯
+│   ├── FloatingChatButton.tsx    # 플로팅 채팅 버튼
 │   ├── InquiryDetailModal.tsx    # 문의 상세 모달
 │   ├── InquiryActions.tsx        # 문의 작업 버튼
 │   └── *Form.tsx                 # 폼 컴포넌트들
@@ -128,7 +139,9 @@ Touch_The_World/
 │   ├── constants.ts              # 상수 정의
 │   ├── prisma.ts                 # Prisma 클라이언트
 │   ├── utils.ts                  # 유틸리티 함수
-│   └── auth.ts                   # 인증 설정
+│   ├── auth.ts                   # 인증 설정
+│   ├── chat-actions.ts           # 채팅 액션 (상담 로그 저장)
+│   └── chat-storage.ts           # 채팅 기록 저장소
 ├── types/                        # TypeScript 타입 정의
 │   └── index.ts                  # 공통 타입
 ├── prisma/                       # Prisma 설정
@@ -193,6 +206,9 @@ NAVER_CLIENT_ID="your-naver-client-id"
 NAVER_CLIENT_SECRET="your-naver-client-secret"
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# AI 채팅 (OpenAI) - 필수
+OPENAI_API_KEY="sk-xxxxxxxxxxxxx"
 ```
 
 **중요**: 
@@ -326,6 +342,7 @@ npm run db:seed:achievements
    - `RESEND_API_KEY` (이메일 인증용, 선택사항)
    - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (SMS 인증용, 선택사항)
+   - `OPENAI_API_KEY` (AI 채팅 상담용, 필수)
 4. 빌드 설정 확인:
    - Build Command: `npm run build` (자동으로 `prisma generate` 포함)
    - Output Directory: `.next`
@@ -353,6 +370,7 @@ RESEND_FROM_EMAIL=noreply@yourdomain.com
 TWILIO_ACCOUNT_SID=your-twilio-account-sid
 TWILIO_AUTH_TOKEN=your-twilio-auth-token
 TWILIO_PHONE_NUMBER=+1234567890
+OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 ```
 
 ## 🎯 주요 업데이트 내역

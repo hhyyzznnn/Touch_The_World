@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { saveConsultingLog, sendConsultingSummaryEmail } from "@/lib/chat-actions";
+import { saveConsultingLog, sendConsultingSummaryEmail, searchPrograms } from "@/lib/chat-actions";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 
 const openai = new OpenAI({
@@ -36,7 +36,7 @@ const getSystemPrompt = (landingCategory?: string): string => {
     "   - 인솔자 필요 여부 (필수)\n" +
     "   - 선호 이동수단 (전세버스/KTX/항공/기타) (필수)\n" +
     "   - 식사 취향/요구사항 (할랄, 채식, 알러지 등)\n" +
-    "3. 정보 수집 중간에, 해당 카테고리와 지역에 맞는 가상의 추천 일정 예시를 제시하여 고객의 기대감을 높이세요 (예: \"작년에 진행했던 유사한 서울권 역사 탐방 코스는 보통 이런 식으로 구성되었습니다\").\n" +
+    "3. 정보 수집 중간에, 고객의 요구사항(카테고리, 지역, 목적 등)이 충분히 수집되면 searchPrograms 함수를 호출하여 데이터베이스에서 실제 프로그램을 검색하고 추천하세요. 검색된 프로그램이 있으면 구체적인 프로그램 제목, 지역, 가격 정보를 포함하여 추천하세요.\n" +
     "4. 추천 후에는 \"특별히 고려해야 할 사항(예: 알러지, 장애 학생 지원, 특정 견학지 포함 등)\"이 있는지 반드시 물어보세요.\n" +
     "5. 예상 예산이 있으면 물어보고, 즉시 견적 가능 여부를 판단하세요.\n" +
     "6. 사용자가 상담을 마무리하거나 '상세 견적 요청' 의사를 표시하면, saveConsultingLog 함수를 호출하여 정보를 저장하세요.\n\n" +
@@ -74,6 +74,40 @@ export async function POST(request: NextRequest) {
 
     // Function Calling 정의
     const functions: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function[] = [
+      {
+        name: "searchPrograms",
+        description: "고객의 요구사항에 맞는 프로그램을 데이터베이스에서 검색합니다. 카테고리, 지역, 목적 등의 정보가 수집되면 호출하여 실제 프로그램을 추천하세요.",
+        parameters: {
+          type: "object",
+          properties: {
+            category: {
+              type: "string",
+              description: "프로그램 카테고리 (예: 체험학습, 수련활동, 국내외교육여행 등)",
+            },
+            region: {
+              type: "string",
+              description: "희망 지역 (예: 서울, 경기, 부산, 제주 등)",
+            },
+            participantCount: {
+              type: "number",
+              description: "예상 인원 (명)",
+            },
+            purpose: {
+              type: "string",
+              description: "여행 목적/성격 (예: 역사 탐방, 문화 체험, 자연 학습 등)",
+            },
+            estimatedBudget: {
+              type: "number",
+              description: "예상 예산 (원). 인원당 예산이면 participantCount와 함께 계산됩니다.",
+            },
+            limit: {
+              type: "number",
+              description: "검색 결과 개수 (기본값: 5, 최대: 10)",
+            },
+          },
+          required: [],
+        },
+      },
       {
         name: "saveConsultingLog",
         description: "상담 내용을 저장하고 요약 이메일을 발송합니다. 사용자가 상담을 마무리하거나 견적 요청을 할 때 호출하세요.",
@@ -150,7 +184,52 @@ export async function POST(request: NextRequest) {
       const functionName = assistantMessage.function_call.name;
       const functionArgs = JSON.parse(assistantMessage.function_call.arguments || "{}");
 
-      if (functionName === "saveConsultingLog") {
+      if (functionName === "searchPrograms") {
+        // 프로그램 검색
+        const searchResult = await searchPrograms({
+          category: functionArgs.category,
+          region: functionArgs.region,
+          participantCount: functionArgs.participantCount,
+          purpose: functionArgs.purpose,
+          estimatedBudget: functionArgs.estimatedBudget,
+          limit: functionArgs.limit || 5,
+        });
+
+        if (searchResult.success && searchResult.programs && searchResult.programs.length > 0) {
+          // 검색 결과를 포맷팅하여 응답
+          const programsText = searchResult.programs.map((p, idx) => {
+            const priceInfo = p.priceFrom && p.priceTo 
+              ? `인원당 ${(p.priceFrom / 10000).toFixed(0)}만원 ~ ${(p.priceTo / 10000).toFixed(0)}만원`
+              : p.priceFrom 
+              ? `인원당 ${(p.priceFrom / 10000).toFixed(0)}만원 이상`
+              : "가격 문의";
+            
+            return `${idx + 1}. ${p.title}\n   - 지역: ${p.region || "미지정"}\n   - 가격: ${priceInfo}\n   - 평점: ${p.rating ? p.rating.toFixed(1) : "없음"} (후기 ${p.reviewCount}개)`;
+          }).join("\n\n");
+
+          return NextResponse.json({
+            message: {
+              role: "assistant",
+              content: `고객님의 요구사항에 맞는 프로그램을 찾았습니다!\n\n${programsText}\n\n더 자세한 정보가 필요하시거나 다른 조건으로 검색을 원하시면 말씀해주세요.`,
+            },
+            functionCall: {
+              name: functionName,
+              result: { count: searchResult.count, programs: searchResult.programs },
+            },
+          });
+        } else {
+          return NextResponse.json({
+            message: {
+              role: "assistant",
+              content: "죄송합니다. 요청하신 조건에 맞는 프로그램을 찾지 못했습니다. 다른 조건으로 검색해보시거나, 담당자에게 직접 문의해주시면 더 정확한 상담을 받으실 수 있습니다.",
+            },
+            functionCall: {
+              name: functionName,
+              result: { count: 0, programs: [] },
+            },
+          });
+        }
+      } else if (functionName === "saveConsultingLog") {
         // 상담 로그 저장
         const saveResult = await saveConsultingLog({
           sessionId: sessionId || `session_${Date.now()}`,

@@ -81,6 +81,14 @@ export async function sendInquiryNotificationEmail(
     phone: string;
     email: string;
     message?: string | null;
+    expectedDate?: string | null;
+    participantCount?: number | null;
+    purpose?: string | null;
+    hasInstructor?: boolean | null;
+    preferredTransport?: string | null;
+    mealPreference?: string | null;
+    specialRequests?: string | null;
+    estimatedBudget?: number | null;
   }
 ) {
   const adminEmail = process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || "syh2123@naver.com";
@@ -129,9 +137,57 @@ export async function sendInquiryNotificationEmail(
                 <td style="padding: 8px 0; font-weight: bold; color: #333;">이메일:</td>
                 <td style="padding: 8px 0; color: #666;">${inquiryData.email}</td>
               </tr>
+              ${inquiryData.expectedDate ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">예상 일정:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.expectedDate}</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.participantCount ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">예상 인원:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.participantCount}명</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.purpose ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">여행 목적:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.purpose}</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.hasInstructor !== null && inquiryData.hasInstructor !== undefined ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">인솔자 필요:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.hasInstructor ? "필요" : "불필요"}</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.preferredTransport ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">선호 이동수단:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.preferredTransport}</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.mealPreference ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">식사 취향:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.mealPreference}</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.estimatedBudget ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333;">예상 예산:</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.estimatedBudget.toLocaleString()}원</td>
+              </tr>
+              ` : ''}
+              ${inquiryData.specialRequests ? `
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #333; vertical-align: top;">특별 요구사항:</td>
+                <td style="padding: 8px 0; color: #666; white-space: pre-wrap;">${inquiryData.specialRequests}</td>
+              </tr>
+              ` : ''}
               ${inquiryData.message ? `
               <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333; vertical-align: top;">문의 내용:</td>
+                <td style="padding: 8px 0; font-weight: bold; color: #333; vertical-align: top;">기타 문의 내용:</td>
                 <td style="padding: 8px 0; color: #666; white-space: pre-wrap;">${inquiryData.message}</td>
               </tr>
               ` : ''}

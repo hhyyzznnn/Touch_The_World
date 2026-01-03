@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Minimize2 } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
+import { loadChatMessages, saveChatMessages, ChatMessage } from "@/lib/chat-storage";
 
 interface Message {
   id: string;
@@ -11,6 +12,15 @@ interface Message {
   timestamp: Date;
   showCategoryButtons?: boolean;
 }
+
+// ChatMessage와 Message 타입 호환
+const toMessage = (msg: ChatMessage): Message => ({
+  id: msg.id,
+  role: msg.role,
+  content: msg.content,
+  timestamp: msg.timestamp,
+  showCategoryButtons: msg.showCategoryButtons,
+});
 
 interface ChatWidgetProps {
   isOpen: boolean;
@@ -32,18 +42,27 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
 어떤 프로그램에 관심이 있으신가요? 아래 버튼을 클릭하시거나 직접 입력해주세요!`;
   };
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // 저장된 채팅 기록 불러오기
+    const loaded = loadChatMessages();
+    if (loaded.messages.length > 0) {
+      return loaded.messages.map(toMessage);
+    }
+    // 초기 메시지
+    return [{
       id: "1",
       role: "assistant",
       content: getInitialMessage(),
       timestamp: new Date(),
       showCategoryButtons: !landingCategory,
-    },
-  ]);
+    }];
+  });
   const [input, setInput] = useState(initialMessage || "");
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId] = useState(() => `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(() => {
+    const loaded = loadChatMessages();
+    return loaded.sessionId || `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -82,7 +101,17 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
       content: categoryName,
       timestamp: new Date(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => {
+      const updated = [...prev, userMessage];
+      saveChatMessages(updated.map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        showCategoryButtons: msg.showCategoryButtons,
+      })), sessionId);
+      return updated;
+    });
     handleSendMessage(categoryName);
   };
 
@@ -97,7 +126,17 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
         content: input.trim(),
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages((prev) => {
+        const updated = [...prev, userMessage];
+        saveChatMessages(updated.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          showCategoryButtons: msg.showCategoryButtons,
+        })), sessionId);
+        return updated;
+      });
       setInput("");
     }
     
@@ -137,7 +176,18 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
         showCategoryButtons: false,
       };
 
-      setMessages((prev) => [...prev, assistantMessage]);
+      setMessages((prev) => {
+        const updated = [...prev, assistantMessage];
+        // 채팅 기록 저장
+        saveChatMessages(updated.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          showCategoryButtons: msg.showCategoryButtons,
+        })), sessionId);
+        return updated;
+      });
     } catch (error: any) {
       console.error("채팅 오류:", error);
       const errorMessage: Message = {
@@ -146,7 +196,17 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
         content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => {
+        const updated = [...prev, errorMessage];
+        saveChatMessages(updated.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: msg.timestamp,
+          showCategoryButtons: msg.showCategoryButtons,
+        })), sessionId);
+        return updated;
+      });
     } finally {
       setIsLoading(false);
     }

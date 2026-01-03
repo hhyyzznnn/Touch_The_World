@@ -10,6 +10,14 @@ const inquirySchema = z.object({
   contact: z.string().min(1).max(50),
   phone: z.string().min(1).max(20),
   email: z.string().email().max(100),
+  expectedDate: z.string().max(100).optional(),
+  participantCount: z.number().int().positive().optional(),
+  purpose: z.string().max(200).optional(),
+  hasInstructor: z.boolean().optional(),
+  preferredTransport: z.string().max(50).optional(),
+  mealPreference: z.string().max(200).optional(),
+  specialRequests: z.string().max(1000).optional(),
+  estimatedBudget: z.number().int().nonnegative().optional(),
   message: z.string().max(2000).optional(),
 });
 
@@ -78,12 +86,78 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 선택적 필드 검증
+    const expectedDateValidation = body.expectedDate
+      ? validateAndSanitize(body.expectedDate, {
+          maxLength: 100,
+          allowHtml: false,
+        })
+      : { valid: true, sanitized: null };
+    if (!expectedDateValidation.valid) {
+      return NextResponse.json(
+        { error: `예상 일정: ${expectedDateValidation.error}` },
+        { status: 400 }
+      );
+    }
+
+    const purposeValidation = body.purpose
+      ? validateAndSanitize(body.purpose, {
+          maxLength: 200,
+          allowHtml: false,
+        })
+      : { valid: true, sanitized: null };
+    if (!purposeValidation.valid) {
+      return NextResponse.json(
+        { error: `여행 목적: ${purposeValidation.error}` },
+        { status: 400 }
+      );
+    }
+
+    const preferredTransportValidation = body.preferredTransport
+      ? validateAndSanitize(body.preferredTransport, {
+          maxLength: 50,
+          allowHtml: false,
+        })
+      : { valid: true, sanitized: null };
+    if (!preferredTransportValidation.valid) {
+      return NextResponse.json(
+        { error: `선호 이동수단: ${preferredTransportValidation.error}` },
+        { status: 400 }
+      );
+    }
+
+    const mealPreferenceValidation = body.mealPreference
+      ? validateAndSanitize(body.mealPreference, {
+          maxLength: 200,
+          allowHtml: false,
+        })
+      : { valid: true, sanitized: null };
+    if (!mealPreferenceValidation.valid) {
+      return NextResponse.json(
+        { error: `식사 취향: ${mealPreferenceValidation.error}` },
+        { status: 400 }
+      );
+    }
+
+    const specialRequestsValidation = body.specialRequests
+      ? validateAndSanitize(body.specialRequests, {
+          maxLength: 1000,
+          allowHtml: false,
+        })
+      : { valid: true, sanitized: null };
+    if (!specialRequestsValidation.valid) {
+      return NextResponse.json(
+        { error: `특별 요구사항: ${specialRequestsValidation.error}` },
+        { status: 400 }
+      );
+    }
+
     const messageValidation = body.message
       ? validateAndSanitize(body.message, {
           maxLength: 2000,
           allowHtml: false,
         })
-      : { valid: true, sanitized: "" };
+      : { valid: true, sanitized: null };
     if (!messageValidation.valid) {
       return NextResponse.json(
         { error: `문의 내용: ${messageValidation.error}` },
@@ -97,6 +171,14 @@ export async function POST(request: NextRequest) {
       contact: contactValidation.sanitized,
       phone: body.phone,
       email: body.email,
+      expectedDate: expectedDateValidation.sanitized || undefined,
+      participantCount: body.participantCount ? parseInt(body.participantCount) : undefined,
+      purpose: purposeValidation.sanitized || undefined,
+      hasInstructor: body.hasInstructor === "true" ? true : body.hasInstructor === "false" ? false : body.hasInstructor,
+      preferredTransport: preferredTransportValidation.sanitized || undefined,
+      mealPreference: mealPreferenceValidation.sanitized || undefined,
+      specialRequests: specialRequestsValidation.sanitized || undefined,
+      estimatedBudget: body.estimatedBudget ? parseInt(body.estimatedBudget) : undefined,
       message: messageValidation.sanitized || undefined,
     });
 
@@ -106,6 +188,14 @@ export async function POST(request: NextRequest) {
         contact: data.contact,
         phone: data.phone,
         email: data.email,
+        expectedDate: data.expectedDate || null,
+        participantCount: data.participantCount || null,
+        purpose: data.purpose || null,
+        hasInstructor: data.hasInstructor ?? null,
+        preferredTransport: data.preferredTransport || null,
+        mealPreference: data.mealPreference || null,
+        specialRequests: data.specialRequests || null,
+        estimatedBudget: data.estimatedBudget || null,
         message: data.message || null,
       },
     });
@@ -117,6 +207,14 @@ export async function POST(request: NextRequest) {
       phone: data.phone,
       email: data.email,
       message: data.message || null,
+      expectedDate: data.expectedDate || null,
+      participantCount: data.participantCount || null,
+      purpose: data.purpose || null,
+      hasInstructor: data.hasInstructor ?? null,
+      preferredTransport: data.preferredTransport || null,
+      mealPreference: data.mealPreference || null,
+      specialRequests: data.specialRequests || null,
+      estimatedBudget: data.estimatedBudget || null,
     }).catch((error) => {
       console.error("이메일 알림 전송 실패:", error);
       // 이메일 전송 실패는 로그만 남기고 사용자에게는 에러를 반환하지 않음
@@ -146,4 +244,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
