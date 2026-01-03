@@ -82,6 +82,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
+      showCategoryButtons: false,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -127,6 +128,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         role: "assistant",
         content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         timestamp: new Date(),
+        showCategoryButtons: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -140,12 +142,14 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       role: "user",
       content: categoryName,
       timestamp: new Date(),
+      showCategoryButtons: false,
     };
 
     // 카테고리 선택 시 이전 메시지의 버튼 제거
-    setMessages((prev) => 
-      prev.map(msg => ({ ...msg, showCategoryButtons: false })).concat(userMessage)
-    );
+    setMessages((prev) => [
+      ...prev.map(msg => ({ ...msg, showCategoryButtons: false })),
+      userMessage
+    ]);
     setLandingCategory(categoryName);
     setIsChatting(true);
     setIsExpanded(true);
@@ -188,6 +192,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         role: "assistant",
         content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         timestamp: new Date(),
+        showCategoryButtons: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
