@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     });
     if (!schoolNameValidation.valid) {
       return NextResponse.json(
-        { error: `학교명: ${schoolNameValidation.error}` },
+        { error: `학교명: ${'error' in schoolNameValidation ? schoolNameValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     });
     if (!contactValidation.valid) {
       return NextResponse.json(
-        { error: `담당자명: ${contactValidation.error}` },
+        { error: `담당자명: ${'error' in contactValidation ? contactValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!expectedDateValidation.valid) {
       return NextResponse.json(
-        { error: `예상 일정: ${expectedDateValidation.error || "유효하지 않은 입력입니다."}` },
+        { error: `예상 일정: ${'error' in expectedDateValidation ? expectedDateValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!purposeValidation.valid) {
       return NextResponse.json(
-        { error: `여행 목적: ${purposeValidation.error || "유효하지 않은 입력입니다."}` },
+        { error: `여행 목적: ${'error' in purposeValidation ? purposeValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!preferredTransportValidation.valid) {
       return NextResponse.json(
-        { error: `선호 이동수단: ${preferredTransportValidation.error || "유효하지 않은 입력입니다."}` },
+        { error: `선호 이동수단: ${'error' in preferredTransportValidation ? preferredTransportValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!mealPreferenceValidation.valid) {
       return NextResponse.json(
-        { error: `식사 취향: ${mealPreferenceValidation.error || "유효하지 않은 입력입니다."}` },
+        { error: `식사 취향: ${'error' in mealPreferenceValidation ? mealPreferenceValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!specialRequestsValidation.valid) {
       return NextResponse.json(
-        { error: `특별 요구사항: ${specialRequestsValidation.error || "유효하지 않은 입력입니다."}` },
+        { error: `특별 요구사항: ${'error' in specialRequestsValidation ? specialRequestsValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!messageValidation.valid) {
       return NextResponse.json(
-        { error: `문의 내용: ${messageValidation.error || "유효하지 않은 입력입니다."}` },
+        { error: `문의 내용: ${'error' in messageValidation ? messageValidation.error : "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
