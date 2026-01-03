@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!expectedDateValidation.valid) {
       return NextResponse.json(
-        { error: `예상 일정: ${expectedDateValidation.error}` },
+        { error: `예상 일정: ${expectedDateValidation.error || "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!purposeValidation.valid) {
       return NextResponse.json(
-        { error: `여행 목적: ${purposeValidation.error}` },
+        { error: `여행 목적: ${purposeValidation.error || "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!preferredTransportValidation.valid) {
       return NextResponse.json(
-        { error: `선호 이동수단: ${preferredTransportValidation.error}` },
+        { error: `선호 이동수단: ${preferredTransportValidation.error || "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!mealPreferenceValidation.valid) {
       return NextResponse.json(
-        { error: `식사 취향: ${mealPreferenceValidation.error}` },
+        { error: `식사 취향: ${mealPreferenceValidation.error || "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!specialRequestsValidation.valid) {
       return NextResponse.json(
-        { error: `특별 요구사항: ${specialRequestsValidation.error}` },
+        { error: `특별 요구사항: ${specialRequestsValidation.error || "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       : { valid: true, sanitized: null };
     if (!messageValidation.valid) {
       return NextResponse.json(
-        { error: `문의 내용: ${messageValidation.error}` },
+        { error: `문의 내용: ${messageValidation.error || "유효하지 않은 입력입니다."}` },
         { status: 400 }
       );
     }
