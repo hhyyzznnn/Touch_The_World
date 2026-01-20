@@ -137,9 +137,11 @@ export function CategoryCardNews({ categoryDetail }: CategoryCardNewsProps) {
               const FeatureIcon = iconMap[feature.icon];
               return (
                 <div key={idx} className="flex flex-col items-center">
-                  <div className="w-14 h-14 bg-brand-green/10 rounded-full flex items-center justify-center mb-3">
-                    <FeatureIcon className="w-7 h-7 text-brand-green" />
-                  </div>
+                  {FeatureIcon && (
+                    <div className="w-14 h-14 bg-brand-green/10 rounded-full flex items-center justify-center mb-3">
+                      <FeatureIcon className="w-7 h-7 text-brand-green" />
+                    </div>
+                  )}
                   <span className="text-base font-medium text-text-dark">
                     {feature.text}
                   </span>

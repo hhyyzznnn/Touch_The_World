@@ -1,8 +1,55 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { CategoryDetail } from "@/lib/category-details";
+import { X, ChevronLeft, ChevronRight, LucideIcon } from "lucide-react";
+import { 
+  MapPin,
+  BookOpen,
+  Mountain, 
+  GraduationCap, 
+  Plane, 
+  Building2, 
+  School,
+  MoreHorizontal,
+  Globe,
+  Flag,
+  Users,
+  Lightbulb,
+  Target,
+  Briefcase,
+  Heart,
+  Shield,
+  Compass,
+  Handshake,
+  Award,
+  FileText,
+  Sparkles,
+} from "lucide-react";
+import { CategoryDetail, IconName } from "@/lib/category-details";
+
+const iconMap: Record<IconName, LucideIcon> = {
+  MapPin,
+  BookOpen,
+  Mountain,
+  GraduationCap,
+  Plane,
+  Building2,
+  School,
+  MoreHorizontal,
+  Globe,
+  Flag,
+  Users,
+  Lightbulb,
+  Target,
+  Briefcase,
+  Heart,
+  Shield,
+  Compass,
+  Handshake,
+  Award,
+  FileText,
+  Sparkles,
+};
 
 interface CategoryDetailModalProps {
   categoryDetail: CategoryDetail | null;
@@ -114,7 +161,7 @@ export function CategoryDetailModal({
           >
             <div className="flex gap-4 min-w-max">
               {categoryDetail.cards.map((card) => {
-                const Icon = card.icon;
+                const Icon = card.icon ? iconMap[card.icon] : null;
                 return (
                   <div
                     key={card.id}
@@ -173,12 +220,14 @@ export function CategoryDetailModal({
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
             <div className="flex justify-center gap-6">
               {categoryDetail.features.map((feature, idx) => {
-                const FeatureIcon = feature.icon;
+                const FeatureIcon = iconMap[feature.icon];
                 return (
                   <div key={idx} className="flex flex-col items-center">
-                    <div className="w-12 h-12 bg-brand-green/10 rounded-full flex items-center justify-center mb-2">
-                      <FeatureIcon className="w-6 h-6 text-brand-green" />
-                    </div>
+                    {FeatureIcon && (
+                      <div className="w-12 h-12 bg-brand-green/10 rounded-full flex items-center justify-center mb-2">
+                        <FeatureIcon className="w-6 h-6 text-brand-green" />
+                      </div>
+                    )}
                     <span className="text-sm font-medium text-text-dark">
                       {feature.text}
                     </span>
