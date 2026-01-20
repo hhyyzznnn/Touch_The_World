@@ -4,25 +4,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-
-interface Inquiry {
-  id: string;
-  schoolName: string;
-  contact: string;
-  phone: string;
-  email: string;
-  message: string | null;
-  expectedDate: string | null;
-  participantCount: number | null;
-  purpose: string | null;
-  hasInstructor: boolean | null;
-  preferredTransport: string | null;
-  mealPreference: string | null;
-  specialRequests: string | null;
-  estimatedBudget: number | null;
-  status: string;
-  createdAt: Date;
-}
+import { Inquiry } from "@/types";
 
 interface InquiryDetailModalProps {
   inquiry: Inquiry | null;

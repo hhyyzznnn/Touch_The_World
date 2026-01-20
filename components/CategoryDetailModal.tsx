@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { X, ChevronLeft, ChevronRight, LucideIcon } from "lucide-react";
 import { 
   MapPin,
@@ -62,6 +63,7 @@ export function CategoryDetailModal({
   isOpen,
   onClose,
 }: CategoryDetailModalProps) {
+  const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -247,7 +249,7 @@ export function CategoryDetailModal({
             <button
               onClick={() => {
                 onClose();
-                // TODO: 문의하기 페이지로 이동하거나 채팅 열기
+                router.push("/inquiry");
               }}
               className="px-6 py-2 bg-brand-green-primary hover:bg-brand-green-primary/90 text-white rounded-lg transition-colors text-sm font-medium"
             >

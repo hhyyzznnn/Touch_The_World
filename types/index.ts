@@ -32,6 +32,25 @@ export type SchoolWithRelations = Prisma.SchoolGetPayload<{
 // Inquiry 타입
 export type InquiryStatus = "pending" | "completed";
 
+export interface Inquiry {
+  id: string;
+  schoolName: string;
+  contact: string;
+  phone: string;
+  email: string;
+  message: string | null;
+  expectedDate: string | null;
+  participantCount: number | null;
+  purpose: string | null;
+  hasInstructor: boolean | null;
+  preferredTransport: string | null;
+  mealPreference: string | null;
+  specialRequests: string | null;
+  estimatedBudget: number | null;
+  status: string;
+  createdAt: Date;
+}
+
 // Document 타입
 export type DocumentCategory = 
   | "안전관리"

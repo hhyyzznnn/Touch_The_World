@@ -3,25 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { InquiryDetailModal } from "@/components/InquiryDetailModal";
-
-interface Inquiry {
-  id: string;
-  schoolName: string;
-  contact: string;
-  phone: string;
-  email: string;
-  message: string | null;
-  expectedDate: string | null;
-  participantCount: number | null;
-  purpose: string | null;
-  hasInstructor: boolean | null;
-  preferredTransport: string | null;
-  mealPreference: string | null;
-  specialRequests: string | null;
-  estimatedBudget: number | null;
-  status: string;
-  createdAt: Date;
-}
+import { Inquiry } from "@/types";
 
 interface InquiryActionsProps {
   inquiry: Inquiry;
