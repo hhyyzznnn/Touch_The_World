@@ -52,62 +52,64 @@ export default async function AdminEventsPage({
           등록된 진행 내역이 없습니다.
         </div>
       ) : (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  날짜
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  학교
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  상품
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  학생수
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  작업
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {events.map((event) => (
-                <tr key={event.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {format(new Date(event.date), "yyyy-MM-dd")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {event.school.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {event.program.title}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {event.studentCount}명
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex gap-2">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/events/${event.id}/edit`}>수정</Link>
-                      </Button>
-                      <form
-                        action={`/api/admin/events/${event.id}`}
-                        method="DELETE"
-                      >
-                        <Button type="submit" variant="destructive" size="sm">
-                          삭제
-                        </Button>
-                      </form>
-                    </div>
-                  </td>
+        <>
+          <div className="bg-white rounded-lg border overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    날짜
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    학교
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    상품
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    학생수
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    작업
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y">
+                {events.map((event) => (
+                  <tr key={event.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {format(new Date(event.date), "yyyy-MM-dd")}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {event.school.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {event.program.title}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {event.studentCount}명
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/admin/events/${event.id}/edit`}>수정</Link>
+                        </Button>
+                        <form
+                          action={`/api/admin/events/${event.id}`}
+                          method="DELETE"
+                        >
+                          <Button type="submit" variant="destructive" size="sm">
+                            삭제
+                          </Button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
           </div>
           <Pagination
             currentPage={currentPage}
@@ -115,7 +117,7 @@ export default async function AdminEventsPage({
             baseUrl="/admin/events"
             searchParams={params}
           />
-        </div>
+        </>
       )}
     </div>
   );

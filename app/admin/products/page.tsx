@@ -55,68 +55,70 @@ export default async function AdminProductsPage({
             등록된 상품이 없습니다.
           </div>
         ) : (
-          <div className="bg-white rounded-lg border overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    상품명
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    카테고리
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    지역
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    작업
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {products.map((product) => (
-                  <tr key={product.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium">{product.title}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600">
-                        {categoryLabels[product.category] || product.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-600">
-                        {product.region || "-"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/admin/products/${product.id}/edit`}>
-                            수정
-                          </Link>
-                        </Button>
-                        <form
-                          action={`/api/admin/products/${product.id}`}
-                          method="DELETE"
-                        >
-                          <Button type="submit" variant="destructive" size="sm">
-                            삭제
-                          </Button>
-                        </form>
-                      </div>
-                    </td>
+          <>
+            <div className="bg-white rounded-lg border overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      상품명
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      카테고리
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      지역
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      작업
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            baseUrl="/admin/products"
-            searchParams={params}
-          />
+                </thead>
+                <tbody className="divide-y">
+                  {products.map((product) => (
+                    <tr key={product.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium">{product.title}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">
+                          {categoryLabels[product.category] || product.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-600">
+                          {product.region || "-"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex gap-2">
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/products/${product.id}/edit`}>
+                              수정
+                            </Link>
+                          </Button>
+                          <form
+                            action={`/api/admin/products/${product.id}`}
+                            method="DELETE"
+                          >
+                            <Button type="submit" variant="destructive" size="sm">
+                              삭제
+                            </Button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              baseUrl="/admin/products"
+              searchParams={params}
+            />
+          </>
         )}
     </div>
   );
