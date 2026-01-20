@@ -40,7 +40,7 @@ export default async function AdminDocumentsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   등록일
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                   작업
                 </th>
               </tr>
@@ -60,12 +60,12 @@ export default async function AdminDocumentsPage() {
                     {format(new Date(document.createdAt), "yyyy-MM-dd")}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center justify-center">
                       <a
                         href={document.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
+                        className="px-3 py-1 text-sm border rounded hover:bg-gray-50 flex items-center justify-center"
                       >
                         다운로드
                       </a>
