@@ -61,14 +61,19 @@ export default async function AdminDocumentsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex gap-2 items-center justify-center">
-                      <a
-                        href={document.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1 text-sm border rounded hover:bg-gray-50 flex items-center justify-center"
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
                       >
-                        다운로드
-                      </a>
+                        <a
+                          href={document.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          다운로드
+                        </a>
+                      </Button>
                       <form
                         action={`/api/admin/documents/${document.id}`}
                         method="DELETE"
