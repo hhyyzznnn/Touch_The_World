@@ -1,11 +1,21 @@
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth-user";
 import { ProfileForm } from "@/components/ProfileForm";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
+  
+  // 검색 엔진 봇 확인
+  const headersList = await headers();
+  const userAgent = headersList.get("user-agent") || "";
+  const isSearchEngineBot = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|sogou|exabot|facebot|ia_archiver/i.test(userAgent);
 
   if (!user) {
+    // 검색 엔진 봇인 경우 robots.txt에서 이미 차단되므로 404 반환
+    if (isSearchEngineBot) {
+      notFound();
+    }
     redirect("/login");
   }
 

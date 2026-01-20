@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXTAUTH_URL || "https://yourdomain.com";
+  const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://touchtheworld.co.kr";
 
   return {
     rules: [
@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
           "/profile",
           "/verify-email",
           "/verify-phone",
+          "/api/auth/callback", // 리디렉션되는 콜백 페이지 차단
         ],
       },
       {
@@ -31,6 +32,7 @@ export default function robots(): MetadataRoute.Robots {
           "/profile",
           "/verify-email",
           "/verify-phone",
+          "/api/auth/callback",
         ],
       },
     ],

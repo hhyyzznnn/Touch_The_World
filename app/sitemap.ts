@@ -6,7 +6,7 @@ export const dynamic = "force-static";
 export const revalidate = 600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXTAUTH_URL || "https://yourdomain.com";
+  const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || "https://touchtheworld.co.kr";
 
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [

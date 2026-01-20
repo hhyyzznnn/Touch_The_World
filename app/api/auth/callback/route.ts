@@ -4,6 +4,14 @@ import { prisma } from "@/lib/prisma";
 
 // 소셜 로그인 콜백 후 우리 시스템 쿠키 설정
 export async function GET(request: NextRequest) {
+  // 검색 엔진 봇 차단 (robots.txt에서 이미 차단되지만 추가 보안)
+  const userAgent = request.headers.get("user-agent") || "";
+  const isSearchEngineBot = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|sogou|exabot|facebot|ia_archiver/i.test(userAgent);
+  
+  if (isSearchEngineBot) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const token = searchParams.get("token");
