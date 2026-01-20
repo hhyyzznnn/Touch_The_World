@@ -37,7 +37,7 @@ export function AdminNav() {
                 priority
               />
             </Link>
-            <Link href="/admin" className="text-xl sm:text-2xl font-medium text-brand-green-primary ml-2">
+            <Link href="/admin" className="text-2xl sm:text-3xl font-medium text-brand-green-primary ml-2">
               관리자 대시보드
             </Link>
           </div>
@@ -46,41 +46,41 @@ export function AdminNav() {
           <div className="hidden lg:flex items-center gap-4">
             <Link
               href="/admin/programs"
-              className="text-gray-700 hover:text-brand-green-primary transition text-sm"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               상품
             </Link>
             <Link
               href="/admin/events"
-              className="text-gray-700 hover:text-brand-green-primary transition text-sm"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               진행 내역
             </Link>
             <Link
               href="/admin/inquiries"
-              className="text-gray-700 hover:text-brand-green-primary transition text-sm"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               문의
             </Link>
             <Link
               href="/admin/documents"
-              className="text-gray-700 hover:text-brand-green-primary transition text-sm"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               자료실
             </Link>
             <Link
               href="/admin/achievements"
-              className="text-gray-700 hover:text-brand-green-primary transition text-sm"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               사업실적
             </Link>
             <Link
               href="/admin/clients"
-              className="text-gray-700 hover:text-brand-green-primary transition text-sm"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               고객사
             </Link>
-            <Button type="button" variant="outline" size="sm" onClick={handleLogout}>
+            <Button type="button" variant="outline" size="default" onClick={handleLogout}>
               로그아웃
             </Button>
           </div>
