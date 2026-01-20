@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
           allowHtml: false,
         })
       : { valid: true, sanitized: null };
-    if (!expectedDateValidation.valid) {
+    if (!expectedDateValidation.valid && 'error' in expectedDateValidation) {
       return NextResponse.json(
         { error: `예상 일정: ${expectedDateValidation.error}` },
         { status: 400 }
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
           allowHtml: false,
         })
       : { valid: true, sanitized: null };
-    if (!purposeValidation.valid) {
+    if (!purposeValidation.valid && 'error' in purposeValidation) {
       return NextResponse.json(
         { error: `여행 목적: ${purposeValidation.error}` },
         { status: 400 }
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
           allowHtml: false,
         })
       : { valid: true, sanitized: null };
-    if (!preferredTransportValidation.valid) {
+    if (!preferredTransportValidation.valid && 'error' in preferredTransportValidation) {
       return NextResponse.json(
         { error: `선호 이동수단: ${preferredTransportValidation.error}` },
         { status: 400 }
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
           allowHtml: false,
         })
       : { valid: true, sanitized: null };
-    if (!mealPreferenceValidation.valid) {
+    if (!mealPreferenceValidation.valid && 'error' in mealPreferenceValidation) {
       return NextResponse.json(
         { error: `식사 취향: ${mealPreferenceValidation.error}` },
         { status: 400 }
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
           allowHtml: false,
         })
       : { valid: true, sanitized: null };
-    if (!specialRequestsValidation.valid) {
+    if (!specialRequestsValidation.valid && 'error' in specialRequestsValidation) {
       return NextResponse.json(
         { error: `특별 요구사항: ${specialRequestsValidation.error}` },
         { status: 400 }
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
           allowHtml: false,
         })
       : { valid: true, sanitized: null };
-    if (!messageValidation.valid) {
+    if (!messageValidation.valid && 'error' in messageValidation) {
       return NextResponse.json(
         { error: `문의 내용: ${messageValidation.error}` },
         { status: 400 }
@@ -167,19 +167,19 @@ export async function POST(request: NextRequest) {
 
     // Zod 스키마 검증
     const data = inquirySchema.parse({
-      schoolName: schoolNameValidation.sanitized,
-      contact: contactValidation.sanitized,
+      schoolName: schoolNameValidation.sanitized || "",
+      contact: contactValidation.sanitized || "",
       phone: body.phone,
       email: body.email,
-      expectedDate: expectedDateValidation.sanitized || undefined,
+      expectedDate: ('sanitized' in expectedDateValidation && expectedDateValidation.sanitized) || undefined,
       participantCount: body.participantCount ? parseInt(body.participantCount) : undefined,
-      purpose: purposeValidation.sanitized || undefined,
+      purpose: ('sanitized' in purposeValidation && purposeValidation.sanitized) || undefined,
       hasInstructor: body.hasInstructor === "true" ? true : body.hasInstructor === "false" ? false : body.hasInstructor,
-      preferredTransport: preferredTransportValidation.sanitized || undefined,
-      mealPreference: mealPreferenceValidation.sanitized || undefined,
-      specialRequests: specialRequestsValidation.sanitized || undefined,
+      preferredTransport: ('sanitized' in preferredTransportValidation && preferredTransportValidation.sanitized) || undefined,
+      mealPreference: ('sanitized' in mealPreferenceValidation && mealPreferenceValidation.sanitized) || undefined,
+      specialRequests: ('sanitized' in specialRequestsValidation && specialRequestsValidation.sanitized) || undefined,
       estimatedBudget: body.estimatedBudget ? parseInt(body.estimatedBudget) : undefined,
-      message: messageValidation.sanitized || undefined,
+      message: ('sanitized' in messageValidation && messageValidation.sanitized) || undefined,
     });
 
     const inquiry = await prisma.inquiry.create({

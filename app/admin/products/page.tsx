@@ -1,15 +1,37 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/Pagination";
 
-async function getProducts() {
-  return await prisma.product.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+const ITEMS_PER_PAGE = 20;
+
+async function getProducts(page: number = 1) {
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+  
+  const [products, total] = await Promise.all([
+    prisma.product.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: ITEMS_PER_PAGE,
+    }),
+    prisma.product.count(),
+  ]);
+  
+  return {
+    products,
+    total,
+    totalPages: Math.ceil(total / ITEMS_PER_PAGE),
+  };
 }
 
-export default async function AdminProductsPage() {
-  const products = await getProducts();
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const currentPage = params.page ? parseInt(params.page, 10) : 1;
+  const { products, totalPages } = await getProducts(currentPage);
 
   const categoryLabels: Record<string, string> = {
     camp: "교육·학습 캠프",
@@ -89,6 +111,12 @@ export default async function AdminProductsPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl="/admin/products"
+            searchParams={params}
+          />
         )}
     </div>
   );

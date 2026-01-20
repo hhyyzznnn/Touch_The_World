@@ -3,15 +3,37 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { InquiryDetailModal } from "@/components/InquiryDetailModal";
 import { InquiryActions } from "@/components/InquiryActions";
+import { Pagination } from "@/components/Pagination";
 
-async function getInquiries() {
-  return await prisma.inquiry.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+const ITEMS_PER_PAGE = 20;
+
+async function getInquiries(page: number = 1) {
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+  
+  const [inquiries, total] = await Promise.all([
+    prisma.inquiry.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: ITEMS_PER_PAGE,
+    }),
+    prisma.inquiry.count(),
+  ]);
+  
+  return {
+    inquiries,
+    total,
+    totalPages: Math.ceil(total / ITEMS_PER_PAGE),
+  };
 }
 
-export default async function AdminInquiriesPage() {
-  const inquiries = await getInquiries();
+export default async function AdminInquiriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const currentPage = params.page ? parseInt(params.page, 10) : 1;
+  const { inquiries, totalPages } = await getInquiries(currentPage);
 
   return (
     <div>
@@ -83,6 +105,12 @@ export default async function AdminInquiriesPage() {
             </tbody>
           </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl="/admin/inquiries"
+            searchParams={params}
+          />
         </div>
       )}
     </div>

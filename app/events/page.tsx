@@ -5,12 +5,16 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { EventFilters } from "@/components/EventFilters";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
+import { Pagination } from "@/components/Pagination";
+
+const ITEMS_PER_PAGE = 12;
 
 async function getEvents(
   year?: string,
   category?: string,
   location?: string,
-  searchQuery?: string
+  searchQuery?: string,
+  page: number = 1
 ) {
   const where: any = {};
 
@@ -41,25 +45,38 @@ async function getEvents(
     ];
   }
 
-  return await prisma.event.findMany({
-    where,
-    include: {
-      school: true,
-      program: {
-        include: {
-          images: {
-            take: 1,
-            orderBy: { createdAt: "asc" },
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+
+  const [events, total] = await Promise.all([
+    prisma.event.findMany({
+      where,
+      include: {
+        school: true,
+        program: {
+          include: {
+            images: {
+              take: 1,
+              orderBy: { createdAt: "asc" },
+            },
           },
         },
+        images: {
+          take: 1,
+          orderBy: { createdAt: "asc" },
+        },
       },
-      images: {
-        take: 1,
-        orderBy: { createdAt: "asc" },
-      },
-    },
-    orderBy: { date: "desc" },
-  });
+      orderBy: { date: "desc" },
+      skip,
+      take: ITEMS_PER_PAGE,
+    }),
+    prisma.event.count({ where }),
+  ]);
+
+  return {
+    events,
+    total,
+    totalPages: Math.ceil(total / ITEMS_PER_PAGE),
+  };
 }
 
 async function getYears() {
@@ -115,14 +132,17 @@ export default async function EventsPage({
     category?: string;
     location?: string;
     q?: string;
+    page?: string;
   }>;
 }) {
   const params = await searchParams;
-  const events = await getEvents(
+  const currentPage = params.page ? parseInt(params.page, 10) : 1;
+  const { events, totalPages } = await getEvents(
     params.year,
     params.category,
     params.location,
-    params.q
+    params.q,
+    currentPage
   );
   const years = await getYears();
   const categories = await getCategories();
@@ -199,6 +219,12 @@ export default async function EventsPage({
               </Link>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl="/events"
+            searchParams={params}
+          />
         </>
       )}
     </div>

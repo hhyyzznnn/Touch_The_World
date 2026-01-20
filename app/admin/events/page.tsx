@@ -2,19 +2,41 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { Pagination } from "@/components/Pagination";
 
-async function getEvents() {
-  return await prisma.event.findMany({
-    include: {
-      school: true,
-      program: true,
-    },
-    orderBy: { date: "desc" },
-  });
+const ITEMS_PER_PAGE = 20;
+
+async function getEvents(page: number = 1) {
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+  
+  const [events, total] = await Promise.all([
+    prisma.event.findMany({
+      include: {
+        school: true,
+        program: true,
+      },
+      orderBy: { date: "desc" },
+      skip,
+      take: ITEMS_PER_PAGE,
+    }),
+    prisma.event.count(),
+  ]);
+  
+  return {
+    events,
+    total,
+    totalPages: Math.ceil(total / ITEMS_PER_PAGE),
+  };
 }
 
-export default async function AdminEventsPage() {
-  const events = await getEvents();
+export default async function AdminEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const params = await searchParams;
+  const currentPage = params.page ? parseInt(params.page, 10) : 1;
+  const { events, totalPages } = await getEvents(currentPage);
 
   return (
     <div>
@@ -87,6 +109,12 @@ export default async function AdminEventsPage() {
             </tbody>
           </table>
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl="/admin/events"
+            searchParams={params}
+          />
         </div>
       )}
     </div>
