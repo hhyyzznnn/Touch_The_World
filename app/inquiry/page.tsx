@@ -242,20 +242,47 @@ export default function InquiryPage() {
               </div>
 
               <div>
-                <label htmlFor="preferredTransport" className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2">
                   선호 이동수단
                 </label>
-                <select
-                  id="preferredTransport"
-                  {...register("preferredTransport")}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                >
-                  <option value="">선택해주세요</option>
-                  <option value="전세버스">전세버스</option>
-                  <option value="KTX">KTX</option>
-                  <option value="항공">항공</option>
-                  <option value="기타">기타</option>
-                </select>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="전세버스"
+                      {...register("preferredTransport")}
+                      className="mr-2 accent-brand-green-primary"
+                    />
+                    전세버스
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="KTX"
+                      {...register("preferredTransport")}
+                      className="mr-2 accent-brand-green-primary"
+                    />
+                    KTX
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="항공"
+                      {...register("preferredTransport")}
+                      className="mr-2 accent-brand-green-primary"
+                    />
+                    항공
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      value="기타"
+                      {...register("preferredTransport")}
+                      className="mr-2 accent-brand-green-primary"
+                    />
+                    기타
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -268,7 +295,7 @@ export default function InquiryPage() {
                 type="text"
                 {...register("mealPreference")}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                placeholder="예: 할랄, 채식, 알러지 등"
+                placeholder="예: 채식, 알러지 등"
               />
             </div>
 
@@ -282,7 +309,7 @@ export default function InquiryPage() {
                 min="0"
                 {...register("estimatedBudget")}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                placeholder="예: 5000000"
+                placeholder="예: 5,000,000"
               />
             </div>
           </div>
