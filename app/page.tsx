@@ -76,7 +76,7 @@ export default async function HomePage({
                   전체 프로그램
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="bg-white border-2 border-gray-300 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200">
+              <Button asChild size="lg" variant="outline" className="bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200">
                 <Link href="/inquiry" className="flex items-center justify-center gap-2 sm:gap-3">
                   <Send className="w-4 h-4" />
                   문의하기

@@ -11,14 +11,6 @@ interface Inquiry {
   phone: string;
   email: string;
   message: string | null;
-  expectedDate: string | null;
-  participantCount: number | null;
-  purpose: string | null;
-  hasInstructor: boolean | null;
-  preferredTransport: string | null;
-  mealPreference: string | null;
-  specialRequests: string | null;
-  estimatedBudget: number | null;
   status: string;
   createdAt: Date;
 }

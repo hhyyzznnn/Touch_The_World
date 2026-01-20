@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { ProgramCard } from "@/components/ProgramCard";
-import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -142,7 +141,7 @@ export default async function SearchPage({
                     key={program.id}
                     id={program.id}
                     title={program.title}
-                    category={getCategoryDisplayName(program.category)}
+                    category={program.category}
                     summary={program.summary}
                     thumbnailUrl={program.thumbnailUrl}
                     region={program.region}

@@ -23,6 +23,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     return loaded.sessionId || `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -60,9 +61,13 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   }, [landingCategory]);
 
   useEffect(() => {
-    // 채팅 중일 때만 스크롤 (페이지 로드 시 자동 스크롤 방지)
-    if (isChatting && messages.length > 1) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // 채팅 중일 때만 채팅 영역 내부 스크롤 (페이지 전체 스크롤 방지)
+    if (isChatting && messages.length > 1 && messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth"
+      });
     }
   }, [messages, isChatting]);
 
@@ -82,7 +87,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       role: "user",
       content: inputValue.trim(),
       timestamp: new Date(),
-      showCategoryButtons: false,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -128,7 +132,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         role: "assistant",
         content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         timestamp: new Date(),
-        showCategoryButtons: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -142,14 +145,12 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       role: "user",
       content: categoryName,
       timestamp: new Date(),
-      showCategoryButtons: false,
     };
 
     // 카테고리 선택 시 이전 메시지의 버튼 제거
-    setMessages((prev) => [
-      ...prev.map(msg => ({ ...msg, showCategoryButtons: false })),
-      userMessage
-    ]);
+    setMessages((prev) => 
+      prev.map(msg => ({ ...msg, showCategoryButtons: false })).concat(userMessage)
+    );
     setLandingCategory(categoryName);
     setIsChatting(true);
     setIsExpanded(true);
@@ -192,7 +193,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         role: "assistant",
         content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         timestamp: new Date(),
-        showCategoryButtons: false,
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -255,7 +255,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
             <div className="p-4 space-y-4 animate-in slide-in-from-bottom-2 duration-300">
               {/* Chat Messages */}
               {isChatting && (
-                <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
+                <div ref={messagesContainerRef} className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
                   {messages.map((message) => (
                     <div key={message.id}>
                       <div

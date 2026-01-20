@@ -100,7 +100,6 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
       role: "user",
       content: categoryName,
       timestamp: new Date(),
-      showCategoryButtons: false,
     };
     setMessages((prev) => {
       const updated = [...prev, userMessage];
@@ -126,7 +125,6 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
         role: "user",
         content: input.trim(),
         timestamp: new Date(),
-        showCategoryButtons: false,
       };
       setMessages((prev) => {
         const updated = [...prev, userMessage];
@@ -147,7 +145,7 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
     try {
       // OpenAI API 호출
       const allMessages = messageContent 
-        ? [...messages, { id: Date.now().toString(), role: "user" as const, content: messageContent, timestamp: new Date(), showCategoryButtons: false }]
+        ? [...messages, { id: Date.now().toString(), role: "user" as const, content: messageContent, timestamp: new Date() }]
         : messages;
       
       const response = await fetch("/api/chat", {
@@ -197,7 +195,6 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
         role: "assistant",
         content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
         timestamp: new Date(),
-        showCategoryButtons: false,
       };
       setMessages((prev) => {
         const updated = [...prev, errorMessage];

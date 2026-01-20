@@ -130,11 +130,11 @@ export default function AboutPage() {
                 </p>
               </div>
               <blockquote className="text-xl md:text-2xl font-serif text-center text-text-dark leading-relaxed italic border-l-4 border-brand-green pl-6 py-4">
-                &ldquo;28년, 아이들의 꿈과 함께 현장을 지켜왔습니다.<br />
-                안전을 넘어 감동이 있는 교육 여행을 약속드립니다.&rdquo;
+                "28년, 아이들의 꿈과 함께 현장을 지켜왔습니다.<br />
+                안전을 넘어 감동이 있는 교육 여행을 약속드립니다."
               </blockquote>
               <p className="text-center text-text-gray mt-4 font-medium">
-                &ldquo;현장이 가장 큰 교실입니다.&rdquo;
+                "현장이 가장 큰 교실입니다."
               </p>
             </div>
 
@@ -157,7 +157,7 @@ export default function AboutPage() {
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="font-semibold text-text-dark min-w-[100px]">철학:</span>
-                    <span className="italic">&ldquo;현장이 가장 큰 교실입니다.&rdquo; (현장 중심의 교육 가치 실현)</span>
+                    <span className="italic">"현장이 가장 큰 교실입니다." (현장 중심의 교육 가치 실현)</span>
                   </div>
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default function AboutPage() {
                     <Shield className="w-10 h-10 text-brand-green mx-auto mb-3" />
                     <h4 className="font-semibold text-text-dark mb-2">안전 (Safety)</h4>
                     <p className="text-sm text-text-gray leading-relaxed">
-                      &ldquo;부모의 마음으로&rdquo; 직접 발로 뛰며 사전 답사와 안전 점검을 마친 코스만 제안하는 완벽주의
+                      "부모의 마음으로" 직접 발로 뛰며 사전 답사와 안전 점검을 마친 코스만 제안하는 완벽주의
                     </p>
                   </div>
                   <div className="text-center p-4 bg-brand-green/5 rounded-lg">
@@ -269,7 +269,7 @@ export default function AboutPage() {
                       전문 인솔 및 운영 역량
                     </h3>
                     <p className="text-text-gray leading-relaxed mb-3">
-                      28년 운영 노하우의 핵심은 &lsquo;안전&rsquo;입니다. 사전 답사부터 현장 밀착 케어까지, 전문 인솔 인력이 모든 행사를 체계적으로 관리합니다.
+                      28년 운영 노하우의 핵심은 '안전'입니다. 사전 답사부터 현장 밀착 케어까지, 전문 인솔 인력이 모든 행사를 체계적으로 관리합니다.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
