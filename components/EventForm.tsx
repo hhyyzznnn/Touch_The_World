@@ -61,7 +61,7 @@ export function EventForm({ event }: EventFormProps) {
     (event?.status as "in_progress" | "completed") || "in_progress"
   );
   const [imageUrls, setImageUrls] = useState<string[]>(
-    event?.images.map((img) => img.url) || []
+    event?.images?.map((img) => img.url) || []
   );
 
   useEffect(() => {

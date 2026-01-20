@@ -13,7 +13,7 @@ export function AchievementForm({ achievement }: AchievementFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [institution, setInstitution] = useState(achievement?.institution || "");
-  const [year, setYear] = useState(achievement?.year.toString() || "");
+  const [year, setYear] = useState(achievement?.year?.toString() || "");
   const [content, setContent] = useState(achievement?.content || "");
 
   const handleSubmit = async (e: React.FormEvent) => {

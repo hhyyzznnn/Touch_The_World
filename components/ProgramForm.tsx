@@ -27,7 +27,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
     })) || []
   );
   const [imageUrls, setImageUrls] = useState<string[]>(
-    program?.images.map((img) => img.url) || []
+    program?.images?.map((img) => img.url) || []
   );
   const [thumbnailUrl, setThumbnailUrl] = useState(program?.thumbnailUrl || "");
 

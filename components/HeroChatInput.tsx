@@ -145,11 +145,12 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       role: "user",
       content: categoryName,
       timestamp: new Date(),
+      showCategoryButtons: false,
     };
 
     // 카테고리 선택 시 이전 메시지의 버튼 제거
     setMessages((prev) => 
-      prev.map(msg => ({ ...msg, showCategoryButtons: false })).concat(userMessage)
+      [...prev.map(msg => ({ ...msg, showCategoryButtons: false })), userMessage]
     );
     setLandingCategory(categoryName);
     setIsChatting(true);
