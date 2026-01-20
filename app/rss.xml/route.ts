@@ -63,12 +63,6 @@ export async function GET() {
     const recentPrograms = await prisma.program.findMany({
       take: 10,
       orderBy: { createdAt: "desc" },
-      include: {
-        images: {
-          take: 2, // 최대 2개 이미지만 포함 (용량 제한 고려)
-          orderBy: { createdAt: "asc" },
-        },
-      },
       select: {
         id: true,
         title: true,
@@ -78,6 +72,8 @@ export async function GET() {
         createdAt: true,
         thumbnailUrl: true,
         images: {
+          take: 2, // 최대 2개 이미지만 포함 (용량 제한 고려)
+          orderBy: { createdAt: "asc" },
           select: {
             url: true,
           },
