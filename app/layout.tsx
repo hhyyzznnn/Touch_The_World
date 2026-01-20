@@ -66,6 +66,27 @@ export default function RootLayout({
           crossOrigin="anonymous"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
+        {/* 네이버 검색 최적화를 위한 구조화된 데이터 */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Touch The World",
+              alternateName: "터치더월드",
+              url: "https://touchtheworld.co.kr",
+              logo: "https://touchtheworld.co.kr/ttw_logo.png",
+              description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
+              foundingDate: "1996",
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: "KR",
+              },
+              sameAs: [],
+            }),
+          }}
+        />
       </head>
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`}>
         <NextSSRPlugin

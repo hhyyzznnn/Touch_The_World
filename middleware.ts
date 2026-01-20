@@ -8,9 +8,9 @@ export function middleware(request: NextRequest) {
   // pathname을 헤더에 추가 (ConditionalFooter에서 사용)
   response.headers.set("x-pathname", pathname);
 
-  // 검색 엔진 봇 확인
+  // 검색 엔진 봇 확인 (네이버 Yeti 포함)
   const userAgent = request.headers.get("user-agent") || "";
-  const isSearchEngineBot = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|sogou|exabot|facebot|ia_archiver/i.test(userAgent);
+  const isSearchEngineBot = /googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|sogou|exabot|facebot|ia_archiver|Yeti/i.test(userAgent);
 
   // 로그인 페이지는 항상 접근 가능
   if (pathname === "/admin/login") {
