@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PhoneVerification } from "@/components/PhoneVerification";
 import { SocialLoginButtons } from "@/components/SocialLoginButtons";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -285,18 +287,26 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
+            <ErrorMessage
+              message={error}
+              onDismiss={() => setError("")}
+            />
           )}
 
           <Button
             type="submit"
             size="lg"
-            className="w-full"
+            className="w-full disabled:opacity-50"
             disabled={isLoading}
           >
-            {isLoading ? "처리 중..." : "회원가입"}
+            {isLoading ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                처리 중...
+              </>
+            ) : (
+              "회원가입"
+            )}
           </Button>
         </form>
 

@@ -28,7 +28,7 @@ export default async function AdminClientsPage() {
         </div>
 
         {clients.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-text-gray">
             등록된 고객사가 없습니다.
           </div>
         ) : (
@@ -46,7 +46,7 @@ export default async function AdminClientsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     국가
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                     작업
                   </th>
                 </tr>
@@ -66,7 +66,7 @@ export default async function AdminClientsPage() {
                       <span className="text-sm text-gray-600">{client.country}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center justify-center">
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/admin/clients/${client.id}/edit`}>
                             수정

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import type { Client } from "@prisma/client";
 
 interface ClientFormProps {
@@ -12,6 +14,7 @@ interface ClientFormProps {
 export function ClientForm({ client }: ClientFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState(client?.name || "");
   const [type, setType] = useState(client?.type || "corporation");
   const [country, setCountry] = useState(client?.country || "KR");
@@ -21,6 +24,7 @@ export function ClientForm({ client }: ClientFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const url = client
@@ -44,10 +48,11 @@ export function ClientForm({ client }: ClientFormProps) {
         router.push("/admin/clients");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        const errorData = await response.json();
+        setError(errorData.error || "저장에 실패했습니다.");
       }
-    } catch (error) {
-      alert("저장에 실패했습니다.");
+    } catch (error: any) {
+      setError(error.message || "저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -55,6 +60,13 @@ export function ClientForm({ client }: ClientFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+      {error && (
+        <ErrorMessage
+          message={error}
+          onDismiss={() => setError(null)}
+        />
+      )}
+
       <div>
         <label className="block text-sm font-medium mb-2">
           기관명 <span className="text-red-500">*</span>
@@ -130,8 +142,19 @@ export function ClientForm({ client }: ClientFormProps) {
       </div>
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "저장 중..." : "저장"}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              저장 중...
+            </>
+          ) : (
+            "저장"
+          )}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           취소
