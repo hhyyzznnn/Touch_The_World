@@ -46,37 +46,37 @@ export function AdminNav() {
           <div className="hidden lg:flex items-center gap-4">
             <Link
               href="/admin/programs"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base flex items-center justify-center h-10 px-3"
             >
               상품
             </Link>
             <Link
               href="/admin/events"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base flex items-center justify-center h-10 px-3"
             >
               진행 내역
             </Link>
             <Link
               href="/admin/inquiries"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base flex items-center justify-center h-10 px-3"
             >
               문의
             </Link>
             <Link
               href="/admin/documents"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base flex items-center justify-center h-10 px-3"
             >
               자료실
             </Link>
             <Link
               href="/admin/achievements"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base flex items-center justify-center h-10 px-3"
             >
               사업실적
             </Link>
             <Link
               href="/admin/clients"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base flex items-center justify-center h-10 px-3"
             >
               고객사
             </Link>
