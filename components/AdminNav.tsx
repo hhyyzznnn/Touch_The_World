@@ -101,42 +101,42 @@ export function AdminNav() {
             <div className="flex flex-col gap-3">
               <Link
                 href="/admin/programs"
-                className="text-gray-700 hover:text-brand-green-primary transition py-2"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 상품
               </Link>
               <Link
                 href="/admin/events"
-                className="text-gray-700 hover:text-brand-green-primary transition py-2"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 진행 내역
               </Link>
               <Link
                 href="/admin/inquiries"
-                className="text-gray-700 hover:text-brand-green-primary transition py-2"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 문의
               </Link>
               <Link
                 href="/admin/documents"
-                className="text-gray-700 hover:text-brand-green-primary transition py-2"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 자료실
               </Link>
               <Link
                 href="/admin/achievements"
-                className="text-gray-700 hover:text-brand-green-primary transition py-2"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 사업실적
               </Link>
               <Link
                 href="/admin/clients"
-                className="text-gray-700 hover:text-brand-green-primary transition py-2"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 고객사
@@ -145,7 +145,7 @@ export function AdminNav() {
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="default"
                   className="w-full"
                   onClick={() => {
                     setIsMenuOpen(false);
