@@ -30,6 +30,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
     program?.images?.map((img) => img.url) || []
   );
   const [thumbnailUrl, setThumbnailUrl] = useState(program?.thumbnailUrl || "");
+  const [showThumbnailInput, setShowThumbnailInput] = useState(!!program?.thumbnailUrl);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +88,13 @@ export function ProgramForm({ program }: ProgramFormProps) {
 
   const addImageUrl = () => {
     setImageUrls([...imageUrls, ""]);
+  };
+
+  const addThumbnailUrl = () => {
+    setShowThumbnailInput(true);
+    if (!thumbnailUrl) {
+      setThumbnailUrl("");
+    }
   };
 
   const updateImageUrl = (index: number, url: string) => {
@@ -168,25 +176,29 @@ export function ProgramForm({ program }: ProgramFormProps) {
         <label className="block text-sm font-medium mb-2">썸네일</label>
         <div className="space-y-3">
           <div className="flex gap-2">
-            <input
-              type="url"
-              value={thumbnailUrl}
-              onChange={(e) => setThumbnailUrl(e.target.value)}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="https://example.com/image.jpg"
-            />
+            <Button
+              type="button"
+              onClick={addThumbnailUrl}
+              variant="outline"
+              size="default"
+              className="flex items-center gap-2"
+            >
+              <LinkIcon className="w-4 h-4" />
+              URL 추가
+            </Button>
             <UploadButton
               endpoint="thumbnailUploader"
               onClientUploadComplete={(res) => {
                 if (res && res[0]) {
                   setThumbnailUrl(res[0].url);
+                  setShowThumbnailInput(true);
                 }
               }}
               onUploadError={(error: Error) => {
                 alert(`업로드 실패: ${error.message}`);
               }}
               appearance={{
-                button: "h-[42px] px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                button: "h-10 px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
                 allowedContent: "hidden",
               }}
               content={{
@@ -196,14 +208,43 @@ export function ProgramForm({ program }: ProgramFormProps) {
               }}
             />
           </div>
-          {thumbnailUrl && (
+
+          {/* 썸네일 URL 입력 */}
+          {showThumbnailInput && (
+            <div className="flex gap-2 items-center">
+              <input
+                type="url"
+                value={thumbnailUrl}
+                onChange={(e) => setThumbnailUrl(e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="https://example.com/image.jpg"
+              />
+              <Button
+                type="button"
+                onClick={() => {
+                  setThumbnailUrl("");
+                  setShowThumbnailInput(false);
+                }}
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {thumbnailUrl && !showThumbnailInput && (
             <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-md bg-gray-50">
               <span className="flex-1 text-sm text-gray-700 truncate">
                 {thumbnailUrl}
               </span>
               <Button
                 type="button"
-                onClick={() => setThumbnailUrl("")}
+                onClick={() => {
+                  setThumbnailUrl("");
+                  setShowThumbnailInput(false);
+                }}
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
@@ -212,6 +253,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
               </Button>
             </div>
           )}
+
           <p className="text-xs text-gray-500">
             권장 사이즈: 1200×800px (16:9 비율), 파일 크기: 4MB 이하
           </p>
@@ -227,7 +269,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
               onClick={addImageUrl}
               variant="outline"
               size="default"
-              className="flex items-center gap-2 h-[42px]"
+              className="flex items-center gap-2"
             >
               <LinkIcon className="w-4 h-4" />
               URL 추가
@@ -244,7 +286,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
                 alert(`업로드 실패: ${error.message}`);
               }}
               appearance={{
-                button: "h-[42px] px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                button: "h-10 px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
                 allowedContent: "hidden",
               }}
               content={{
