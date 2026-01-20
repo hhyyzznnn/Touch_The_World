@@ -3,98 +3,288 @@ import { ProgramCard } from "@/components/ProgramCard";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
+import { AdvancedSearchFilters } from "@/components/AdvancedSearchFilters";
+import { SearchBar } from "@/components/SearchBar";
+import { Pagination } from "@/components/Pagination";
 
-async function searchAll(query: string) {
+interface SearchFilters {
+  category?: string;
+  region?: string;
+  priceMin?: string;
+  priceMax?: string;
+  hashtag?: string;
+}
+
+const ITEMS_PER_TYPE = 12; // 타입별 표시할 항목 수
+
+async function searchAll(
+  query: string,
+  filters: SearchFilters = {},
+  page: number = 1,
+  type: "programs" | "events" | "schools" | "achievements" = "programs"
+) {
   const searchQuery = query.trim();
-  if (!searchQuery) return { programs: [], events: [], schools: [], achievements: [] };
+  
+  // 필터만 있고 검색어가 없는 경우도 허용
+  const hasQuery = searchQuery.length > 0;
+  const hasFilters = Boolean(filters.category || filters.region || filters.priceMin || filters.priceMax || filters.hashtag);
 
-  const [programs, events, schools, achievements] = await Promise.all([
-    // 프로그램 검색
-    prisma.program.findMany({
-      where: {
-        OR: [
-          { title: { contains: searchQuery, mode: "insensitive" } },
-          { summary: { contains: searchQuery, mode: "insensitive" } },
-          { description: { contains: searchQuery, mode: "insensitive" } },
-          { region: { contains: searchQuery, mode: "insensitive" } },
-          { hashtags: { hasSome: [searchQuery] } },
-        ],
-      },
-      include: {
-        images: {
-          take: 1,
-          orderBy: { createdAt: "asc" },
-        },
-      },
-      take: 6,
-      orderBy: { createdAt: "desc" },
-    }),
-    // 행사 검색
-    prisma.event.findMany({
-      where: {
-        OR: [
-          { location: { contains: searchQuery, mode: "insensitive" } },
-          { school: { name: { contains: searchQuery, mode: "insensitive" } } },
-          { program: { title: { contains: searchQuery, mode: "insensitive" } } },
-          { program: { category: { contains: searchQuery, mode: "insensitive" } } },
-        ],
-      },
-      include: {
-        school: true,
-        program: {
-          include: {
-            images: {
-              take: 1,
-              orderBy: { createdAt: "asc" },
-            },
+  if (!hasQuery && !hasFilters) {
+    return {
+      programs: [],
+      events: [],
+      schools: [],
+      achievements: [],
+      totalPrograms: 0,
+      totalEvents: 0,
+      totalSchools: 0,
+      totalAchievements: 0,
+    };
+  }
+
+  const skip = (page - 1) * ITEMS_PER_TYPE;
+
+  // 타입별로 필요한 데이터만 조회
+  if (type === "programs") {
+    const programWhere: any = {};
+    
+    if (hasQuery) {
+      programWhere.OR = [
+        { title: { contains: searchQuery, mode: "insensitive" } },
+        { summary: { contains: searchQuery, mode: "insensitive" } },
+        { description: { contains: searchQuery, mode: "insensitive" } },
+        { region: { contains: searchQuery, mode: "insensitive" } },
+        { hashtags: { hasSome: [searchQuery] } },
+      ];
+    }
+
+    if (filters.category) {
+      programWhere.category = filters.category;
+    }
+    
+    if (filters.region) {
+      programWhere.region = { contains: filters.region, mode: "insensitive" };
+    }
+    
+    if (filters.priceMin || filters.priceMax) {
+      programWhere.AND = programWhere.AND || [];
+      if (filters.priceMin) {
+        programWhere.AND.push({ priceFrom: { gte: parseInt(filters.priceMin) } });
+      }
+      if (filters.priceMax) {
+        programWhere.AND.push({ priceTo: { lte: parseInt(filters.priceMax) } });
+      }
+    }
+    
+    if (filters.hashtag) {
+      programWhere.hashtags = { hasSome: [filters.hashtag] };
+    }
+
+    const [programs, totalPrograms] = await Promise.all([
+      prisma.program.findMany({
+        where: programWhere,
+        include: {
+          images: {
+            take: 1,
+            orderBy: { createdAt: "asc" },
           },
         },
-        images: {
-          take: 1,
-          orderBy: { createdAt: "asc" },
-        },
-      },
-      take: 6,
-      orderBy: { date: "desc" },
-    }),
-    // 학교 검색
-    prisma.school.findMany({
-      where: {
-        name: { contains: searchQuery, mode: "insensitive" },
-      },
-      take: 6,
-      orderBy: { name: "asc" },
-    }),
-    // 사업 실적 검색
-    prisma.achievement.findMany({
-      where: {
-        OR: [
-          { institution: { contains: searchQuery, mode: "insensitive" } },
-          { content: { contains: searchQuery, mode: "insensitive" } },
-        ],
-      },
-      take: 6,
-      orderBy: [{ year: "desc" }, { institution: "asc" }],
-    }),
-  ]);
+        skip,
+        take: ITEMS_PER_TYPE,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.program.count({ where: programWhere }),
+    ]);
 
-  return { programs, events, schools, achievements };
+    return {
+      programs,
+      events: [],
+      schools: [],
+      achievements: [],
+      totalPrograms,
+      totalEvents: 0,
+      totalSchools: 0,
+      totalAchievements: 0,
+    };
+  }
+
+  if (type === "events") {
+    const eventWhere: any = {};
+    if (hasQuery) {
+      eventWhere.OR = [
+        { location: { contains: searchQuery, mode: "insensitive" } },
+        { school: { name: { contains: searchQuery, mode: "insensitive" } } },
+        { program: { title: { contains: searchQuery, mode: "insensitive" } } },
+        { program: { category: { contains: searchQuery, mode: "insensitive" } } },
+      ];
+    }
+
+    const [events, totalEvents] = await Promise.all([
+      prisma.event.findMany({
+        where: eventWhere,
+        include: {
+          school: true,
+          program: {
+            include: {
+              images: {
+                take: 1,
+                orderBy: { createdAt: "asc" },
+              },
+            },
+          },
+          images: {
+            take: 1,
+            orderBy: { createdAt: "asc" },
+          },
+        },
+        skip,
+        take: ITEMS_PER_TYPE,
+        orderBy: { date: "desc" },
+      }),
+      prisma.event.count({ where: eventWhere }),
+    ]);
+
+    return {
+      programs: [],
+      events,
+      schools: [],
+      achievements: [],
+      totalPrograms: 0,
+      totalEvents,
+      totalSchools: 0,
+      totalAchievements: 0,
+    };
+  }
+
+  if (type === "schools") {
+    const schoolWhere: any = {};
+    if (hasQuery) {
+      schoolWhere.name = { contains: searchQuery, mode: "insensitive" };
+    }
+
+    const [schools, totalSchools] = await Promise.all([
+      prisma.school.findMany({
+        where: schoolWhere,
+        skip,
+        take: ITEMS_PER_TYPE,
+        orderBy: { name: "asc" },
+      }),
+      prisma.school.count({ where: schoolWhere }),
+    ]);
+
+    return {
+      programs: [],
+      events: [],
+      schools,
+      achievements: [],
+      totalPrograms: 0,
+      totalEvents: 0,
+      totalSchools,
+      totalAchievements: 0,
+    };
+  }
+
+  if (type === "achievements") {
+    const achievementWhere: any = {};
+    if (hasQuery) {
+      achievementWhere.OR = [
+        { institution: { contains: searchQuery, mode: "insensitive" } },
+        { content: { contains: searchQuery, mode: "insensitive" } },
+      ];
+    }
+
+    const [achievements, totalAchievements] = await Promise.all([
+      prisma.achievement.findMany({
+        where: achievementWhere,
+        skip,
+        take: ITEMS_PER_TYPE,
+        orderBy: [{ year: "desc" }, { institution: "asc" }],
+      }),
+      prisma.achievement.count({ where: achievementWhere }),
+    ]);
+
+    return {
+      programs: [],
+      events: [],
+      schools: [],
+      achievements,
+      totalPrograms: 0,
+      totalEvents: 0,
+      totalSchools: 0,
+      totalAchievements,
+    };
+  }
+
+  return {
+    programs: [],
+    events: [],
+    schools: [],
+    achievements: [],
+    totalPrograms: 0,
+    totalEvents: 0,
+    totalSchools: 0,
+    totalAchievements: 0,
+  };
 }
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ 
+    q?: string;
+    category?: string;
+    region?: string;
+    priceMin?: string;
+    priceMax?: string;
+    hashtag?: string;
+    page?: string;
+    programPage?: string;
+    eventPage?: string;
+    schoolPage?: string;
+    achievementPage?: string;
+  }>;
 }) {
   const params = await searchParams;
   const query = params.q || "";
-  const results = await searchAll(query);
+  const programPage = params.programPage ? parseInt(params.programPage, 10) : 1;
+  const eventPage = params.eventPage ? parseInt(params.eventPage, 10) : 1;
+  const schoolPage = params.schoolPage ? parseInt(params.schoolPage, 10) : 1;
+  const achievementPage = params.achievementPage ? parseInt(params.achievementPage, 10) : 1;
+  
+  const filters: SearchFilters = {
+    category: params.category,
+    region: params.region,
+    priceMin: params.priceMin,
+    priceMax: params.priceMax,
+    hashtag: params.hashtag,
+  };
+  
+  // 각 타입별로 독립적으로 검색
+  const [programResults, eventResults, schoolResults, achievementResults] = await Promise.all([
+    searchAll(query, filters, programPage, "programs"),
+    searchAll(query, filters, eventPage, "events"),
+    searchAll(query, filters, schoolPage, "schools"),
+    searchAll(query, filters, achievementPage, "achievements"),
+  ]);
+  
+  const results = {
+    programs: programResults.programs,
+    events: eventResults.events,
+    schools: schoolResults.schools,
+    achievements: achievementResults.achievements,
+    totalPrograms: programResults.totalPrograms,
+    totalEvents: eventResults.totalEvents,
+    totalSchools: schoolResults.totalSchools,
+    totalAchievements: achievementResults.totalAchievements,
+  };
 
   const totalResults =
-    results.programs.length +
-    results.events.length +
-    results.schools.length +
-    results.achievements.length;
+    results.totalPrograms +
+    results.totalEvents +
+    results.totalSchools +
+    results.totalAchievements;
+
+  const hasActiveFilters = Boolean(filters.category || filters.region || filters.priceMin || filters.priceMax || filters.hashtag);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -102,38 +292,36 @@ export default async function SearchPage({
         <h1 className="text-3xl font-bold mb-4">
           {query ? `&quot;${query}&quot; 검색 결과` : "검색"}
         </h1>
-        {query && (
+        {(query || hasActiveFilters) && (
           <p className="text-text-gray">
             총 {totalResults}개의 결과를 찾았습니다.
           </p>
         )}
       </div>
 
-      {!query ? (
+      {/* 검색 바 및 필터 */}
+      <div className="mb-8 space-y-4">
+        <SearchBar placeholder="상품, 진행 내역, 학교 검색..." />
+        <AdvancedSearchFilters />
+      </div>
+
+      {!query && !hasActiveFilters ? (
         <div className="text-center py-12 text-text-gray">
-          검색어를 입력해주세요.
+          검색어를 입력하거나 필터를 선택해주세요.
         </div>
       ) : totalResults === 0 ? (
         <div className="text-center py-12 text-text-gray">
-          &quot;{query}&quot;에 대한 검색 결과가 없습니다.
+          {query ? `&quot;${query}&quot;` : "선택한 필터"}에 대한 검색 결과가 없습니다.
         </div>
       ) : (
         <div className="space-y-12">
           {/* 프로그램 결과 */}
-          {results.programs.length > 0 && (
+          {results.totalPrograms > 0 && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-text-dark">
-                  프로그램 ({results.programs.length})
+                  프로그램 ({results.totalPrograms})
                 </h2>
-                {results.programs.length >= 6 && (
-                  <Link
-                    href="/programs"
-                    className="text-brand-green hover:text-brand-green/80 text-sm"
-                  >
-                    전체 보기 →
-                  </Link>
-                )}
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {results.programs.map((program) => (
@@ -154,24 +342,25 @@ export default async function SearchPage({
                   />
                 ))}
               </div>
+              {results.totalPrograms > ITEMS_PER_TYPE && (
+                <Pagination
+                  currentPage={programPage}
+                  totalPages={Math.ceil(results.totalPrograms / ITEMS_PER_TYPE)}
+                  baseUrl="/search"
+                  searchParams={params}
+                  pageParamName="programPage"
+                />
+              )}
             </section>
           )}
 
           {/* 행사 결과 */}
-          {results.events.length > 0 && (
+          {results.totalEvents > 0 && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-text-dark">
-                  행사 ({results.events.length})
+                  행사 ({results.totalEvents})
                 </h2>
-                {results.events.length >= 6 && (
-                  <Link
-                    href="/events"
-                    className="text-brand-green hover:text-brand-green/80 text-sm"
-                  >
-                    전체 보기 →
-                  </Link>
-                )}
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {results.events.map((event) => (
@@ -204,15 +393,24 @@ export default async function SearchPage({
                   </Link>
                 ))}
               </div>
+              {results.totalEvents > ITEMS_PER_TYPE && (
+                <Pagination
+                  currentPage={eventPage}
+                  totalPages={Math.ceil(results.totalEvents / ITEMS_PER_TYPE)}
+                  baseUrl="/search"
+                  searchParams={params}
+                  pageParamName="eventPage"
+                />
+              )}
             </section>
           )}
 
           {/* 학교 결과 */}
-          {results.schools.length > 0 && (
+          {results.totalSchools > 0 && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-text-dark">
-                  학교 ({results.schools.length})
+                  학교 ({results.totalSchools})
                 </h2>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -226,24 +424,25 @@ export default async function SearchPage({
                   </Link>
                 ))}
               </div>
+              {results.totalSchools > ITEMS_PER_TYPE && (
+                <Pagination
+                  currentPage={schoolPage}
+                  totalPages={Math.ceil(results.totalSchools / ITEMS_PER_TYPE)}
+                  baseUrl="/search"
+                  searchParams={params}
+                  pageParamName="schoolPage"
+                />
+              )}
             </section>
           )}
 
           {/* 사업 실적 결과 */}
-          {results.achievements.length > 0 && (
+          {results.totalAchievements > 0 && (
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-text-dark">
-                  사업 실적 ({results.achievements.length})
+                  사업 실적 ({results.totalAchievements})
                 </h2>
-                {results.achievements.length >= 6 && (
-                  <Link
-                    href="/achievements"
-                    className="text-brand-green hover:text-brand-green/80 text-sm"
-                  >
-                    전체 보기 →
-                  </Link>
-                )}
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 {results.achievements.map((achievement) => (
@@ -263,6 +462,15 @@ export default async function SearchPage({
                   </div>
                 ))}
               </div>
+              {results.totalAchievements > ITEMS_PER_TYPE && (
+                <Pagination
+                  currentPage={achievementPage}
+                  totalPages={Math.ceil(results.totalAchievements / ITEMS_PER_TYPE)}
+                  baseUrl="/search"
+                  searchParams={params}
+                  pageParamName="achievementPage"
+                />
+              )}
             </section>
           )}
         </div>

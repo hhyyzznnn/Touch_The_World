@@ -9,6 +9,7 @@ interface PaginationProps {
   totalPages: number;
   baseUrl: string;
   searchParams?: Record<string, string | string[] | undefined>;
+  pageParamName?: string; // 페이지 파라미터 이름 (기본값: "page")
 }
 
 export function Pagination({
@@ -16,6 +17,7 @@ export function Pagination({
   totalPages,
   baseUrl,
   searchParams = {},
+  pageParamName = "page",
 }: PaginationProps) {
   if (totalPages <= 1) return null;
 
@@ -23,8 +25,9 @@ export function Pagination({
   const createUrl = (page: number) => {
     const params = new URLSearchParams();
     
-    // 기존 검색 파라미터 유지
+    // 기존 검색 파라미터 유지 (페이지 파라미터는 제외)
     Object.entries(searchParams).forEach(([key, value]) => {
+      if (key === pageParamName) return; // 페이지 파라미터는 제외
       if (value !== undefined && value !== null) {
         if (Array.isArray(value)) {
           value.forEach((v) => params.append(key, String(v)));
@@ -36,7 +39,7 @@ export function Pagination({
     
     // 페이지 파라미터 추가 (1페이지는 생략 가능)
     if (page > 1) {
-      params.set("page", String(page));
+      params.set(pageParamName, String(page));
     }
     
     const queryString = params.toString();

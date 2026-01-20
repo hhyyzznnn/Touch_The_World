@@ -12,6 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import { GlobalSearchBar } from "@/components/GlobalSearchBar";
+import { AdminStatsChart } from "@/components/AdminStatsChart";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -101,6 +102,69 @@ async function getStats() {
   }
 }
 
+async function getMonthlyStats() {
+  try {
+    const now = new Date();
+    const months: { month: string; events: number; inquiries: number }[] = [];
+    
+    // 최근 6개월 데이터
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
+      
+      const [events, inquiries] = await Promise.all([
+        prisma.event.count({
+          where: {
+            date: {
+              gte: monthStart,
+              lte: monthEnd,
+            },
+          },
+        }).catch(() => 0),
+        prisma.inquiry.count({
+          where: {
+            createdAt: {
+              gte: monthStart,
+              lte: monthEnd,
+            },
+          },
+        }).catch(() => 0),
+      ]);
+      
+      months.push({
+        month: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+        events,
+        inquiries,
+      });
+    }
+    
+    return months;
+  } catch (error) {
+    console.error("Failed to fetch monthly stats:", error);
+    return [];
+  }
+}
+
+async function getCategoryStats() {
+  try {
+    const programs = await prisma.program.groupBy({
+      by: ["category"],
+      _count: {
+        id: true,
+      },
+    }).catch(() => []);
+    
+    return programs.map((p) => ({
+      category: p.category.length > 10 ? p.category.substring(0, 10) + "..." : p.category,
+      count: p._count.id,
+    }));
+  } catch (error) {
+    console.error("Failed to fetch category stats:", error);
+    return [];
+  }
+}
+
 async function getOngoingPrograms() {
   try {
     return await prisma.event.findMany({
@@ -149,6 +213,8 @@ export default async function AdminDashboard() {
   const stats = await getStats();
   const recent = await getRecentActivity();
   const ongoingPrograms = await getOngoingPrograms();
+  const monthlyStats = await getMonthlyStats();
+  const categoryStats = await getCategoryStats();
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
@@ -244,6 +310,13 @@ export default async function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* 통계 차트 */}
+      {monthlyStats.length > 0 && categoryStats.length > 0 && (
+        <div className="mb-6">
+          <AdminStatsChart monthlyData={monthlyStats} categoryData={categoryStats} />
+        </div>
+      )}
 
       {/* 해외/국내 비율 */}
       <div className="grid md:grid-cols-2 gap-4 mb-6">

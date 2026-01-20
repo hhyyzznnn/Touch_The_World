@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Calendar, X, Upload, Link as LinkIcon } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import type { Event, EventImage, Program } from "@prisma/client";
 
 type EventWithRelations = Event & {
@@ -20,6 +22,8 @@ interface EventFormProps {
 export function EventForm({ event }: EventFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [programs, setPrograms] = useState<Program[]>([]);
   const [schoolName, setSchoolName] = useState(event?.school.name || "");
   const [programId, setProgramId] = useState(event?.programId || "");
@@ -67,11 +71,19 @@ export function EventForm({ event }: EventFormProps) {
   useEffect(() => {
     async function loadPrograms() {
       try {
+        setIsLoadingPrograms(true);
+        setError(null);
         const res = await fetch("/api/admin/programs");
+        if (!res.ok) {
+          throw new Error("프로그램 목록을 불러오는데 실패했습니다.");
+        }
         const data = await res.json();
         setPrograms(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to load programs:", error);
+        setError(error.message || "프로그램 목록을 불러오는데 실패했습니다.");
+      } finally {
+        setIsLoadingPrograms(false);
       }
     }
     loadPrograms();
@@ -80,6 +92,7 @@ export function EventForm({ event }: EventFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       const allImageUrls = imageUrls.filter(Boolean);
@@ -113,12 +126,12 @@ export function EventForm({ event }: EventFormProps) {
         router.push("/admin/events");
         router.refresh();
       } else {
-        const error = await response.json();
-        alert(error.error || "저장에 실패했습니다.");
+        const errorData = await response.json();
+        setError(errorData.error || "저장에 실패했습니다.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submit error:", error);
-      alert("저장에 실패했습니다.");
+      setError(error.message || "저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -140,6 +153,13 @@ export function EventForm({ event }: EventFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+      {error && (
+        <ErrorMessage
+          message={error}
+          onDismiss={() => setError(null)}
+        />
+      )}
+      
       <div>
         <label className="block text-sm font-medium mb-2">
           학교 <span className="text-red-500">*</span>
@@ -185,9 +205,15 @@ export function EventForm({ event }: EventFormProps) {
             </>
           ) : (
             <>
-              <select
-                value={programId}
-                onChange={(e) => setProgramId(e.target.value)}
+              {isLoadingPrograms ? (
+                <div className="flex items-center gap-2 py-2">
+                  <LoadingSpinner size="sm" />
+                  <span className="text-sm text-text-gray">프로그램 목록을 불러오는 중...</span>
+                </div>
+              ) : (
+                <select
+                  value={programId}
+                  onChange={(e) => setProgramId(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary bg-white text-gray-700 appearance-none cursor-pointer"
                 style={{ 
                   accentColor: '#2E6D45',
@@ -206,6 +232,7 @@ export function EventForm({ event }: EventFormProps) {
                   </option>
                 ))}
               </select>
+              )}
               <div className="text-sm text-gray-600">
                 또는{" "}
                 <button
@@ -430,8 +457,19 @@ export function EventForm({ event }: EventFormProps) {
       </div>
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={isSubmitting} className="bg-brand-green-primary hover:bg-brand-green-primary/90">
-          {isSubmitting ? "저장 중..." : "저장"}
+        <Button
+          type="submit"
+          disabled={isSubmitting || isLoadingPrograms}
+          className="bg-brand-green-primary hover:bg-brand-green-primary/90 disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <>
+              <LoadingSpinner size="sm" className="mr-2" />
+              저장 중...
+            </>
+          ) : (
+            "저장"
+          )}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           취소

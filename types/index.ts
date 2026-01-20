@@ -49,6 +49,7 @@ export interface Inquiry {
   estimatedBudget: number | null;
   status: string;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 // Document 타입
