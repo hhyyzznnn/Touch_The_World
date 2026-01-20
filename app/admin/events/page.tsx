@@ -48,7 +48,7 @@ export default async function AdminEventsPage({
       </div>
 
       {events.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-text-gray">
           등록된 진행 내역이 없습니다.
         </div>
       ) : (

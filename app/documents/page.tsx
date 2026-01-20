@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/Pagination";
 
 const ITEMS_PER_PAGE = 10;
@@ -47,40 +49,36 @@ export default async function DocumentsPage({
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">자료실</h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-text-gray mb-6">
           공문 템플릿, 안내문, 안전 매뉴얼 등 필요한 자료를 다운로드하세요.
         </p>
         {categories.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            <a
-              href="/documents"
-              className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                !params.category
-                  ? "bg-brand-green-primary text-white hover:bg-brand-green-primary/90"
-                  : "bg-white border border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
-              }`}
+            <Button
+              asChild
+              variant={!params.category ? "default" : "outline"}
+              className={!params.category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
             >
-              전체
-            </a>
+              <Link href="/documents">전체</Link>
+            </Button>
             {categories.map((category) => (
-              <a
+              <Button
                 key={category}
-                href={`/documents?category=${encodeURIComponent(category)}`}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                  params.category === category
-                    ? "bg-brand-green-primary text-white hover:bg-brand-green-primary/90"
-                    : "bg-white border border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
-                }`}
+                asChild
+                variant={params.category === category ? "default" : "outline"}
+                className={params.category === category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
               >
-                {category}
-              </a>
+                <Link href={`/documents?category=${encodeURIComponent(category)}`}>
+                  {category}
+                </Link>
+              </Button>
             ))}
           </div>
         )}
       </div>
 
       {documents.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-text-gray">
           등록된 자료가 없습니다.
         </div>
       ) : (
@@ -97,7 +95,7 @@ export default async function DocumentsPage({
                       <span className="text-sm text-brand-green-primary bg-brand-green-primary/10 px-3 py-1 rounded-full">
                         {document.category}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-text-gray">
                         {format(new Date(document.createdAt), "yyyy년 MM월 dd일")}
                       </span>
                     </div>

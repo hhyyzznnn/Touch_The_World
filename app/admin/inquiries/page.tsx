@@ -40,7 +40,7 @@ export default async function AdminInquiriesPage({
       <h1 className="text-2xl sm:text-3xl font-bold mb-8">문의 관리</h1>
 
       {inquiries.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-text-gray">
           등록된 문의가 없습니다.
         </div>
       ) : (
