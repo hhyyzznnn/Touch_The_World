@@ -121,7 +121,15 @@ export function ProgramForm({ program }: ProgramFormProps) {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary bg-white text-gray-700 appearance-none cursor-pointer"
+          style={{ 
+            accentColor: '#2E6D45',
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232E6D45' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right 0.75rem center',
+            backgroundSize: '12px 12px',
+            paddingRight: '2.5rem'
+          }}
           required
         >
           <option value="">카테고리를 선택하세요</option>
@@ -159,132 +167,124 @@ export function ProgramForm({ program }: ProgramFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">썸네일</label>
         <div className="space-y-3">
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-2">
             <input
               type="url"
               value={thumbnailUrl}
               onChange={(e) => setThumbnailUrl(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
               placeholder="https://example.com/image.jpg"
             />
-            <div className="w-[140px] shrink-0">
-              <UploadButton
-                endpoint="thumbnailUploader"
-                onClientUploadComplete={(res) => {
-                  if (res && res[0]) {
-                    setThumbnailUrl(res[0].url);
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  alert(`업로드 실패: ${error.message}`);
-                }}
-                appearance={{
-                  button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                  allowedContent: "text-gray-500 text-[11px]",
-                }}
-                content={{
-                  button({ ready }) {
-                    return ready ? "파일 선택" : "파일 선택";
-                  },
-                  allowedContent({ ready }) {
-                    return ready ? "이미지(jpg/png/webp) · 최대 4MB" : "";
-                  },
-                }}
-              />
-            </div>
+            <UploadButton
+              endpoint="thumbnailUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res[0]) {
+                  setThumbnailUrl(res[0].url);
+                }
+              }}
+              onUploadError={(error: Error) => {
+                alert(`업로드 실패: ${error.message}`);
+              }}
+              appearance={{
+                button: "h-[42px] px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                allowedContent: "hidden",
+              }}
+              content={{
+                button({ ready }) {
+                  return ready ? "파일 선택" : "파일 선택";
+                },
+              }}
+            />
           </div>
           {thumbnailUrl && (
-            <div className="flex items-center gap-3 p-3 border rounded-md bg-gray-50">
+            <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-md bg-gray-50">
               <span className="flex-1 text-sm text-gray-700 truncate">
                 {thumbnailUrl}
               </span>
               <Button
                 type="button"
                 onClick={() => setThumbnailUrl("")}
-                variant="destructive"
+                variant="ghost"
                 size="sm"
+                className="h-8 w-8 p-0"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
           )}
+          <p className="text-xs text-gray-500">
+            권장 사이즈: 1200×800px (16:9 비율), 파일 크기: 4MB 이하
+          </p>
         </div>
-        <p className="text-[11px] text-gray-500 mt-1">
-          권장 사이즈: 1200x800px (16:9 비율), 파일 크기: 4MB 이하
-        </p>
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-4 gap-2">
-          <label className="block text-sm font-medium">이미지</label>
+        <label className="block text-sm font-medium mb-2">이미지</label>
+        <div className="space-y-3">
           <div className="flex gap-2">
             <Button
               type="button"
               onClick={addImageUrl}
               variant="outline"
-              size="sm"
-              className="flex items-center gap-1"
+              size="default"
+              className="flex items-center gap-2 h-[42px]"
             >
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <div className="w-[140px] shrink-0">
-              <UploadButton
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                  if (res && res.length > 0) {
-                    const newUrls = res.map((file) => file.url);
-                    setImageUrls([...imageUrls, ...newUrls]);
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  alert(`업로드 실패: ${error.message}`);
-                }}
-                appearance={{
-                  button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                  allowedContent: "text-gray-500 text-[11px]",
-                }}
-                content={{
-                  button({ ready }) {
-                    return ready ? "파일 선택" : "파일 선택";
-                  },
-                  allowedContent({ ready }) {
-                    return ready ? "이미지(jpg/png/webp) · 최대 4MB" : "";
-                  },
-                }}
-              />
+            <UploadButton
+              endpoint="imageUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res.length > 0) {
+                  const newUrls = res.map((file) => file.url);
+                  setImageUrls([...imageUrls, ...newUrls]);
+                }
+              }}
+              onUploadError={(error: Error) => {
+                alert(`업로드 실패: ${error.message}`);
+              }}
+              appearance={{
+                button: "h-[42px] px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                allowedContent: "hidden",
+              }}
+              content={{
+                button({ ready }) {
+                  return ready ? "파일 선택" : "파일 선택";
+                },
+              }}
+            />
+          </div>
+
+          {/* 이미지 URL 목록 */}
+          {imageUrls.length > 0 && (
+            <div className="space-y-2">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => updateImageUrl(index, e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => removeImageUrl(index)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
+
+          <p className="text-xs text-gray-500">
+            권장 사이즈: 1920×1080px (Full HD), 파일 크기: 4MB 이하
+          </p>
         </div>
-
-        {/* 이미지 URL 목록 */}
-        {imageUrls.length > 0 && (
-          <div className="space-y-3 mb-4">
-            {imageUrls.map((url, index) => (
-              <div key={index} className="flex gap-3 items-start">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => updateImageUrl(index, e.target.value)}
-                  className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                  placeholder="https://example.com/image.jpg"
-                />
-                <Button
-                  type="button"
-                  onClick={() => removeImageUrl(index)}
-                  variant="destructive"
-                  size="sm"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <p className="text-xs text-gray-500 mt-2">
-          권장 사이즈: 1920x1080px (Full HD), 파일 크기: 4MB 이하
-        </p>
       </div>
 
       <div>
