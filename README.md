@@ -26,7 +26,6 @@
 - **타입 체크**: TypeScript 5.7
 - **린터**: ESLint + Next.js Config
 - **빌드 도구**: Next.js Built-in
-- **선택적 의존성**: Twilio (SMS 인증용, optional)
 
 ## 📋 주요 기능
 
@@ -193,11 +192,12 @@ UPLOADTHING_APP_ID="your-uploadthing-app-id"
 RESEND_API_KEY="re_xxxxxxxxxxxxx"
 RESEND_FROM_EMAIL="noreply@yourdomain.com"
 
-# SMS 인증 (Twilio) - 선택사항
+# 카카오 알림톡 인증번호 발송 (선택사항)
 # 개발 환경에서는 설정하지 않으면 터미널에 인증 코드가 출력됩니다
-TWILIO_ACCOUNT_SID="your-twilio-account-sid"
-TWILIO_AUTH_TOKEN="your-twilio-auth-token"
-TWILIO_PHONE_NUMBER="+1234567890"
+KAKAO_BM_CLIENT_ID="your-kakao-bm-client-id"
+KAKAO_BM_CLIENT_SECRET="your-kakao-bm-client-secret"
+KAKAO_BM_SENDER_KEY="your-kakao-bm-sender-key"
+KAKAO_BM_VERIFICATION_TEMPLATE_CODE="your-template-code"
 
 # 소셜 로그인 (선택사항)
 KAKAO_CLIENT_ID="your-kakao-client-id"
@@ -221,7 +221,7 @@ OPENAI_API_KEY="sk-xxxxxxxxxxxxx"
 - `.env` 파일은 Git에 커밋되지 않습니다 (`.gitignore`에 포함됨)
 - 상세한 연결 모드 비교는 [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) 참고
 - **이메일 인증**: `RESEND_API_KEY`를 설정하지 않으면 개발 환경에서 터미널에 인증 링크가 출력됩니다
-- **SMS 인증**: `TWILIO_ACCOUNT_SID`를 설정하지 않으면 개발 환경에서 터미널에 인증 코드가 출력됩니다
+- **SMS 인증**: 카카오 알림톡 설정을 하지 않으면 개발 환경에서 터미널에 인증 코드가 출력됩니다
 
 **📚 데이터베이스 설정 가이드**: 
 → [DATABASE_SETUP.md](./DATABASE_SETUP.md) 파일을 참고하세요.
@@ -341,7 +341,7 @@ npm run db:seed:achievements
    - `UPLOADTHING_APP_ID` (필수, 이미지 업로드용)
    - `RESEND_API_KEY` (이메일 인증용, 선택사항)
    - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
-   - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` (SMS 인증용, 선택사항)
+   - `KAKAO_BM_CLIENT_ID`, `KAKAO_BM_CLIENT_SECRET`, `KAKAO_BM_SENDER_KEY`, `KAKAO_BM_VERIFICATION_TEMPLATE_CODE` (카카오 알림톡 인증번호 발송용, 선택사항)
    - `OPENAI_API_KEY` (AI 채팅 상담용, 필수)
 4. 빌드 설정 확인:
    - Build Command: `npm run build` (자동으로 `prisma generate` 포함)
@@ -367,9 +367,10 @@ UPLOADTHING_TOKEN=sk_live_xxxxxxxxxxxxx
 UPLOADTHING_APP_ID=your-uploadthing-app-id
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 RESEND_FROM_EMAIL=noreply@yourdomain.com
-TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_PHONE_NUMBER=+1234567890
+KAKAO_BM_CLIENT_ID=your-kakao-bm-client-id
+KAKAO_BM_CLIENT_SECRET=your-kakao-bm-client-secret
+KAKAO_BM_SENDER_KEY=your-kakao-bm-sender-key
+KAKAO_BM_VERIFICATION_TEMPLATE_CODE=your-template-code
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 ```
 
@@ -415,7 +416,9 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 - [docs/SOCIAL_LOGIN_SETUP.md](./docs/SOCIAL_LOGIN_SETUP.md) - 소셜 로그인 설정 가이드 (카카오, 네이버, 구글)
 - [docs/KAKAO_LOGIN_REST_API.md](./docs/KAKAO_LOGIN_REST_API.md) - 카카오 로그인 REST API 상세 가이드
 - [docs/EMAIL_VERIFICATION_SETUP.md](./docs/EMAIL_VERIFICATION_SETUP.md) - 이메일 인증 설정 가이드 (Resend)
-- [docs/SMS_VERIFICATION_SETUP.md](./docs/SMS_VERIFICATION_SETUP.md) - SMS 인증 설정 가이드 (Twilio)
+- [docs/KAKAO_ALIMTALK_VERIFICATION_SETUP.md](./docs/KAKAO_ALIMTALK_VERIFICATION_SETUP.md) - 카카오 알림톡 인증번호 발송 설정 가이드
+- [docs/KAKAO_ALIMTALK_QUICK_START.md](./docs/KAKAO_ALIMTALK_QUICK_START.md) - 카카오 알림톡 빠른 시작 가이드
+- [docs/YOUR_TODO_LIST.md](./docs/YOUR_TODO_LIST.md) - 카카오 알림톡 설정 작업 체크리스트
 - [docs/AUTH_IMPLEMENTATION.md](./docs/AUTH_IMPLEMENTATION.md) - 인증 기능 구현 가이드
 
 ### 도메인 연결

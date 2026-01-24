@@ -108,21 +108,6 @@ const optionalEnvVars: EnvVar[] = [
     description: "Resend 발신 이메일 주소",
   },
   {
-    name: "TWILIO_ACCOUNT_SID",
-    required: false,
-    description: "Twilio Account SID (SMS 인증용)",
-  },
-  {
-    name: "TWILIO_AUTH_TOKEN",
-    required: false,
-    description: "Twilio Auth Token",
-  },
-  {
-    name: "TWILIO_PHONE_NUMBER",
-    required: false,
-    description: "Twilio 전화번호",
-  },
-  {
     name: "KAKAO_BM_CLIENT_ID",
     required: false,
     description: "카카오 비즈니스 메시지 Client ID (알림톡 인증번호 발송용)",
