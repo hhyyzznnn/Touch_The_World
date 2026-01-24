@@ -10,6 +10,8 @@
     "validate-env": "tsx scripts/validate-env.ts",
     "prebuild": "npm run validate-env",
     "db:push": "prisma db push",
+    "db:migrate:reviews": "tsx scripts/migrate-reviews.ts",
+    "db:migrate:reviews:sql": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/migrate-reviews-sql.ts",
     "db:generate": "prisma generate",
     "db:studio": "DATABASE_URL=\"$DATABASE_POOLING_URL\" prisma studio",
     "db:check": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/check-db-status.ts",
@@ -18,7 +20,10 @@
     "db:seed:clients": "tsx scripts/seed-clients-products.ts",
     "db:seed:users": "tsx scripts/seed-users.ts",
     "db:add-image": "tsx scripts/add-program-image.ts",
-    "db:add-all-images": "tsx scripts/add-all-program-images.ts"
+    "db:add-all-images": "tsx scripts/add-all-program-images.ts",
+    "db:cleanup": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/cleanup-database.ts",
+    "db:reset-users": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/reset-users-sql.ts",
+    "db:add-username": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/add-username-column.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

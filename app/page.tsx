@@ -182,6 +182,8 @@ export default async function HomePage({
                           fill
                           sizes="(max-width: 768px) 80vw, (max-width: 1200px) 40vw, 400px"
                           className="object-cover"
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     ) : (

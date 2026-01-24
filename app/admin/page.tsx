@@ -12,9 +12,18 @@ import {
   Search,
 } from "lucide-react";
 import { GlobalSearchBar } from "@/components/GlobalSearchBar";
-import { AdminStatsChart } from "@/components/AdminStatsChart";
+import dynamic from "next/dynamic";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+
+// 차트 컴포넌트 동적 import (번들 크기 최적화)
+const AdminStatsChart = dynamic(
+  () => import("@/components/AdminStatsChart").then((mod) => ({ default: mod.AdminStatsChart })),
+  { 
+    ssr: false,
+    loading: () => <div className="h-[300px] flex items-center justify-center text-gray-400">차트 로딩 중...</div>
+  }
+);
 
 async function getStats() {
   try {

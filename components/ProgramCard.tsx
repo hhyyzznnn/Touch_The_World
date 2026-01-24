@@ -3,10 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Heart, Star, MapPin } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
+import { ShareButton } from "@/components/ShareButton";
 
 interface ProgramCardProps {
   id: string;
@@ -108,7 +109,8 @@ export function ProgramCard({
   return (
     <Link
       href={`/programs/${id}`}
-      className="group relative flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+      className="group relative flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:ring-offset-2"
+      aria-label={`${title} 프로그램 상세 보기`}
     >
       {/* 이미지 영역 */}
       <div className="relative w-full h-56 bg-gray-100 overflow-hidden">
@@ -119,6 +121,8 @@ export function ProgramCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <ImagePlaceholder />
@@ -127,18 +131,27 @@ export function ProgramCard({
         {/* 좋아요 버튼 */}
         <button
           onClick={handleLikeClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleLikeClick(e as any);
+            }
+          }}
           className={cn(
             "absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all",
-            "hover:bg-white hover:scale-110",
+            "hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:ring-offset-2",
             isLiked && "bg-red-50"
           )}
-          aria-label="좋아요"
+          aria-label={isLiked ? `${title} 즐겨찾기 해제` : `${title} 즐겨찾기 추가`}
+          aria-pressed={isLiked}
+          disabled={isLoading}
         >
           <Heart
             className={cn(
               "w-5 h-5 transition-colors",
               isLiked ? "fill-red-500 text-red-500" : "text-gray-600"
             )}
+            aria-hidden="true"
           />
         </button>
 
@@ -222,3 +235,5 @@ export function ProgramCard({
   );
 }
 
+// 메모이제이션으로 불필요한 재렌더링 방지
+export default memo(ProgramCard);

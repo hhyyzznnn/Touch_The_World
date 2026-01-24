@@ -4,6 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getCategoryDisplayName } from "@/lib/category-utils";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ReviewSection } from "@/components/ReviewSection";
+import { ShareButton } from "@/components/ShareButton";
 
 async function getProgram(id: string) {
   return await prisma.program.findUnique({
@@ -14,6 +17,21 @@ async function getProgram(id: string) {
       },
       schedules: {
         orderBy: { day: "asc" },
+      },
+      reviews: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 10, // 최근 10개만 미리 로드
       },
     },
   });
@@ -33,18 +51,31 @@ export default async function ProgramDetailPage({
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="mb-6">
-        <Link href="/programs" className="text-brand-green-primary hover:text-brand-green-primary/80 hover:underline">
-          ← 프로그램 목록으로
-        </Link>
-      </div>
+      <Breadcrumbs
+        items={[
+          { label: "프로그램", href: "/programs" },
+          { label: program.title },
+        ]}
+      />
 
       <div className="mb-8">
-        <div className="text-sm text-brand-green-primary mb-2">{getCategoryDisplayName(program.category)}</div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 break-words">{program.title}</h1>
-        {program.summary && (
-          <p className="text-lg sm:text-xl text-gray-600 mb-6 break-words">{program.summary}</p>
-        )}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <div className="text-sm text-brand-green-primary mb-2">{getCategoryDisplayName(program.category)}</div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 break-words">{program.title}</h1>
+            {program.summary && (
+              <p className="text-lg sm:text-xl text-gray-600 mb-6 break-words">{program.summary}</p>
+            )}
+          </div>
+          <div className="ml-4">
+            <ShareButton
+              url={`/programs/${program.id}`}
+              title={program.title}
+              description={program.summary || undefined}
+              imageUrl={program.thumbnailUrl || undefined}
+            />
+          </div>
+        </div>
       </div>
 
       {program.images.length > 0 && (
@@ -94,6 +125,19 @@ export default async function ProgramDetailPage({
           <Link href="/inquiry">이 프로그램 문의하기</Link>
         </Button>
       </div>
+
+      <ReviewSection
+        programId={program.id}
+        initialReviews={program.reviews.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          content: r.content,
+          createdAt: r.createdAt.toISOString(),
+          user: r.user,
+        }))}
+        programRating={program.rating}
+        reviewCount={program.reviewCount}
+      />
     </div>
   );
 }

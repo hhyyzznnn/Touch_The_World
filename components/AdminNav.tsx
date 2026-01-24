@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { AdminNotification } from "@/components/AdminNotification";
 
 export function AdminNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -80,6 +81,13 @@ export function AdminNav() {
             >
               고객사
             </Link>
+            <Link
+              href="/admin/users"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+            >
+              사용자
+            </Link>
+            <AdminNotification />
             <Button type="button" variant="outline" size="default" onClick={handleLogout}>
               로그아웃
             </Button>
@@ -140,6 +148,13 @@ export function AdminNav() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 고객사
+              </Link>
+              <Link
+                href="/admin/users"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                사용자
               </Link>
               <div className="pt-2">
                 <Button

@@ -56,7 +56,7 @@ const config: Config = {
           "green-primary": "#2E6D45",
         },
         text: {
-          gray: "#969696",
+          gray: "#6B6B6B", // WCAG AA 기준 충족 (4.5:1 대비) - 기존 #969696에서 개선
           dark: "#1D1D1B",
         },
       },

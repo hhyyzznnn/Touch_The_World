@@ -48,7 +48,7 @@ const requiredEnvVars: EnvVar[] = [
   },
   {
     name: "UPLOADTHING_SECRET",
-    required: true,
+    required: false, // UPLOADTHING_TOKEN과 둘 중 하나만 있으면 됨
     description: "UploadThing Secret 키 (이미지/파일 업로드용)",
     validate: (value) => {
       if (!value.startsWith("sk_")) {
@@ -58,9 +58,31 @@ const requiredEnvVars: EnvVar[] = [
     },
   },
   {
+    name: "UPLOADTHING_TOKEN",
+    required: false, // UPLOADTHING_SECRET과 둘 중 하나만 있으면 됨
+    description: "UploadThing Token 키 (이미지/파일 업로드용)",
+    validate: (value) => {
+      if (!value.startsWith("sk_")) {
+        return "UPLOADTHING_TOKEN은 sk_로 시작해야 합니다";
+      }
+      return true;
+    },
+  },
+  {
     name: "UPLOADTHING_APP_ID",
     required: true,
     description: "UploadThing App ID",
+  },
+  {
+    name: "OPENAI_API_KEY",
+    required: true,
+    description: "OpenAI API 키 (AI 채팅 상담용)",
+    validate: (value) => {
+      if (!value.startsWith("sk-")) {
+        return "OPENAI_API_KEY은 sk-로 시작해야 합니다";
+      }
+      return true;
+    },
   },
 ];
 
@@ -162,9 +184,23 @@ function main() {
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  // UPLOADTHING_SECRET 또는 UPLOADTHING_TOKEN 중 하나는 필수
+  const hasUploadThingSecret = !!process.env.UPLOADTHING_SECRET;
+  const hasUploadThingToken = !!process.env.UPLOADTHING_TOKEN;
+  if (!hasUploadThingSecret && !hasUploadThingToken) {
+    console.log(`  ❌ UPLOADTHING_SECRET 또는 UPLOADTHING_TOKEN: 둘 중 하나는 필수입니다.`);
+    errors.push("UPLOADTHING_SECRET 또는 UPLOADTHING_TOKEN 중 하나는 필수입니다.");
+    hasErrors = true;
+  }
+
   // 필수 환경 변수 검증
   console.log("📋 필수 환경 변수:");
   for (const envVar of requiredEnvVars) {
+    // UPLOADTHING_SECRET과 UPLOADTHING_TOKEN은 별도로 체크했으므로 스킵
+    if (envVar.name === "UPLOADTHING_SECRET" || envVar.name === "UPLOADTHING_TOKEN") {
+      continue;
+    }
+    
     const result = validateEnvVar(envVar);
     if (result.valid) {
       console.log(`  ✅ ${envVar.name}`);
@@ -174,6 +210,8 @@ function main() {
       hasErrors = true;
     }
   }
+
+  // UPLOADTHING_SECRET 또는 UPLOADTHING_TOKEN 체크 (위에서 이미 체크함)
 
   // 선택적 환경 변수 확인
   console.log("\n📋 선택적 환경 변수:");

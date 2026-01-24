@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
 import { FloatingChatButton } from "@/components/FloatingChatButton";
+import { ProgramCompare } from "@/components/ProgramCompare";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
@@ -96,6 +97,7 @@ export default function RootLayout({
         <main className="min-h-screen">{children}</main>
         <ConditionalFooter />
         <FloatingChatButton />
+        <ProgramCompare />
       </body>
     </html>
   );

@@ -1,4 +1,17 @@
-import { ProgramForm } from "@/components/ProgramForm";
+import dynamic from "next/dynamic";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+
+// 동적 import로 번들 크기 최적화
+const ProgramForm = dynamic(
+  () => import("@/components/ProgramForm").then((mod) => ({ default: mod.ProgramForm })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="lg" />
+      </div>
+    ),
+  }
+);
 
 export default function NewProgramPage() {
   return (

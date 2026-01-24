@@ -30,6 +30,7 @@ model Program {
   schedules   ProgramSchedule[]
   events      Event[]
   favorites   Favorite[]
+  reviews     Review[]
 
   @@index([category])
   @@index([region])
@@ -199,6 +200,7 @@ model User {
   emailVerifications    EmailVerification[]
   accounts              Account[]
   favorites            Favorite[]
+  reviews               Review[]
   notificationSetting  NotificationSetting?
   notificationLogs     NotificationLog[]
   consultingLogs       ConsultingLog[]
@@ -334,6 +336,25 @@ model NotificationLog {
   @@index([noticeId])
   @@index([status])
   @@index([createdAt])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  programId String
+  userId    String
+  rating    Int      // 평점 (1-5)
+  content   String   // 후기 내용
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, userId]) // 한 사용자는 한 프로그램에 하나의 후기만 작성 가능
+  @@index([programId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([rating])
 }
 
 model ConsultingLog {

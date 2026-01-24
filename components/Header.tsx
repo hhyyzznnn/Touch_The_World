@@ -87,6 +87,12 @@ export function Header() {
             >
               견적 문의
             </Link>
+            <Link
+              href="/favorites"
+              className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
+            >
+              즐겨찾기
+            </Link>
           </nav>
 
           {/* 사용자 메뉴 및 SNS 버튼 */}
@@ -124,13 +130,21 @@ export function Header() {
           {/* 모바일 햄버거 메뉴 버튼 */}
           <button
             onClick={toggleMenu}
-            className="xl:hidden p-2 text-text-dark hover:text-brand-green transition"
-            aria-label="메뉴 열기/닫기"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleMenu();
+              }
+            }}
+            className="xl:hidden p-2 text-text-dark hover:text-brand-green transition focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:ring-offset-2 rounded-md"
+            aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMenuOpen ? (
-              <X className="w-6 h-6" />
+              <X className="w-6 h-6" aria-hidden="true" />
             ) : (
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6" aria-hidden="true" />
             )}
           </button>
         </div>
@@ -143,7 +157,12 @@ export function Header() {
 
       {/* 모바일 메뉴 드롭다운 */}
       {isMenuOpen && (
-        <div className="xl:hidden bg-white border-t border-gray-100 shadow-lg">
+        <div 
+          id="mobile-menu"
+          className="xl:hidden bg-white border-t border-gray-100 shadow-lg"
+          role="navigation"
+          aria-label="모바일 메뉴"
+        >
           <nav className="container mx-auto px-4 py-4">
             <div className="flex flex-col space-y-1">
               <Link
@@ -158,13 +177,28 @@ export function Header() {
               <div>
                 <button
                   onClick={() => setIsProgramsOpen(!isProgramsOpen)}
-                  className="w-full px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium flex items-center justify-between"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setIsProgramsOpen(!isProgramsOpen);
+                    }
+                  }}
+                  className="w-full px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:ring-offset-2"
+                  aria-expanded={isProgramsOpen}
+                  aria-controls="programs-submenu"
                 >
                   프로그램
-                  <ChevronDown className={`w-5 h-5 transition-transform ${isProgramsOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown 
+                    className={`w-5 h-5 transition-transform ${isProgramsOpen ? "rotate-180" : ""}`}
+                    aria-hidden="true"
+                  />
                 </button>
                 {isProgramsOpen && (
-                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-brand-green/20 pl-4">
+                  <div 
+                    id="programs-submenu"
+                    className="ml-4 mt-1 space-y-1 border-l-2 border-brand-green/20 pl-4"
+                    role="menu"
+                  >
                     <Link
                       href="/programs"
                       onClick={closeMenu}
@@ -199,6 +233,13 @@ export function Header() {
                 className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
               >
                 견적 문의
+              </Link>
+              <Link
+                href="/favorites"
+                onClick={closeMenu}
+                className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
+              >
+                즐겨찾기
               </Link>
             </div>
             

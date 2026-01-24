@@ -6,12 +6,35 @@ import { getCategoryDisplayName, getCategoryDetailKey } from "@/lib/category-uti
 import { CATEGORY_DETAILS } from "@/lib/category-details";
 import { CategoryCardNews } from "@/components/CategoryCardNews";
 import { Pagination } from "@/components/Pagination";
+import { ProgramSort } from "@/components/ProgramSort";
+import { Suspense } from "react";
 
 const ITEMS_PER_PAGE = 12;
 
-async function getPrograms(category?: string, page: number = 1) {
+type SortOption = "latest" | "popular" | "rating" | "price_asc" | "price_desc" | "name";
+
+function getOrderBy(sort: SortOption) {
+  switch (sort) {
+    case "popular":
+      return [{ reviewCount: "desc" as const }, { createdAt: "desc" as const }];
+    case "rating":
+      return [{ rating: "desc" as const }, { reviewCount: "desc" as const }];
+    case "price_asc":
+      return [{ priceFrom: "asc" as const }, { createdAt: "desc" as const }];
+    case "price_desc":
+      return [{ priceFrom: "desc" as const }, { createdAt: "desc" as const }];
+    case "name":
+      return [{ title: "asc" as const }];
+    case "latest":
+    default:
+      return [{ createdAt: "desc" as const }];
+  }
+}
+
+async function getPrograms(category?: string, page: number = 1, sort: SortOption = "latest") {
   const where = category ? { category } : {};
   const skip = (page - 1) * ITEMS_PER_PAGE;
+  const orderBy = getOrderBy(sort);
   
   const [programs, total] = await Promise.all([
     prisma.program.findMany({
@@ -22,7 +45,7 @@ async function getPrograms(category?: string, page: number = 1) {
           orderBy: { createdAt: "asc" },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
       skip,
       take: ITEMS_PER_PAGE,
     }),
@@ -37,21 +60,23 @@ async function getPrograms(category?: string, page: number = 1) {
 }
 
 async function getCategories() {
-  const programs = await prisma.program.findMany({
+  // distinct 쿼리로 최적화 (데이터베이스에서 직접 중복 제거)
+  const categories = await prisma.program.findMany({
     select: { category: true },
     distinct: ["category"],
   });
-  return programs.map((p) => p.category);
+  return categories.map((p) => p.category);
 }
 
 export default async function ProgramsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; page?: string }>;
+  searchParams: Promise<{ category?: string; page?: string; sort?: string }>;
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
-  const { programs, totalPages } = await getPrograms(params.category, currentPage);
+  const sort = (params.sort || "latest") as SortOption;
+  const { programs, totalPages } = await getPrograms(params.category, currentPage, sort);
   const categories = await getCategories();
   
   // 카테고리별 상세 정보 가져오기
@@ -62,7 +87,7 @@ export default async function ProgramsPage({
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">프로그램 목록</h1>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             asChild
             variant={!params.category ? "default" : "outline"}
@@ -83,6 +108,9 @@ export default async function ProgramsPage({
             </Button>
           ))}
         </div>
+        <Suspense fallback={<div className="h-10" />}>
+          <ProgramSort />
+        </Suspense>
       </div>
 
       {/* 카테고리별 카드뉴스 */}
