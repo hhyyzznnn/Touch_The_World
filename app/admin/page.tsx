@@ -12,18 +12,9 @@ import {
   Search,
 } from "lucide-react";
 import { GlobalSearchBar } from "@/components/GlobalSearchBar";
-import dynamic from "next/dynamic";
+import { AdminStatsChartWrapper } from "@/components/AdminStatsChartWrapper";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-
-// 차트 컴포넌트 동적 import (번들 크기 최적화)
-const AdminStatsChart = dynamic(
-  () => import("@/components/AdminStatsChart").then((mod) => ({ default: mod.AdminStatsChart })),
-  { 
-    ssr: false,
-    loading: () => <div className="h-[300px] flex items-center justify-center text-gray-400">차트 로딩 중...</div>
-  }
-);
 
 async function getStats() {
   try {
@@ -323,7 +314,7 @@ export default async function AdminDashboard() {
       {/* 통계 차트 */}
       {monthlyStats.length > 0 && categoryStats.length > 0 && (
         <div className="mb-6">
-          <AdminStatsChart monthlyData={monthlyStats} categoryData={categoryStats} />
+          <AdminStatsChartWrapper monthlyData={monthlyStats} categoryData={categoryStats} />
         </div>
       )}
 
