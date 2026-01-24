@@ -28,6 +28,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
+    async jwt({ token, user, account }: any) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
     async signIn({ user, account, profile }: any) {
       if (!user.email) {
         return false;
@@ -114,12 +120,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       return true;
-    },
-    async jwt({ token, user, account }: any) {
-      if (user) {
-        token.id = user.id;
-      }
-      return token;
     },
   },
   pages: {

@@ -3,15 +3,21 @@
 import { Button } from "@/components/ui/button";
 
 export function SocialLoginButtons() {
+  const handleGoogleLogin = () => {
+    // NextAuth의 구글 로그인 엔드포인트로 리디렉션
+    // NextAuth가 자동으로 구글 OAuth 플로우를 처리하고
+    // 콜백 후 우리 시스템 쿠키를 설정합니다
+    window.location.href = "/api/auth/signin/google?callbackUrl=/api/auth/callback/google";
+  };
+
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <Button
         type="button"
         variant="outline"
-        className="w-full"
-        onClick={() => {
-          window.location.href = "/api/auth/signin/kakao";
-        }}
+        className="w-full opacity-50 cursor-not-allowed"
+        disabled
+        title="준비 중"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z" />
@@ -21,10 +27,9 @@ export function SocialLoginButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full"
-        onClick={() => {
-          window.location.href = "/api/auth/signin/naver";
-        }}
+        className="w-full opacity-50 cursor-not-allowed"
+        disabled
+        title="준비 중"
       >
         <span className="text-green-600 font-bold">N</span>
         <span className="hidden sm:inline ml-2">네이버</span>
@@ -32,10 +37,8 @@ export function SocialLoginButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full"
-        onClick={() => {
-          window.location.href = "/api/auth/signin/google";
-        }}
+        className="w-full hover:bg-gray-50"
+        onClick={handleGoogleLogin}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path
