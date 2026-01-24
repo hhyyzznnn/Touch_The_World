@@ -1,9 +1,34 @@
 // SMS 발송 유틸리티
 // 개발 환경에서는 콘솔에 출력, 프로덕션에서는 실제 SMS 발송
+// 카카오 알림톡 또는 Twilio 사용 가능
+
+import { sendVerificationCodeAlimtalk } from "./kakao-alimtalk";
 
 export async function sendVerificationSMS(phone: string, code: string) {
-  // 개발 환경 또는 SMS API 키가 없으면 콘솔에 출력
-  if (!process.env.TWILIO_ACCOUNT_SID || process.env.NODE_ENV === "development") {
+  // 카카오 알림톡 우선 사용 (설정되어 있는 경우)
+  const isProduction = process.env.NODE_ENV === "production";
+  const useKakaoAlimtalk = 
+    isProduction &&
+    process.env.KAKAO_BM_CLIENT_ID && 
+    process.env.KAKAO_BM_CLIENT_SECRET && 
+    process.env.KAKAO_BM_SENDER_KEY;
+
+  if (useKakaoAlimtalk) {
+    try {
+      const result = await sendVerificationCodeAlimtalk(phone, code);
+      if (result.success) {
+        return { success: true };
+      }
+      // 카카오 알림톡 실패 시 Twilio로 폴백
+      console.warn("카카오 알림톡 발송 실패, Twilio로 폴백:", result.error);
+    } catch (error) {
+      console.error("카카오 알림톡 발송 오류, Twilio로 폴백:", error);
+    }
+  }
+
+  // 개발 환경 또는 Twilio 설정이 없으면 콘솔에 출력
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  if (!process.env.TWILIO_ACCOUNT_SID || isDevelopment) {
     console.log("=".repeat(60));
     console.log("📱 SMS 인증 코드 (개발 모드)");
     console.log("=".repeat(60));

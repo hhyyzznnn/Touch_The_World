@@ -123,6 +123,31 @@ const optionalEnvVars: EnvVar[] = [
     description: "Twilio 전화번호",
   },
   {
+    name: "KAKAO_BM_CLIENT_ID",
+    required: false,
+    description: "카카오 비즈니스 메시지 Client ID (알림톡 인증번호 발송용)",
+  },
+  {
+    name: "KAKAO_BM_CLIENT_SECRET",
+    required: false,
+    description: "카카오 비즈니스 메시지 Client Secret",
+  },
+  {
+    name: "KAKAO_BM_SENDER_KEY",
+    required: false,
+    description: "카카오 비즈니스 메시지 발신 프로필 키",
+  },
+  {
+    name: "KAKAO_BM_VERIFICATION_TEMPLATE_CODE",
+    required: false,
+    description: "카카오 알림톡 인증번호 템플릿 코드",
+  },
+  {
+    name: "KAKAO_BM_BASE_URL",
+    required: false,
+    description: "카카오 비즈니스 메시지 API Base URL (기본값: https://bizmsg-web.kakaoenterprise.com)",
+  },
+  {
     name: "KAKAO_CLIENT_ID",
     required: false,
     description: "카카오 OAuth Client ID",
