@@ -16,7 +16,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const where: any = {};
+    const where: {
+      programId?: string;
+      userId?: string;
+    } = {};
     if (programId) where.programId = programId;
     if (userId) where.userId = userId;
 
@@ -154,10 +157,12 @@ export async function POST(request: NextRequest) {
       success: true,
       review: result,
     });
-  } catch (error: any) {
-    console.error("Review creation error:", error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Review creation error:", errorMessage);
     
-    if (error.code === "P2002") {
+    // Prisma unique constraint violation
+    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
       return NextResponse.json(
         { error: "이미 후기를 작성하셨습니다." },
         { status: 400 }

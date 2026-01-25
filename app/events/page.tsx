@@ -16,7 +16,16 @@ async function getEvents(
   searchQuery?: string,
   page: number = 1
 ) {
-  const where: any = {};
+  const where: {
+    date?: { gte?: Date; lte?: Date };
+    program?: { category?: string; title?: { contains: string; mode: "insensitive" } };
+    school?: { name?: { contains: string; mode: "insensitive" } };
+    location?: { contains: string; mode: "insensitive" };
+    OR?: Array<{
+      program?: { title?: { contains: string; mode: "insensitive" } };
+      location?: { contains: string; mode: "insensitive" };
+    }>;
+  } = {};
 
   if (year) {
     if (year === "before-2022") {
@@ -35,13 +44,13 @@ async function getEvents(
   }
 
   if (location) {
-    where.location = { contains: location, mode: "insensitive" };
+    where.location = { contains: location, mode: "insensitive" as const };
   }
 
   if (searchQuery) {
     where.OR = [
-      { program: { title: { contains: searchQuery, mode: "insensitive" } } },
-      { location: { contains: searchQuery, mode: "insensitive" } },
+      { program: { title: { contains: searchQuery, mode: "insensitive" as const } } },
+      { location: { contains: searchQuery, mode: "insensitive" as const } },
     ];
   }
 
@@ -124,6 +133,9 @@ async function getLocations() {
     .sort();
 }
 
+// 페이지 재검증 시간 설정 (10분)
+export const revalidate = 600;
+
 export default async function EventsPage({
   searchParams,
 }: {
@@ -190,6 +202,10 @@ export default async function EventsPage({
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-200"
+                      loading="lazy"
+                      decoding="async"
+                      placeholder="blur"
+                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                     />
                   </div>
                 ) : (

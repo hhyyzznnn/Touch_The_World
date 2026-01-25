@@ -21,8 +21,19 @@ async function getRecentEvents() {
     return await prisma.event.findMany({
       take: 3,
       include: {
-        school: true,
-        program: true,
+        school: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+          },
+        },
         images: {
           take: 1,
           orderBy: { createdAt: "asc" },
@@ -34,6 +45,9 @@ async function getRecentEvents() {
     return [];
   }
 }
+
+// 페이지 재검증 시간 설정 (10분)
+export const revalidate = 600;
 
 export default async function HomePage({
   searchParams,
@@ -184,6 +198,8 @@ export default async function HomePage({
                           className="object-cover"
                           loading="lazy"
                           decoding="async"
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                       </div>
                     ) : (

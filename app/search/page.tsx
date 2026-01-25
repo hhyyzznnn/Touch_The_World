@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { AdvancedSearchFilters } from "@/components/AdvancedSearchFilters";
 import { SearchBar } from "@/components/SearchBar";
 import { Pagination } from "@/components/Pagination";
+import type { ProgramWhereInput, EventWhereInput, SchoolWhereInput, AchievementWhereInput } from "@/types";
 
 interface SearchFilters {
   category?: string;
@@ -16,6 +17,9 @@ interface SearchFilters {
 }
 
 const ITEMS_PER_TYPE = 12; // 타입별 표시할 항목 수
+
+// 페이지 재검증 시간 설정 (5분 - 검색 결과는 자주 변경될 수 있음)
+export const revalidate = 300;
 
 async function searchAll(
   query: string,
@@ -46,14 +50,14 @@ async function searchAll(
 
   // 타입별로 필요한 데이터만 조회
   if (type === "programs") {
-    const programWhere: any = {};
+    const programWhere: ProgramWhereInput = {};
     
     if (hasQuery) {
       programWhere.OR = [
-        { title: { contains: searchQuery, mode: "insensitive" } },
-        { summary: { contains: searchQuery, mode: "insensitive" } },
-        { description: { contains: searchQuery, mode: "insensitive" } },
-        { region: { contains: searchQuery, mode: "insensitive" } },
+        { title: { contains: searchQuery, mode: "insensitive" as const } },
+        { summary: { contains: searchQuery, mode: "insensitive" as const } },
+        { description: { contains: searchQuery, mode: "insensitive" as const } },
+        { region: { contains: searchQuery, mode: "insensitive" as const } },
         { hashtags: { hasSome: [searchQuery] } },
       ];
     }
@@ -63,16 +67,19 @@ async function searchAll(
     }
     
     if (filters.region) {
-      programWhere.region = { contains: filters.region, mode: "insensitive" };
+      programWhere.region = { contains: filters.region, mode: "insensitive" as const };
     }
     
     if (filters.priceMin || filters.priceMax) {
-      programWhere.AND = programWhere.AND || [];
+      const andConditions: Array<{ priceFrom?: { gte: number }; priceTo?: { lte: number } }> = [];
       if (filters.priceMin) {
-        programWhere.AND.push({ priceFrom: { gte: parseInt(filters.priceMin) } });
+        andConditions.push({ priceFrom: { gte: parseInt(filters.priceMin) } });
       }
       if (filters.priceMax) {
-        programWhere.AND.push({ priceTo: { lte: parseInt(filters.priceMax) } });
+        andConditions.push({ priceTo: { lte: parseInt(filters.priceMax) } });
+      }
+      if (andConditions.length > 0) {
+        programWhere.AND = andConditions;
       }
     }
     
@@ -109,13 +116,13 @@ async function searchAll(
   }
 
   if (type === "events") {
-    const eventWhere: any = {};
+    const eventWhere: EventWhereInput = {};
     if (hasQuery) {
       eventWhere.OR = [
-        { location: { contains: searchQuery, mode: "insensitive" } },
-        { school: { name: { contains: searchQuery, mode: "insensitive" } } },
-        { program: { title: { contains: searchQuery, mode: "insensitive" } } },
-        { program: { category: { contains: searchQuery, mode: "insensitive" } } },
+        { location: { contains: searchQuery, mode: "insensitive" as const } },
+        { school: { name: { contains: searchQuery, mode: "insensitive" as const } } },
+        { program: { title: { contains: searchQuery, mode: "insensitive" as const } } },
+        { program: { category: { contains: searchQuery, mode: "insensitive" as const } } },
       ];
     }
 
@@ -157,9 +164,9 @@ async function searchAll(
   }
 
   if (type === "schools") {
-    const schoolWhere: any = {};
+    const schoolWhere: SchoolWhereInput = {};
     if (hasQuery) {
-      schoolWhere.name = { contains: searchQuery, mode: "insensitive" };
+      schoolWhere.name = { contains: searchQuery, mode: "insensitive" as const };
     }
 
     const [schools, totalSchools] = await Promise.all([
@@ -185,11 +192,11 @@ async function searchAll(
   }
 
   if (type === "achievements") {
-    const achievementWhere: any = {};
+    const achievementWhere: AchievementWhereInput = {};
     if (hasQuery) {
       achievementWhere.OR = [
-        { institution: { contains: searchQuery, mode: "insensitive" } },
-        { content: { contains: searchQuery, mode: "insensitive" } },
+        { institution: { contains: searchQuery, mode: "insensitive" as const } },
+        { content: { contains: searchQuery, mode: "insensitive" as const } },
       ];
     }
 

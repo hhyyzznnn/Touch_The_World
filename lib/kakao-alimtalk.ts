@@ -72,9 +72,10 @@ async function getKakaoBMAccessToken(): Promise<string> {
     };
 
     return accessToken;
-  } catch (error: any) {
-    console.error("카카오 비즈니스 메시지 OAuth 인증 오류:", error);
-    throw error;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("카카오 비즈니스 메시지 OAuth 인증 오류:", errorMessage);
+    throw new Error(`OAuth 인증 실패: ${errorMessage}`);
   }
 }
 
@@ -140,20 +141,22 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
     });
 
     if (!response.ok) {
-      let errorData: any;
+      let errorMessage: string;
       try {
-        errorData = await response.json();
+        const errorData = await response.json() as { message?: string; error?: string };
+        errorMessage = errorData.message || errorData.error || "알 수 없는 오류";
       } catch {
         const errorText = await response.text();
-        errorData = { message: errorText };
+        errorMessage = errorText || "응답 파싱 실패";
       }
-      throw new Error(`알림톡 발송 실패: ${JSON.stringify(errorData)}`);
+      throw new Error(`알림톡 발송 실패: ${errorMessage}`);
     }
 
-    const result = await response.json();
+    await response.json(); // 응답 확인
     return { success: true };
-  } catch (error: any) {
-    console.error("❌ 카카오 알림톡 발송 실패:", error);
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("❌ 카카오 알림톡 발송 실패:", errorMessage);
     
     // 오류 발생 시에도 개발 환경에서는 콘솔에 출력
     const isDevelopment = process.env.NODE_ENV !== "production";
@@ -168,7 +171,7 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
       return { success: true };
     }
 
-    return { success: false, error: error.message };
+    return { success: false, error: errorMessage };
   }
 }
 

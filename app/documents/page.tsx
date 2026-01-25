@@ -35,6 +35,9 @@ async function getCategories() {
   return documents.map((d) => d.category);
 }
 
+// 페이지 재검증 시간 설정 (10분)
+export const revalidate = 600;
+
 export default async function DocumentsPage({
   searchParams,
 }: {

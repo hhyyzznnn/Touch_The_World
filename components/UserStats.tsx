@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Star, Heart, Mail, MessageSquare, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { UserStatsData } from "@/types";
 
 interface UserStatsProps {
   userId: string;
 }
 
 export function UserStats({ userId }: UserStatsProps) {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<UserStatsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export function UserStats({ userId }: UserStatsProps) {
             <p className="text-gray-500 text-sm">작성한 후기가 없습니다.</p>
           ) : (
             <div className="space-y-3">
-              {stats.recentReviews.map((review: any) => (
+              {stats.recentReviews.map((review) => (
                 <div key={review.id} className="border-b pb-3 last:border-b-0">
                   <Link
                     href={`/programs/${review.program.id}`}
@@ -142,7 +143,7 @@ export function UserStats({ userId }: UserStatsProps) {
             <p className="text-gray-500 text-sm">즐겨찾기한 프로그램이 없습니다.</p>
           ) : (
             <div className="space-y-3">
-              {stats.recentFavorites.map((favorite: any) => (
+              {stats.recentFavorites.map((favorite) => (
                 <div key={favorite.id} className="border-b pb-3 last:border-b-0">
                   <Link
                     href={`/programs/${favorite.program.id}`}

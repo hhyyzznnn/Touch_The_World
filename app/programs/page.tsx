@@ -16,17 +16,29 @@ type SortOption = "latest" | "popular" | "rating" | "price_asc" | "price_desc" |
 function getOrderBy(sort: SortOption) {
   switch (sort) {
     case "popular":
+      // 인기순: 후기 수 내림차순, 동일 시 최신순
       return [{ reviewCount: "desc" as const }, { createdAt: "desc" as const }];
     case "rating":
-      return [{ rating: "desc" as const }, { reviewCount: "desc" as const }];
+      // 평점순: 평점 내림차순, 동일 시 후기 수 내림차순, 최신순
+      return [
+        { rating: "desc" as const },
+        { reviewCount: "desc" as const },
+        { createdAt: "desc" as const }
+      ];
     case "price_asc":
+      // 가격 낮은순: 가격 오름차순, 동일 시 최신순
+      // null 값은 데이터베이스에서 자동으로 뒤로 정렬됨
       return [{ priceFrom: "asc" as const }, { createdAt: "desc" as const }];
     case "price_desc":
+      // 가격 높은순: 가격 내림차순, 동일 시 최신순
+      // null 값은 데이터베이스에서 자동으로 뒤로 정렬됨
       return [{ priceFrom: "desc" as const }, { createdAt: "desc" as const }];
     case "name":
+      // 이름순: 제목 오름차순
       return [{ title: "asc" as const }];
     case "latest":
     default:
+      // 최신순: 생성일 내림차순
       return [{ createdAt: "desc" as const }];
   }
 }
@@ -67,6 +79,9 @@ async function getCategories() {
   });
   return categories.map((p) => p.category);
 }
+
+// 페이지 재검증 시간 설정 (10분)
+export const revalidate = 600;
 
 export default async function ProgramsPage({
   searchParams,

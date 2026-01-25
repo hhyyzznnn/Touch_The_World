@@ -1,12 +1,25 @@
-import NextAuth from "next-auth";
+import NextAuth, { type DefaultSession, type User } from "next-auth";
+import type { AdapterUser } from "@auth/core/adapters";
 import KakaoProvider from "next-auth/providers/kakao";
 import NaverProvider from "next-auth/providers/naver";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    user: {
+      id: string;
+    } & DefaultSession["user"];
+  }
+}
+
+interface NextAuthUser extends User {
+  id?: string;
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: PrismaAdapter(prisma),
   providers: [
     KakaoProvider({
       clientId: process.env.KAKAO_CLIENT_ID || "",
@@ -22,19 +35,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, user }: any) {
-      if (session?.user) {
+    async session({ session, user }) {
+      if (session?.user && user) {
         session.user.id = user.id;
       }
       return session;
     },
-    async jwt({ token, user, account }: any) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
-    async signIn({ user, account, profile }: any) {
+    async signIn({ user, account, profile }) {
       if (!user.email) {
         return false;
       }
@@ -95,26 +108,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
           },
           update: {
-            access_token: account.access_token,
-            refresh_token: account.refresh_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope,
-            id_token: account.id_token,
-            session_state: account.session_state,
+            access_token: account.access_token as string | null,
+            refresh_token: account.refresh_token as string | null,
+            expires_at: account.expires_at as number | null,
+            token_type: account.token_type as string | null,
+            scope: account.scope as string | null,
+            id_token: account.id_token as string | null,
+            session_state: account.session_state as string | null,
           },
           create: {
             userId: dbUser.id,
             type: account.type,
             provider: account.provider,
             providerAccountId: account.providerAccountId,
-            access_token: account.access_token,
-            refresh_token: account.refresh_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope,
-            id_token: account.id_token,
-            session_state: account.session_state,
+            access_token: account.access_token as string | null,
+            refresh_token: account.refresh_token as string | null,
+            expires_at: account.expires_at as number | null,
+            token_type: account.token_type as string | null,
+            scope: account.scope as string | null,
+            id_token: account.id_token as string | null,
+            session_state: account.session_state as string | null,
           },
         });
       }

@@ -23,7 +23,8 @@
     "db:add-all-images": "tsx scripts/add-all-program-images.ts",
     "db:cleanup": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/cleanup-database.ts",
     "db:reset-users": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/reset-users-sql.ts",
-    "db:add-username": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/add-username-column.ts"
+    "db:add-username": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/add-username-column.ts",
+    "db:add-indexes": "DATABASE_URL=\"$DATABASE_POOLING_URL\" tsx scripts/add-program-indexes.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

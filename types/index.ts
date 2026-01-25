@@ -70,3 +70,38 @@ export interface AchievementWithYear {
   }[];
 }
 
+// User Stats 타입
+export interface UserStatsData {
+  stats: {
+    reviewCount: number;
+    favoriteCount: number;
+    inquiryCount: number;
+    consultingLogCount: number;
+  };
+  recentReviews: Array<{
+    id: string;
+    rating: number;
+    content: string;
+    createdAt: Date;
+    program: {
+      id: string;
+      title: string;
+    };
+  }>;
+  recentFavorites: Array<{
+    id: string;
+    createdAt: Date;
+    program: {
+      id: string;
+      title: string;
+      category: string;
+    };
+  }>;
+}
+
+// Prisma Where 타입 유틸리티
+export type ProgramWhereInput = Prisma.ProgramWhereInput;
+export type EventWhereInput = Prisma.EventWhereInput;
+export type SchoolWhereInput = Prisma.SchoolWhereInput;
+export type AchievementWhereInput = Prisma.AchievementWhereInput;
+

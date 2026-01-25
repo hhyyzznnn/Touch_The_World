@@ -37,6 +37,9 @@ async function getProgram(id: string) {
   });
 }
 
+// 페이지 재검증 시간 설정 (5분)
+export const revalidate = 300;
+
 export default async function ProgramDetailPage({
   params,
 }: {
@@ -81,13 +84,18 @@ export default async function ProgramDetailPage({
       {program.images.length > 0 && (
         <div className="mb-8">
           <div className="grid md:grid-cols-2 gap-4">
-            {program.images.map((image) => (
+            {program.images.map((image, index) => (
               <div key={image.id} className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
                 <Image
                   src={image.url}
-                  alt={program.title}
+                  alt={`${program.title} - 이미지 ${index + 1}`}
                   fill
                   className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  priority={index === 0}
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                 />
               </div>
             ))}

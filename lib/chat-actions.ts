@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import { Resend } from "resend";
 import { COMPANY_INFO } from "./constants";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
+import type { Prisma } from "@prisma/client";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -86,9 +87,10 @@ export async function saveConsultingLog(data: {
     }
 
     return { success: true, id: log.id };
-  } catch (error: any) {
-    console.error("상담 로그 저장 실패:", error);
-    return { success: false, error: error.message };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("상담 로그 저장 실패:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -143,9 +145,10 @@ ${summary.category || "미선택"}
     }
 
     return { success: true, data };
-  } catch (error: any) {
-    console.error("이메일 발송 실패:", error);
-    return { success: false, error: error.message };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("이메일 발송 실패:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -161,7 +164,7 @@ export async function searchPrograms(criteria: {
   limit?: number;
 }) {
   try {
-    const where: any = {};
+    const where: Prisma.ProgramWhereInput = {};
 
     // 카테고리 필터
     if (criteria.category) {
@@ -171,18 +174,18 @@ export async function searchPrograms(criteria: {
     // 지역 필터 (부분 일치)
     if (criteria.region) {
       where.OR = [
-        { region: { contains: criteria.region, mode: "insensitive" } },
+        { region: { contains: criteria.region, mode: "insensitive" as const } },
         { hashtags: { hasSome: [criteria.region] } },
       ];
     }
 
     // 목적/성격 필터 (제목, 요약, 설명에서 검색)
     if (criteria.purpose) {
-      const purposeWhere = {
+      const purposeWhere: Prisma.ProgramWhereInput = {
         OR: [
-          { title: { contains: criteria.purpose, mode: "insensitive" } },
-          { summary: { contains: criteria.purpose, mode: "insensitive" } },
-          { description: { contains: criteria.purpose, mode: "insensitive" } },
+          { title: { contains: criteria.purpose, mode: "insensitive" as const } },
+          { summary: { contains: criteria.purpose, mode: "insensitive" as const } },
+          { description: { contains: criteria.purpose, mode: "insensitive" as const } },
         ],
       };
       
@@ -252,9 +255,10 @@ export async function searchPrograms(criteria: {
       })),
       count: programs.length,
     };
-  } catch (error: any) {
-    console.error("프로그램 검색 실패:", error);
-    return { success: false, error: error.message, programs: [], count: 0 };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("프로그램 검색 실패:", errorMessage);
+    return { success: false, error: errorMessage, programs: [], count: 0 };
   }
 }
 
