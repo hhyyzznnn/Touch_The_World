@@ -54,7 +54,7 @@ async function main() {
     // 비밀번호 해싱
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    // 사용자 생성
+    // 사용자 생성 (테스트용이라 emailVerified: true)
     await prisma.user.create({
       data: {
         username: userData.username,
@@ -64,6 +64,7 @@ async function main() {
         phone: userData.phone || null,
         school: userData.school || null,
         role: userData.role,
+        emailVerified: true,
       },
     });
 

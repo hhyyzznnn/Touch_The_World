@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { processG2BNotifications } from "@/lib/g2b-notification";
 
 export async function GET(request: NextRequest) {
-  // 보안: CRON_SECRET_KEY 확인
+  // 보안: Vercel은 CRON_SECRET, 프로젝트는 CRON_SECRET_KEY 사용 가능
   const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET_KEY;
+  const cronSecret = process.env.CRON_SECRET || process.env.CRON_SECRET_KEY;
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

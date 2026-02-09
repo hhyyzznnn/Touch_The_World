@@ -15,8 +15,8 @@ const ProgramForm = dynamic(
 
 export default function NewProgramPage() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">새 프로그램 추가</h1>
+    <div className="mx-auto max-w-4xl w-full">
+      <h1 className="text-3xl font-bold mb-8 text-center">새 프로그램 추가</h1>
       <ProgramForm />
     </div>
   );

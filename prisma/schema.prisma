@@ -151,6 +151,20 @@ model Achievement {
   @@index([institution])
 }
 
+model CompanyNews {
+  id        String   @id @default(cuid())
+  title     String   // 메인 티커·목록에 표시되는 제목
+  summary   String?  // 한 줄 요약 (비어 있으면 title 사용)
+  content   String?  // 본문 (상세 페이지용)
+  link      String?  // 외부 링크 (있으면 클릭 시 이동)
+  isPinned  Boolean  @default(false) // 메인 페이지 티커에 노출
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPinned])
+  @@index([createdAt])
+}
+
 model Client {
   id          String   @id @default(cuid())
   name        String   @unique

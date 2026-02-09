@@ -293,13 +293,11 @@ export async function processG2BNotifications() {
     const now = new Date();
     const today9am = new Date(now);
     today9am.setHours(9, 0, 0, 0);
-    
-    // 오늘 9시 이전이면 어제 9시부터, 오늘 9시 이후면 오늘 9시부터
-    const startDate = now < today9am 
-      ? new Date(today9am.getTime() - 24 * 60 * 60 * 1000) // 어제 9시
-      : today9am; // 오늘 9시
-    
-    const endDate = now < today9am ? today9am : new Date(today9am.getTime() + 24 * 60 * 60 * 1000); // 내일 9시
+    const yesterday9am = new Date(today9am.getTime() - 24 * 60 * 60 * 1000);
+
+    // 항상 "어제 9시 ~ 오늘 9시" 구간으로 조회 (크론이 9시에 돌면 전날 등록된 공고 수집)
+    const startDate = yesterday9am;
+    const endDate = today9am;
     
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();

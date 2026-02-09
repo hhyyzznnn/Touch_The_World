@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Share2, Copy, Check, Facebook, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -14,8 +14,11 @@ interface ShareButtonProps {
 export function ShareButton({ url, title, description, imageUrl }: ShareButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [fullUrl, setFullUrl] = useState(url);
 
-  const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${url}` : url;
+  useEffect(() => {
+    setFullUrl(typeof window !== "undefined" ? `${window.location.origin}${url}` : url);
+  }, [url]);
 
   const handleCopyLink = async () => {
     try {
@@ -58,7 +61,10 @@ export function ShareButton({ url, title, description, imageUrl }: ShareButtonPr
     }
   };
 
-  const canUseNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const [canUseNativeShare, setCanUseNativeShare] = useState(false);
+  useEffect(() => {
+    setCanUseNativeShare(typeof navigator !== "undefined" && typeof navigator.share === "function");
+  }, []);
 
   return (
     <div className="relative">

@@ -15,6 +15,20 @@ import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
+import { NewsTicker } from "@/components/NewsTicker";
+
+async function getNewsForTicker() {
+  try {
+    const list = await prisma.companyNews.findMany({
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      take: 1,
+      select: { id: true, title: true, summary: true, link: true, isPinned: true, createdAt: true },
+    });
+    return list;
+  } catch {
+    return [];
+  }
+}
 
 async function getRecentEvents() {
   try {
@@ -55,7 +69,10 @@ export default async function HomePage({
   searchParams?: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const recentEvents = await getRecentEvents();
+  const [recentEvents, newsTickerItems] = await Promise.all([
+    getRecentEvents(),
+    getNewsForTicker(),
+  ]);
 
   return (
     <div>
@@ -100,6 +117,9 @@ export default async function HomePage({
           </div>
         </div>
       </section>
+
+      {/* 회사 소식 한 줄 */}
+      <NewsTicker items={newsTickerItems} />
 
       {/* Program Categories */}
       <section className="py-10 sm:py-16 bg-gray-50">

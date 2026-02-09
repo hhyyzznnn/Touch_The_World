@@ -59,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -89,7 +89,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`}>
+      <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`} suppressHydrationWarning>
         <NextSSRPlugin
           routerConfig={extractRouterConfig(ourFileRouter)}
         />

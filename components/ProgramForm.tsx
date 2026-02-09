@@ -108,7 +108,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-4xl space-y-6">
       <div>
         <label className="block text-sm font-medium mb-2">
           제목 <span className="text-red-500">*</span>
@@ -175,13 +175,12 @@ export function ProgramForm({ program }: ProgramFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">썸네일</label>
         <div className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Button
               type="button"
               onClick={addThumbnailUrl}
               variant="outline"
-              size="default"
-              className="flex items-center gap-2"
+              className="h-10 min-h-10 px-4 inline-flex items-center gap-2 shrink-0"
             >
               <LinkIcon className="w-4 h-4" />
               URL 추가
@@ -198,7 +197,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
                 alert(`업로드 실패: ${error.message}`);
               }}
               appearance={{
-                button: "h-10 px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                button: "h-10 min-h-10 px-4 shrink-0 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
                 allowedContent: "hidden",
               }}
               content={{
@@ -263,13 +262,12 @@ export function ProgramForm({ program }: ProgramFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">이미지</label>
         <div className="space-y-3">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Button
               type="button"
               onClick={addImageUrl}
               variant="outline"
-              size="default"
-              className="flex items-center gap-2"
+              className="h-10 min-h-10 px-4 inline-flex items-center gap-2 shrink-0"
             >
               <LinkIcon className="w-4 h-4" />
               URL 추가
@@ -286,7 +284,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
                 alert(`업로드 실패: ${error.message}`);
               }}
               appearance={{
-                button: "h-10 px-4 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                button: "h-10 min-h-10 px-4 shrink-0 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
                 allowedContent: "hidden",
               }}
               content={{

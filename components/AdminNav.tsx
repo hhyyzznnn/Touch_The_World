@@ -76,6 +76,12 @@ export function AdminNav() {
               사업실적
             </Link>
             <Link
+              href="/admin/news"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+            >
+              회사 소식
+            </Link>
+            <Link
               href="/admin/clients"
               className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
@@ -141,6 +147,13 @@ export function AdminNav() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 사업실적
+              </Link>
+              <Link
+                href="/admin/news"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                회사 소식
               </Link>
               <Link
                 href="/admin/clients"

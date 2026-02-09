@@ -82,16 +82,16 @@ export function Header() {
               사업 실적
             </Link>
             <Link
+              href="/news"
+              className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
+            >
+              회사 소식
+            </Link>
+            <Link
               href="/inquiry"
               className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
             >
               견적 문의
-            </Link>
-            <Link
-              href="/favorites"
-              className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
-            >
-              즐겨찾기
             </Link>
           </nav>
 
@@ -228,18 +228,18 @@ export function Header() {
                 사업 실적
               </Link>
               <Link
+                href="/news"
+                onClick={closeMenu}
+                className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
+              >
+                회사 소식
+              </Link>
+              <Link
                 href="/inquiry"
                 onClick={closeMenu}
                 className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
               >
                 견적 문의
-              </Link>
-              <Link
-                href="/favorites"
-                onClick={closeMenu}
-                className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
-              >
-                즐겨찾기
               </Link>
             </div>
             
