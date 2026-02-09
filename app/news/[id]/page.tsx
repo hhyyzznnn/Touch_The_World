@@ -41,7 +41,7 @@ export default async function NewsDetailPage({
               </span>
             )}
             <time
-              dateTime={news.createdAt}
+              dateTime={news.createdAt.toISOString()}
               className="text-sm text-text-gray"
             >
               {format(new Date(news.createdAt), "yyyy년 MM월 dd일")}

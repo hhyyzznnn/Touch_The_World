@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Star, Edit2, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -40,6 +41,18 @@ export function ReviewSection({
   const [editingId, setEditingId] = useState<string | null>(null);
   const router = useRouter();
 
+  const fetchReviews = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/reviews?programId=${programId}`);
+      const data = await response.json();
+      if (data.reviews) {
+        setReviews(data.reviews);
+      }
+    } catch (error) {
+      console.error("Failed to fetch reviews:", error);
+    }
+  }, [programId]);
+
   useEffect(() => {
     // 현재 사용자 정보 가져오기
     fetch("/api/auth/me")
@@ -53,19 +66,7 @@ export function ReviewSection({
 
     // 후기 목록 새로고침
     fetchReviews();
-  }, [programId]);
-
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch(`/api/reviews?programId=${programId}`);
-      const data = await response.json();
-      if (data.reviews) {
-        setReviews(data.reviews);
-      }
-    } catch (error) {
-      console.error("Failed to fetch reviews:", error);
-    }
-  };
+  }, [programId, fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,11 +261,15 @@ export function ReviewSection({
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   {review.user.image ? (
-                    <img
-                      src={review.user.image}
-                      alt={review.user.name}
-                      className="w-10 h-10 rounded-full"
-                    />
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden">
+                      <Image
+                        src={review.user.image}
+                        alt={review.user.name}
+                        fill
+                        className="object-cover"
+                        sizes="40px"
+                      />
+                    </div>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
                       <User className="w-5 h-5 text-gray-500" />
