@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/auth";
+import { isAdmin, getAdminUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const admin = await isAdmin();
-    if (!admin) {
+    if (!(await isAdmin())) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const admin = await getAdminUser();
 
     // 최근 7일간의 알림 가져오기
     const sevenDaysAgo = new Date();
@@ -60,19 +60,22 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 읽음 상태 조회
+    // 읽음 상태 조회 (admin User가 있을 때만)
     const notificationIds = [
       ...pendingInquiries.map((i) => `inquiry-${i.id}`),
       ...recentEvents.map((e) => `event-${e.id}`),
     ];
-    const readRecords = await prisma.adminReadNotification.findMany({
-      where: {
-        adminUserId: admin.id,
-        notificationId: { in: notificationIds },
-      },
-      select: { notificationId: true },
-    });
-    const readSet = new Set(readRecords.map((r) => r.notificationId));
+    const readSet = new Set<string>();
+    if (admin) {
+      const readRecords = await prisma.adminReadNotification.findMany({
+        where: {
+          adminUserId: admin.id,
+          notificationId: { in: notificationIds },
+        },
+        select: { notificationId: true },
+      });
+      readRecords.forEach((r) => readSet.add(r.notificationId));
+    }
 
     // 알림 형식으로 변환
     const notifications = [
