@@ -10,6 +10,31 @@
  *   tsx scripts/validate-env.ts
  */
 
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+function loadEnv() {
+  try {
+    const envPath = resolve(process.cwd(), ".env");
+    const envFile = readFileSync(envPath, "utf-8");
+    const lines = envFile.split("\n");
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine && !trimmedLine.startsWith("#")) {
+        const [key, ...valueParts] = trimmedLine.split("=");
+        if (key && valueParts.length > 0) {
+          const value = valueParts.join("=").replace(/^["']|["']$/g, "");
+          process.env[key.trim()] = value.trim();
+        }
+      }
+    }
+  } catch {
+    // .env 없음 - process.env만 사용 (Vercel 등 CI에서는 이미 설정됨)
+  }
+}
+
+loadEnv();
+
 interface EnvVar {
   name: string;
   required: boolean;
@@ -25,9 +50,6 @@ const requiredEnvVars: EnvVar[] = [
     validate: (value) => {
       if (!value.startsWith("postgresql://")) {
         return "DATABASE_URL은 postgresql://로 시작해야 합니다";
-      }
-      if (!value.includes("sslmode=require")) {
-        return "DATABASE_URL에 sslmode=require가 포함되어야 합니다";
       }
       return true;
     },

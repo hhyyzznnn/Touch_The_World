@@ -51,8 +51,8 @@ export function ClientForm({ client }: ClientFormProps) {
         const errorData = await response.json();
         setError(errorData.error || "저장에 실패했습니다.");
       }
-    } catch (error: any) {
-      setError(error.message || "저장에 실패했습니다.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }

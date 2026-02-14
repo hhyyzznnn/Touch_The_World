@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 
 export async function PATCH(
@@ -11,12 +12,22 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = await params;
-    
-    // 실제로는 데이터베이스에 읽음 상태를 저장해야 하지만,
-    // 현재는 간단한 구현으로 성공 응답만 반환
-    // TODO: Notification 모델 추가 및 읽음 상태 관리
-    
+    const { id: notificationId } = await params;
+
+    await prisma.adminReadNotification.upsert({
+      where: {
+        adminUserId_notificationId: {
+          adminUserId: admin.id,
+          notificationId,
+        },
+      },
+      create: {
+        adminUserId: admin.id,
+        notificationId,
+      },
+      update: { readAt: new Date() },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("알림 읽음 처리 실패:", error);

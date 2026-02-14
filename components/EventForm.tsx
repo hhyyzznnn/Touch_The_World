@@ -79,9 +79,9 @@ export function EventForm({ event }: EventFormProps) {
         }
         const data = await res.json();
         setPrograms(data);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Failed to load programs:", error);
-        setError(error.message || "프로그램 목록을 불러오는데 실패했습니다.");
+        setError(error instanceof Error ? error.message : "프로그램 목록을 불러오는데 실패했습니다.");
       } finally {
         setIsLoadingPrograms(false);
       }
@@ -129,9 +129,9 @@ export function EventForm({ event }: EventFormProps) {
         const errorData = await response.json();
         setError(errorData.error || "저장에 실패했습니다.");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submit error:", error);
-      setError(error.message || "저장에 실패했습니다.");
+      setError(error instanceof Error ? error.message : "저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }

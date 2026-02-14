@@ -292,12 +292,13 @@ export async function POST(request: NextRequest) {
         content: assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다.",
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Chat API 오류:", error);
+    const details = error instanceof Error ? error.message : undefined;
     return NextResponse.json(
       {
         error: "채팅 처리 중 오류가 발생했습니다.",
-        details: error.message,
+        ...(process.env.NODE_ENV === "development" && details && { details }),
       },
       { status: 500 }
     );

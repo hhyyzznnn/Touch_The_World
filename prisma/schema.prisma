@@ -215,9 +215,10 @@ model User {
   accounts              Account[]
   favorites            Favorite[]
   reviews               Review[]
-  notificationSetting  NotificationSetting?
-  notificationLogs     NotificationLog[]
-  consultingLogs       ConsultingLog[]
+  notificationSetting     NotificationSetting?
+  notificationLogs        NotificationLog[]
+  consultingLogs          ConsultingLog[]
+  adminReadNotifications AdminReadNotification[]
 
   @@index([username])
   @@index([email])
@@ -369,6 +370,19 @@ model Review {
   @@index([userId])
   @@index([createdAt])
   @@index([rating])
+}
+
+model AdminReadNotification {
+  id              String   @id @default(cuid())
+  adminUserId     String
+  notificationId  String   // inquiry-xxx, event-xxx 형태
+  readAt         DateTime @default(now())
+
+  user User @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@unique([adminUserId, notificationId])
+  @@index([adminUserId])
+  @@index([notificationId])
 }
 
 model ConsultingLog {

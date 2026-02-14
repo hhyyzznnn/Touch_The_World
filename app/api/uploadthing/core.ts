@@ -19,8 +19,7 @@ export const ourFileRouter = {
       }
       return { userId: "admin" };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Upload complete:", file.url);
+    .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
     }),
 
@@ -37,8 +36,7 @@ export const ourFileRouter = {
       }
       return { userId: "admin" };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Thumbnail upload complete:", file.url);
+    .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
     }),
 
@@ -59,8 +57,7 @@ export const ourFileRouter = {
       }
       return { userId: "admin" };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Document upload complete:", file.url);
+    .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
     }),
 } satisfies FileRouter;

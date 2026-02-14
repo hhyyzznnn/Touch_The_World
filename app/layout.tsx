@@ -8,6 +8,7 @@ import { ProgramCompare } from "@/components/ProgramCompare";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
+import { KakaoScript } from "@/components/KakaoScript";
 
 const notoSerif = Noto_Serif_KR({ 
   subsets: ["latin"],
@@ -90,6 +91,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`} suppressHydrationWarning>
+        <KakaoScript />
         <NextSSRPlugin
           routerConfig={extractRouterConfig(ourFileRouter)}
         />

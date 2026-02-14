@@ -22,12 +22,13 @@ export async function GET(request: NextRequest) {
       ...result,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("크론 작업 실패:", error);
+    const message = error instanceof Error ? error.message : "알 수 없는 오류";
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: message,
         timestamp: new Date().toISOString(),
       },
       { status: 500 }

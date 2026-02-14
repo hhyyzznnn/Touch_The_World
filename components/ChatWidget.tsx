@@ -188,7 +188,7 @@ ${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 �
         })), sessionId);
         return updated;
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error("채팅 오류:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),

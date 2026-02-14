@@ -125,7 +125,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error) {
       console.error("채팅 오류:", error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -187,7 +187,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error) {
       console.error("채팅 오류:", error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

@@ -150,14 +150,8 @@ export default async function ClientsPage() {
             </p>
             <div className="flex gap-4 justify-center">
               <Link
-                href="/products"
-                className="inline-flex items-center gap-2 bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-8 py-3 rounded-xl shadow-sm transition-all duration-200 hover:scale-[1.02] font-medium"
-              >
-                상품 보기
-              </Link>
-              <Link
                 href="/inquiry"
-                className="inline-flex items-center gap-2 bg-white border-2 border-gray-300 hover:border-brand-green/50 hover:bg-brand-green/5 text-text-dark px-8 py-3 rounded-xl transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-8 py-3 rounded-xl shadow-sm transition-all duration-200 hover:scale-[1.02] font-medium"
               >
                 문의하기
               </Link>

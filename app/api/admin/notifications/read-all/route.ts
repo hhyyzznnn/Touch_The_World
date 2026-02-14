@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 
 export async function PATCH(request: NextRequest) {
@@ -8,10 +9,34 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 실제로는 데이터베이스에 모든 알림의 읽음 상태를 업데이트해야 하지만,
-    // 현재는 간단한 구현으로 성공 응답만 반환
-    // TODO: Notification 모델 추가 및 읽음 상태 관리
-    
+    // 최근 7일간 알림 ID 목록 조회
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [inquiries, events] = await Promise.all([
+      prisma.inquiry.findMany({
+        where: { status: "pending", createdAt: { gte: sevenDaysAgo } },
+        select: { id: true },
+      }),
+      prisma.event.findMany({
+        where: { status: "in_progress", createdAt: { gte: sevenDaysAgo } },
+        select: { id: true },
+      }),
+    ]);
+
+    const notificationIds = [
+      ...inquiries.map((i) => `inquiry-${i.id}`),
+      ...events.map((e) => `event-${e.id}`),
+    ];
+
+    await prisma.adminReadNotification.createMany({
+      data: notificationIds.map((notificationId) => ({
+        adminUserId: admin.id,
+        notificationId,
+      })),
+      skipDuplicates: true,
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("모든 알림 읽음 처리 실패:", error);

@@ -31,9 +31,32 @@ export function ShareButton({ url, title, description, imageUrl }: ShareButtonPr
   };
 
   const handleKakaoShare = () => {
-    // 카카오톡 공유 (카카오 SDK 필요 시)
-    const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(fullUrl)}`;
-    window.open(kakaoUrl, "_blank", "width=600,height=600");
+    const Kakao = (window as unknown as { Kakao?: { Share: { sendDefault: (opts: unknown) => Promise<void> } } }).Kakao;
+    if (!Kakao?.Share) {
+      handleCopyLink();
+      return;
+    }
+    const shareImageUrl = imageUrl?.startsWith("http")
+      ? imageUrl
+      : typeof window !== "undefined" && imageUrl
+        ? `${window.location.origin}${imageUrl}`
+        : typeof window !== "undefined"
+          ? `${window.location.origin}/ttw_logo.png`
+          : "https://touchtheworld.co.kr/ttw_logo.png";
+    Kakao.Share.sendDefault({
+      objectType: "feed",
+      content: {
+        title,
+        description: description || title,
+        imageUrl: shareImageUrl,
+        link: {
+          mobileWebUrl: fullUrl,
+          webUrl: fullUrl,
+        },
+      },
+    }).catch(() => {
+      handleCopyLink();
+    });
   };
 
   const handleFacebookShare = () => {

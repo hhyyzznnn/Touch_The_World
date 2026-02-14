@@ -60,26 +60,46 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // 읽음 상태 조회
+    const notificationIds = [
+      ...pendingInquiries.map((i) => `inquiry-${i.id}`),
+      ...recentEvents.map((e) => `event-${e.id}`),
+    ];
+    const readRecords = await prisma.adminReadNotification.findMany({
+      where: {
+        adminUserId: admin.id,
+        notificationId: { in: notificationIds },
+      },
+      select: { notificationId: true },
+    });
+    const readSet = new Set(readRecords.map((r) => r.notificationId));
+
     // 알림 형식으로 변환
     const notifications = [
-      ...pendingInquiries.map((inquiry) => ({
-        id: `inquiry-${inquiry.id}`,
-        type: "inquiry" as const,
-        title: "새 문의 접수",
-        message: `${inquiry.schoolName} (${inquiry.contact})`,
-        link: `/admin/inquiries`,
-        createdAt: inquiry.createdAt,
-        read: false, // 실제로는 읽음 상태를 별도로 관리해야 함
-      })),
-      ...recentEvents.map((event) => ({
-        id: `event-${event.id}`,
-        type: "event" as const,
-        title: "진행 중인 프로그램",
-        message: `${event.school.name} - ${event.program.title}`,
-        link: `/admin/events/${event.id}/edit`,
-        createdAt: event.createdAt,
-        read: false,
-      })),
+      ...pendingInquiries.map((inquiry) => {
+        const id = `inquiry-${inquiry.id}`;
+        return {
+          id,
+          type: "inquiry" as const,
+          title: "새 문의 접수",
+          message: `${inquiry.schoolName} (${inquiry.contact})`,
+          link: `/admin/inquiries`,
+          createdAt: inquiry.createdAt,
+          read: readSet.has(id),
+        };
+      }),
+      ...recentEvents.map((event) => {
+        const id = `event-${event.id}`;
+        return {
+          id,
+          type: "event" as const,
+          title: "진행 중인 프로그램",
+          message: `${event.school.name} - ${event.program.title}`,
+          link: `/admin/events/${event.id}/edit`,
+          createdAt: event.createdAt,
+          read: readSet.has(id),
+        };
+      }),
     ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     const unreadCount = notifications.filter((n) => !n.read).length;

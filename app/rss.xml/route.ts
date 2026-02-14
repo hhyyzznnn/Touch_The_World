@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 600; // 10분마다 재생성
 
 // RFC-822 날짜 형식으로 변환 (네이버 요구사항)
 function formatRFC822(date: Date): string {
