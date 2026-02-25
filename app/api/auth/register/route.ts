@@ -8,7 +8,7 @@ import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 export async function POST(request: NextRequest) {
   // Rate Limiting: IP당 1시간에 3회 제한
   const clientIP = getClientIP(request);
-  const rateLimit = checkRateLimit(`register:${clientIP}`, 3, 60 * 60 * 1000);
+  const rateLimit = await checkRateLimit(`register:${clientIP}`, 3, 60 * 60 * 1000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -178,4 +178,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

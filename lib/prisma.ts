@@ -20,7 +20,7 @@ function getDatabaseUrl(): string {
     return process.env.DATABASE_POOLING_URL;
   }
   
-  // 폴백: DATABASE_URL (개발 환경에서만 사용)
+  // 폴백: DATABASE_URL (Direct URL)
   if (process.env.DATABASE_URL) {
     // 경고: 프로덕션에서는 Pooler URL을 사용해야 함
     if (process.env.NODE_ENV === "production") {
@@ -31,9 +31,20 @@ function getDatabaseUrl(): string {
     }
     return process.env.DATABASE_URL;
   }
+
+  // 최종 폴백: DATABASE_DIRECT_URL
+  if (process.env.DATABASE_DIRECT_URL) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "⚠️  DATABASE_POOLING_URL이 설정되지 않았습니다. " +
+        "프로덕션 환경에서는 Connection Pooler 사용을 권장합니다."
+      );
+    }
+    return process.env.DATABASE_DIRECT_URL;
+  }
   
   throw new Error(
-    "DATABASE_URL 또는 DATABASE_POOLING_URL 환경 변수가 설정되지 않았습니다."
+    "DATABASE_URL, DATABASE_POOLING_URL 또는 DATABASE_DIRECT_URL 환경 변수가 설정되지 않았습니다."
   );
 }
 

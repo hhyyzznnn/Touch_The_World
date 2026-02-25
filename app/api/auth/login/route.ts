@@ -3,13 +3,18 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { setAuthSession } from "@/lib/session-auth";
+import { z } from "zod";
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+const loginSchema = z.object({
+  identifier: z.string().trim().min(1),
+  password: z.string().min(1),
+});
 
 export async function POST(request: NextRequest) {
   // Rate Limiting: IP당 1분에 5회 제한
   const clientIP = getClientIP(request);
-  const rateLimit = checkRateLimit(`login:${clientIP}`, 5, 60 * 1000);
+  const rateLimit = await checkRateLimit(`login:${clientIP}`, 5, 60 * 1000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -30,58 +35,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { identifier, password } = await request.json();
-
-    if (!identifier || !password) {
+    const payload = await request.json();
+    const parsed = loginSchema.safeParse(payload);
+    if (!parsed.success) {
       return NextResponse.json(
         { error: "아이디와 비밀번호를 입력해주세요." },
         { status: 400 }
       );
     }
+    const { identifier, password } = parsed.data;
 
     const normalizedId = identifier.trim().toLowerCase();
-
-    // 관리자 계정 특수 처리 (아이디: admin)
-    if (normalizedId === "admin") {
-      if (password !== ADMIN_PASSWORD) {
-        return NextResponse.json(
-          { error: "아이디 또는 비밀번호가 올바르지 않습니다." },
-          { status: 401 }
-        );
-      }
-      const cookieStore = await cookies();
-      cookieStore.set("admin-auth", "true", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      cookieStore.set("user-id", "admin", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-      return NextResponse.json(
-        {
-          success: true,
-          user: {
-            id: "admin",
-            email: "admin",
-            name: "관리자",
-            role: "admin",
-          },
-          redirect: "/admin",
-        },
-        {
-          headers: {
-            "X-RateLimit-Limit": "5",
-            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-          },
-        }
-      );
-    }
 
     // 사용자 찾기 (아이디 전용)
     const user = await prisma.user.findUnique({
@@ -90,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (!user || !user.password) {
       return NextResponse.json(
-        { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
+        { error: "아이디 또는 비밀번호가 올바르지 않습니다." },
         { status: 401 }
       );
     }
@@ -100,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: "이메일 또는 비밀번호가 올바르지 않습니다." },
+        { error: "아이디 또는 비밀번호가 올바르지 않습니다." },
         { status: 401 }
       );
     }
@@ -118,12 +82,7 @@ export async function POST(request: NextRequest) {
 
     // 쿠키 설정
     const cookieStore = await cookies();
-    cookieStore.set("user-id", user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    setAuthSession(cookieStore, { userId: user.id, role: user.role === "admin" ? "admin" : "user" });
 
     return NextResponse.json(
       {
@@ -134,6 +93,7 @@ export async function POST(request: NextRequest) {
           name: user.name,
           role: user.role,
         },
+        ...(user.role === "admin" && { redirect: "/admin" }),
       },
       {
         headers: {
@@ -151,4 +111,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -4,6 +4,19 @@ import { Phone, MessageCircle, Mail } from "lucide-react";
 import { COMPANY_INFO } from "@/lib/constants";
 
 export function Footer() {
+  const configuredKakaoChannel =
+    process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL ||
+    process.env.KAKAO_CHANNEL_URL ||
+    COMPANY_INFO.kakaoChannel;
+
+  const kakaoChannel = configuredKakaoChannel?.trim();
+  const kakaoChannelUrl =
+    kakaoChannel && kakaoChannel.length > 0
+      ? kakaoChannel.startsWith("http")
+        ? kakaoChannel
+        : `https://pf.kakao.com/_${kakaoChannel.replace(/^_+/, "")}`
+      : null;
+
   return (
     <footer className="bg-white text-text-dark mt-auto border-t border-gray-200">
       <div className="container mx-auto px-4 py-12">
@@ -17,24 +30,19 @@ export function Footer() {
           </p>
           <div className="flex flex-col items-center">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 w-full">
-              {(() => {
-                const kakaoChannel = COMPANY_INFO.kakaoChannel as string;
-                return kakaoChannel && kakaoChannel.length > 0 ? (
-                  <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
-                    <a 
-                      href={kakaoChannel.startsWith('http') 
-                        ? kakaoChannel 
-                        : `https://pf.kakao.com/_${kakaoChannel}`}
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      카카오톡 문의
-                    </a>
-                  </Button>
-                ) : null;
-              })() || (
+              {kakaoChannelUrl ? (
+                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
+                  <a
+                    href={kakaoChannelUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    카카오톡 문의
+                  </a>
+                </Button>
+              ) : (
                 <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
                   <Link href="/inquiry" className="flex items-center justify-center gap-2">
                     <MessageCircle className="w-5 h-5" />
@@ -92,4 +100,3 @@ export function Footer() {
     </footer>
   );
 }
-

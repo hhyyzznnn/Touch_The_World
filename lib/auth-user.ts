@@ -1,19 +1,18 @@
-import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { getSessionPayloadFromCookies } from "@/lib/session-auth";
 
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("user-id");
-  
-  if (!userId?.value) {
+  const session = await getSessionPayloadFromCookies();
+  if (!session?.sub) {
     return null;
   }
 
   try {
     const user = await prisma.user.findUnique({
-      where: { id: userId.value },
+      where: { id: session.sub },
       select: {
         id: true,
+        username: true,
         email: true,
         name: true,
         phone: true,
@@ -31,4 +30,3 @@ export async function isAuthenticated() {
   const user = await getCurrentUser();
   return user !== null;
 }
-

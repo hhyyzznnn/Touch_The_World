@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { setAuthSession } from "@/lib/session-auth";
 
 /**
  * 구글 로그인 콜백 처리
@@ -29,14 +30,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 우리 시스템 쿠키 설정
+    // 애플리케이션 세션 쿠키 설정
     const cookieStore = await cookies();
-    cookieStore.set("user-id", user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    setAuthSession(cookieStore, { userId: user.id, role: user.role === "admin" ? "admin" : "user" });
 
     // 리디렉션 (관리자인 경우 관리자 페이지로)
     if (user.role === "admin") {

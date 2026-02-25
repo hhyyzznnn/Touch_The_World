@@ -110,6 +110,16 @@ const requiredEnvVars: EnvVar[] = [
 
 const optionalEnvVars: EnvVar[] = [
   {
+    name: "DATABASE_DIRECT_URL",
+    required: false,
+    description: "Prisma CLI 전용 Direct URL (권장)",
+  },
+  {
+    name: "DATABASE_POOLING_URL",
+    required: false,
+    description: "런타임/서버리스 전용 Pooler URL (권장)",
+  },
+  {
     name: "NEXTAUTH_SECRET",
     required: false,
     description: "NextAuth Secret (사용자 로그인 기능 사용 시)",
@@ -245,6 +255,29 @@ function main() {
 
   // UPLOADTHING_SECRET 또는 UPLOADTHING_TOKEN 체크 (위에서 이미 체크함)
 
+  const dbUrl = process.env.DATABASE_URL || "";
+  const directUrl = process.env.DATABASE_DIRECT_URL || "";
+  const poolUrl = process.env.DATABASE_POOLING_URL || "";
+  const isPoolLike = (value: string) => value.includes("pooler.supabase.com") || value.includes("pgbouncer=true");
+
+  if (!directUrl && isPoolLike(dbUrl)) {
+    warnings.push(
+      "DATABASE_URL이 pooler 주소로 보입니다. Prisma migrate/db push가 실패할 수 있습니다. DATABASE_DIRECT_URL(포트 5432)을 추가하세요."
+    );
+  }
+
+  if (directUrl && isPoolLike(directUrl)) {
+    warnings.push(
+      "DATABASE_DIRECT_URL이 pooler 주소로 보입니다. Direct URL(포트 5432)로 변경하세요."
+    );
+  }
+
+  if (poolUrl && !isPoolLike(poolUrl)) {
+    warnings.push(
+      "DATABASE_POOLING_URL이 direct 주소로 보입니다. Pooler URL(포트 6543 + pgbouncer=true) 사용을 권장합니다."
+    );
+  }
+
   // 선택적 환경 변수 확인
   console.log("\n📋 선택적 환경 변수:");
   for (const envVar of optionalEnvVars) {
@@ -290,4 +323,3 @@ function main() {
 }
 
 main();
-

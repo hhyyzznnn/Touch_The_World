@@ -173,8 +173,14 @@ npm install
 프로젝트 루트에 `.env` 파일을 생성하고 다음 내용을 추가하세요:
 
 ```env
-# 데이터베이스 연결 문자열 (Supabase PostgreSQL)
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:6543/postgres?sslmode=require&pgbouncer=true"
+# 데이터베이스 연결 문자열 (Prisma CLI 전용: Direct, 5432)
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require"
+
+# (권장) Prisma CLI 전용 Direct URL 별도 지정
+DATABASE_DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres?sslmode=require"
+
+# 애플리케이션 런타임 전용 (Pooler, 6543)
+DATABASE_POOLING_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
 
 # 관리자 로그인 비밀번호 (반드시 변경하세요!)
 ADMIN_PASSWORD="your-secure-password"
@@ -182,6 +188,13 @@ ADMIN_PASSWORD="your-secure-password"
 # NextAuth 설정
 NEXTAUTH_SECRET="your-nextauth-secret"
 NEXTAUTH_URL="http://localhost:3000"
+
+# 검색엔진 소유권 검증 (선택)
+GOOGLE_SITE_VERIFICATION="google-site-verification-token"
+NAVER_SITE_VERIFICATION="naver-site-verification-token"
+
+# 앱 세션 시크릿 (권장, 없으면 NEXTAUTH_SECRET 사용)
+SESSION_SECRET="your-session-secret"
 
 # 파일 업로드 (UploadThing) - 필수
 UPLOADTHING_TOKEN="sk_live_xxxxxxxxxxxxx"
@@ -212,11 +225,9 @@ OPENAI_API_KEY="sk-xxxxxxxxxxxxx"
 ```
 
 **중요**: 
-- `DATABASE_URL`을 실제 Supabase 연결 정보로 변경하세요
-- **Prisma + Next.js 사용 시 Transaction Pooling 권장**: 포트 `6543` 사용하고 `&pgbouncer=true` 추가
-  ```env
-  DATABASE_URL="postgresql://...@pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
-  ```
+- `DATABASE_URL`은 Direct URL(5432)로 유지하세요. (`prisma migrate`, `db push`용)
+- `DATABASE_POOLING_URL`은 Pooler URL(6543 + `pgbouncer=true`)을 사용하세요. (앱 런타임/seed용)
+- `DATABASE_DIRECT_URL`을 설정하면 Prisma CLI 명령이 더 안전하게 Direct URL을 사용합니다.
 - **UploadThing 설정**: `UPLOADTHING_TOKEN`과 `UPLOADTHING_APP_ID`는 필수입니다. [UploadThing Dashboard](https://uploadthing.com/dashboard)에서 발급받으세요.
 - `.env` 파일은 Git에 커밋되지 않습니다 (`.gitignore`에 포함됨)
 - 상세한 연결 모드 비교는 [SUPABASE_CONNECTION.md](./SUPABASE_CONNECTION.md) 참고
@@ -232,10 +243,14 @@ OPENAI_API_KEY="sk-xxxxxxxxxxxxx"
 # Prisma 클라이언트 생성
 npm run db:generate
 
-# 데이터베이스 스키마 적용
+# 데이터베이스 연결 상태 확인 (Direct URL 기준)
+npm run db:status
+
+# 데이터베이스 스키마 적용 (Direct URL 기준)
 npm run db:push
 
 # (선택) 사업 실적 시드 데이터 추가
+# (Pooling URL 우선 사용, 없으면 DATABASE_URL 폴백)
 npm run db:seed
 ```
 
@@ -267,6 +282,16 @@ npm run db:generate
 
 # 데이터베이스 스키마 적용
 npm run db:push
+
+# 마이그레이션 개발/배포 (Direct URL 기준)
+npm run db:migrate:dev
+npm run db:migrate:deploy
+
+# 현재 마이그레이션 상태 확인
+npm run db:status
+
+# DB 스키마 pull
+npm run db:pull
 
 # 사업 실적 시드 데이터 추가
 npm run db:seed
@@ -343,6 +368,7 @@ npm run db:seed:achievements
    - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
    - `KAKAO_BM_CLIENT_ID`, `KAKAO_BM_CLIENT_SECRET`, `KAKAO_BM_SENDER_KEY`, `KAKAO_BM_VERIFICATION_TEMPLATE_CODE` (카카오 알림톡 인증번호 발송용, 선택사항)
    - `OPENAI_API_KEY` (AI 채팅 상담용, 필수)
+   - `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION` (검색엔진 소유권 검증용, 선택사항)
 4. 빌드 설정 확인:
    - Build Command: `npm run build` (자동으로 `prisma generate` 포함)
    - Output Directory: `.next`
@@ -372,6 +398,8 @@ KAKAO_BM_CLIENT_SECRET=your-kakao-bm-client-secret
 KAKAO_BM_SENDER_KEY=your-kakao-bm-sender-key
 KAKAO_BM_VERIFICATION_TEMPLATE_CODE=your-template-code
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
+GOOGLE_SITE_VERIFICATION=google-site-verification-token
+NAVER_SITE_VERIFICATION=naver-site-verification-token
 ```
 
 ## 🎯 주요 업데이트 내역
@@ -413,6 +441,7 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 - [docs/QUICK_FIX_DATABASE.md](./docs/QUICK_FIX_DATABASE.md) - 데이터베이스 연결 오류 빠른 해결 가이드
 
 ### 인증 기능 설정
+- [docs/INTEGRATION_CHECKLIST.md](./docs/INTEGRATION_CHECKLIST.md) - 카카오채널/SNS 로그인/본인인증 통합 체크리스트
 - [docs/SOCIAL_LOGIN_SETUP.md](./docs/SOCIAL_LOGIN_SETUP.md) - 소셜 로그인 설정 가이드 (카카오, 네이버, 구글)
 - [docs/KAKAO_LOGIN_REST_API.md](./docs/KAKAO_LOGIN_REST_API.md) - 카카오 로그인 REST API 상세 가이드
 - [docs/EMAIL_VERIFICATION_SETUP.md](./docs/EMAIL_VERIFICATION_SETUP.md) - 이메일 인증 설정 가이드 (Resend)

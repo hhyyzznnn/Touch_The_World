@@ -19,19 +19,19 @@ export function NewsTicker({ items }: { items: NewsItem[] }) {
   return (
     <section className="bg-brand-green-primary/10 border-y border-brand-green-primary/20">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-center gap-2 text-sm sm:text-base">
+        <div className="flex items-center justify-center gap-2 text-sm sm:text-base max-w-4xl mx-auto">
           <span className="text-text-gray font-medium shrink-0">회사 소식</span>
           <span className="text-gray-300" aria-hidden>|</span>
           <Link
             href={href}
-            className="inline-flex items-center gap-2 hover:underline underline-offset-2 transition"
+            className="inline-flex items-center gap-2 hover:underline underline-offset-2 transition min-w-0"
             target={isExternal ? "_blank" : undefined}
             rel={isExternal ? "noopener noreferrer" : undefined}
           >
             <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-xs font-bold bg-brand-green-primary text-white shrink-0">
               NEW
             </span>
-            <span className="text-text-dark">{item.title}</span>
+            <span className="text-text-dark max-w-[58vw] sm:max-w-2xl truncate">{item.title}</span>
           </Link>
         </div>
       </div>

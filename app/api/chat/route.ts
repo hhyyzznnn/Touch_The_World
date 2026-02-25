@@ -2,10 +2,64 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { saveConsultingLog, sendConsultingSummaryEmail, searchPrograms } from "@/lib/chat-actions";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
+import { z } from "zod";
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const DEFAULT_SERVICE_CTA =
+  "원하시면 지금 바로 상담 접수를 도와드릴게요. 인원, 희망 지역, 이동수단(전세버스/KTX/항공) 중 가능한 항목부터 알려주세요.";
+
+const NO_PROGRAM_CTA =
+  "현재 조건으로는 추천 가능한 프로그램이 없습니다. 대신 조건을 조정해 재검색하거나, 맞춤 일정 문의로 전환해 드릴 수 있습니다. 원하시는 방향을 선택해주세요: 1) 조건 조정 후 재검색 2) 맞춤 일정 문의 접수";
+
+const hasActionPrompt = (text: string): boolean =>
+  /(문의|접수|견적|연락|진행|재검색|조건|선택|알려주시면|말씀해주시면)/.test(text);
+
+const hasQuestionEnding = (text: string): boolean =>
+  text.includes("?") || /(까요|할까요|해주세요|주실 수 있을까요)\s*$/.test(text.trim());
+
+const withServiceGuidance = (
+  content: string,
+  opts?: {
+    noProgramFound?: boolean;
+    savedConsulting?: boolean;
+  }
+): string => {
+  let next = content.trim();
+
+  if (opts?.noProgramFound) {
+    if (!next.includes("추천 가능한 프로그램이 없습니다")) {
+      next = `${next}\n\n현재 조건으로는 추천 가능한 프로그램이 없습니다.`;
+    }
+    if (!next.includes("맞춤 일정 문의")) {
+      next = `${next}\n\n${NO_PROGRAM_CTA}`;
+    }
+    if (!hasQuestionEnding(next)) {
+      next = `${next}\n\n인원 또는 지역 조건을 먼저 조정해볼까요?`;
+    }
+    return next;
+  }
+
+  if (opts?.savedConsulting) {
+    if (!/연락처|전화|이메일/.test(next)) {
+      next = `${next}\n\n빠른 진행을 위해 연락처(전화 또는 이메일)를 남겨주실 수 있을까요?`;
+    }
+    return next;
+  }
+
+  if (!hasActionPrompt(next)) {
+    next = `${next}\n\n${DEFAULT_SERVICE_CTA}`;
+  }
+
+  if (!hasQuestionEnding(next)) {
+    next = `${next}\n\n우선 어떤 카테고리로 진행할지 알려주실 수 있을까요?`;
+  }
+
+  return next;
+};
 
 // 카테고리 목록 문자열 생성 (줄바꿈 문자를 공백으로 변환)
 const categoryList = PROGRAM_CATEGORIES.map((cat, idx) => {
@@ -40,25 +94,63 @@ const getSystemPrompt = (landingCategory?: string): string => {
     "4. 추천 후에는 \"특별히 고려해야 할 사항(예: 알러지, 장애 학생 지원, 특정 견학지 포함 등)\"이 있는지 반드시 물어보세요.\n" +
     "5. 예상 예산이 있으면 물어보고, 즉시 견적 가능 여부를 판단하세요.\n" +
     "6. 사용자가 상담을 마무리하거나 '상세 견적 요청' 의사를 표시하면, saveConsultingLog 함수를 호출하여 정보를 저장하세요.\n\n" +
+    "**핵심 운영 규칙:**\n" +
+    "1. 질문에 답만 하고 끝내지 마세요. 모든 응답은 다음 행동을 제안하고, 추가 정보 1개 이상을 요청해야 합니다.\n" +
+    "2. searchPrograms 결과가 없으면 반드시 '현재 조건으로는 추천 가능한 프로그램이 없다'고 명확히 말하세요.\n" +
+    "3. 프로그램이 없을 때는 대화를 종료하지 말고, (a) 조건 조정 후 재검색 또는 (b) 맞춤 일정 문의 접수 중 하나로 유도하세요.\n" +
+    "4. 일반 정보 질문(예: 비용, 일정)에도 서비스 흐름으로 연결하세요. 예: 카테고리/인원/지역 확인 -> 추천/문의.\n\n" +
     "**응답 스타일:**\n" +
     "- 친절하고 전문적인 톤 유지\n" +
     "- 안전과 교육적 가치 강조\n" +
     "- 간결하고 명확한 답변\n" +
-    "- 사용자가 카테고리를 선택했다면 바로 해당 카테고리에 대한 상담을 시작하세요";
+    "- 사용자가 카테고리를 선택했다면 바로 해당 카테고리에 대한 상담을 시작하세요\n" +
+    "- 마지막 문장은 반드시 다음 행동을 묻는 질문으로 마무리하세요";
   
   return prompt;
 };
 
+const chatMessageSchema = z.object({
+  role: z.enum(["system", "user", "assistant"]),
+  content: z.string().trim().min(1).max(3000),
+});
+
+const chatRequestSchema = z.object({
+  messages: z.array(chatMessageSchema).min(1).max(40),
+  sessionId: z.string().max(200).optional(),
+  landingCategory: z.string().max(100).optional(),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const { messages, sessionId, landingCategory } = await request.json();
-
-    if (!messages || !Array.isArray(messages)) {
+    const clientIP = getClientIP(request);
+    const rateLimit = await checkRateLimit(`chat:${clientIP}`, 30, 60 * 1000);
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: "메시지 배열이 필요합니다." },
+        {
+          error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+            "X-RateLimit-Limit": "30",
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
+          },
+        }
+      );
+    }
+
+    const rawBody = await request.json();
+    const parsedBody = chatRequestSchema.safeParse(rawBody);
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: "유효한 채팅 요청 형식이 아닙니다." },
         { status: 400 }
       );
     }
+    const { messages, sessionId, landingCategory } = parsedBody.data;
 
     // OpenAI 메시지 형식으로 변환
     const openaiMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -95,6 +187,10 @@ export async function POST(request: NextRequest) {
             purpose: {
               type: "string",
               description: "여행 목적/성격 (예: 역사 탐방, 문화 체험, 자연 학습 등)",
+            },
+            duration: {
+              type: "string",
+              description: "희망 일정 (예: 3박 4일, 4박5일)",
             },
             estimatedBudget: {
               type: "number",
@@ -174,7 +270,7 @@ export async function POST(request: NextRequest) {
       messages: openaiMessages,
       functions: functions,
       function_call: "auto",
-      temperature: 0.7,
+      temperature: 0.5,
     });
 
     const assistantMessage = completion.choices[0].message;
@@ -182,21 +278,46 @@ export async function POST(request: NextRequest) {
     // Function Calling 처리
     if (assistantMessage.function_call) {
       const functionName = assistantMessage.function_call.name;
-      const functionArgs = JSON.parse(assistantMessage.function_call.arguments || "{}");
+      let functionArgs: Record<string, unknown> = {};
+      try {
+        functionArgs = JSON.parse(assistantMessage.function_call.arguments || "{}");
+      } catch {
+        functionArgs = {};
+      }
 
       if (functionName === "searchPrograms") {
         // 프로그램 검색
         const searchResult = await searchPrograms({
-          category: functionArgs.category,
-          region: functionArgs.region,
-          participantCount: functionArgs.participantCount,
-          purpose: functionArgs.purpose,
-          estimatedBudget: functionArgs.estimatedBudget,
-          limit: functionArgs.limit || 5,
+          category: typeof functionArgs.category === "string" ? functionArgs.category : undefined,
+          region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
+          participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
+          purpose: typeof functionArgs.purpose === "string" ? functionArgs.purpose : undefined,
+          estimatedBudget: typeof functionArgs.estimatedBudget === "number" ? functionArgs.estimatedBudget : undefined,
+          limit: typeof functionArgs.limit === "number" ? functionArgs.limit : 5,
         });
 
         if (searchResult.success && searchResult.programs && searchResult.programs.length > 0) {
           // 검색 결과를 포맷팅하여 응답
+          const requestedCategory =
+            typeof functionArgs.category === "string" ? functionArgs.category : undefined;
+          const requestedRegion =
+            typeof functionArgs.region === "string" ? functionArgs.region : undefined;
+          const requestedDuration =
+            typeof functionArgs.duration === "string" ? functionArgs.duration : undefined;
+          const requestedParticipantCount =
+            typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined;
+          const requestedPurpose =
+            typeof functionArgs.purpose === "string" ? functionArgs.purpose : undefined;
+
+          const requestProfile = [
+            requestedRegion,
+            requestedDuration,
+            requestedParticipantCount ? `${requestedParticipantCount}명` : undefined,
+            requestedCategory || requestedPurpose,
+          ]
+            .filter(Boolean)
+            .join(" / ");
+
           const programsText = searchResult.programs.map((p, idx) => {
             const priceInfo = p.priceFrom && p.priceTo 
               ? `인원당 ${(p.priceFrom / 10000).toFixed(0)}만원 ~ ${(p.priceTo / 10000).toFixed(0)}만원`
@@ -210,7 +331,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: `고객님의 요구사항에 맞는 프로그램을 찾았습니다!\n\n${programsText}\n\n더 자세한 정보가 필요하시거나 다른 조건으로 검색을 원하시면 말씀해주세요.`,
+              content: withServiceGuidance(
+                `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`
+              ),
             },
             functionCall: {
               name: functionName,
@@ -221,7 +344,10 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: "죄송합니다. 요청하신 조건에 맞는 프로그램을 찾지 못했습니다. 다른 조건으로 검색해보시거나, 담당자에게 직접 문의해주시면 더 정확한 상담을 받으실 수 있습니다.",
+              content: withServiceGuidance(
+                "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
+                { noProgramFound: true }
+              ),
             },
             functionCall: {
               name: functionName,
@@ -233,39 +359,39 @@ export async function POST(request: NextRequest) {
         // 상담 로그 저장
         const saveResult = await saveConsultingLog({
           sessionId: sessionId || `session_${Date.now()}`,
-          category: functionArgs.category,
-          participantCount: functionArgs.participantCount,
-          region: functionArgs.region,
-          purpose: functionArgs.purpose,
-          hasInstructor: functionArgs.hasInstructor,
-          preferredTransport: functionArgs.preferredTransport,
-          mealPreference: functionArgs.mealPreference,
-          specialRequests: functionArgs.specialRequests,
-          estimatedBudget: functionArgs.estimatedBudget,
-          estimatedQuote: functionArgs.estimatedQuote,
-          canQuoteImmediately: functionArgs.canQuoteImmediately || false,
+          category: typeof functionArgs.category === "string" ? functionArgs.category : undefined,
+          participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
+          region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
+          purpose: typeof functionArgs.purpose === "string" ? functionArgs.purpose : undefined,
+          hasInstructor: typeof functionArgs.hasInstructor === "boolean" ? functionArgs.hasInstructor : undefined,
+          preferredTransport: typeof functionArgs.preferredTransport === "string" ? functionArgs.preferredTransport : undefined,
+          mealPreference: typeof functionArgs.mealPreference === "string" ? functionArgs.mealPreference : undefined,
+          specialRequests: typeof functionArgs.specialRequests === "string" ? functionArgs.specialRequests : undefined,
+          estimatedBudget: typeof functionArgs.estimatedBudget === "number" ? functionArgs.estimatedBudget : undefined,
+          estimatedQuote: typeof functionArgs.estimatedQuote === "string" ? functionArgs.estimatedQuote : undefined,
+          canQuoteImmediately: typeof functionArgs.canQuoteImmediately === "boolean" ? functionArgs.canQuoteImmediately : false,
           conversation: messages.map((msg: any) => ({
             role: msg.role,
             content: msg.content,
             timestamp: new Date().toISOString(),
           })),
-          summary: functionArgs.summary,
+          summary: typeof functionArgs.summary === "string" ? functionArgs.summary : undefined,
         });
 
         // 이메일 발송
         if (saveResult.success) {
           await sendConsultingSummaryEmail({
-            category: functionArgs.category || "미선택",
-            participantCount: functionArgs.participantCount,
-            region: functionArgs.region,
-            purpose: functionArgs.purpose,
-            hasInstructor: functionArgs.hasInstructor,
-            preferredTransport: functionArgs.preferredTransport,
-            mealPreference: functionArgs.mealPreference,
-            specialRequests: functionArgs.specialRequests,
-            estimatedBudget: functionArgs.estimatedBudget,
-            estimatedQuote: functionArgs.estimatedQuote,
-            canQuoteImmediately: functionArgs.canQuoteImmediately || false,
+            category: typeof functionArgs.category === "string" ? functionArgs.category : "미선택",
+            participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
+            region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
+            purpose: typeof functionArgs.purpose === "string" ? functionArgs.purpose : undefined,
+            hasInstructor: typeof functionArgs.hasInstructor === "boolean" ? functionArgs.hasInstructor : undefined,
+            preferredTransport: typeof functionArgs.preferredTransport === "string" ? functionArgs.preferredTransport : undefined,
+            mealPreference: typeof functionArgs.mealPreference === "string" ? functionArgs.mealPreference : undefined,
+            specialRequests: typeof functionArgs.specialRequests === "string" ? functionArgs.specialRequests : undefined,
+            estimatedBudget: typeof functionArgs.estimatedBudget === "number" ? functionArgs.estimatedBudget : undefined,
+            estimatedQuote: typeof functionArgs.estimatedQuote === "string" ? functionArgs.estimatedQuote : undefined,
+            canQuoteImmediately: typeof functionArgs.canQuoteImmediately === "boolean" ? functionArgs.canQuoteImmediately : false,
           });
         }
 
@@ -273,9 +399,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           message: {
             role: "assistant",
-            content: functionArgs.summary
-              ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
-              : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.",
+            content: withServiceGuidance(
+              typeof functionArgs.summary === "string"
+                ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
+                : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.",
+              { savedConsulting: true }
+            ),
           },
           functionCall: {
             name: functionName,
@@ -289,7 +418,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: {
         role: "assistant",
-        content: assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다.",
+        content: withServiceGuidance(
+          assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."
+        ),
       },
     });
   } catch (error) {

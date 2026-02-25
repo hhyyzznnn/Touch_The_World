@@ -17,6 +17,10 @@ interface KakaoAlimtalkOptions {
   buttonText?: string; // 버튼 텍스트 (선택)
 }
 
+function getEnv(name: string, alias?: string): string | undefined {
+  return process.env[name] || (alias ? process.env[alias] : undefined);
+}
+
 // 액세스 토큰 캐시 (토큰 만료 전까지 재사용)
 let cachedAccessToken: {
   token: string;
@@ -33,8 +37,8 @@ async function getKakaoBMAccessToken(): Promise<string> {
     return cachedAccessToken.token;
   }
 
-  const clientId = process.env.KAKAO_BM_CLIENT_ID;
-  const clientSecret = process.env.KAKAO_BM_CLIENT_SECRET;
+  const clientId = getEnv("KAKAO_BM_CLIENT_ID", "BIZM_CLIENT_ID");
+  const clientSecret = getEnv("KAKAO_BM_CLIENT_SECRET", "BIZM_CLIENT_SECRET");
   const baseUrl = process.env.KAKAO_BM_BASE_URL || "https://bizmsg-web.kakaoenterprise.com";
 
   if (!clientId || !clientSecret) {
@@ -88,10 +92,13 @@ async function getKakaoBMAccessToken(): Promise<string> {
  * 3. 환경 변수 설정 완료
  */
 export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<{ success: boolean; error?: string }> {
-  const clientId = process.env.KAKAO_BM_CLIENT_ID;
-  const clientSecret = process.env.KAKAO_BM_CLIENT_SECRET;
-  const senderKey = process.env.KAKAO_BM_SENDER_KEY;
-  const baseUrl = process.env.KAKAO_BM_BASE_URL || "https://bizmsg-web.kakaoenterprise.com";
+  const clientId = getEnv("KAKAO_BM_CLIENT_ID", "BIZM_CLIENT_ID");
+  const clientSecret = getEnv("KAKAO_BM_CLIENT_SECRET", "BIZM_CLIENT_SECRET");
+  const senderKey = getEnv("KAKAO_BM_SENDER_KEY", "BIZM_SENDER_KEY");
+  const baseUrl =
+    process.env.KAKAO_BM_BASE_URL ||
+    process.env.BIZM_BASE_URL ||
+    "https://bizmsg-web.kakaoenterprise.com";
 
   // 개발 환경 또는 설정이 없으면 콘솔에 출력
   const isDevelopment = process.env.NODE_ENV !== "production";
@@ -135,7 +142,7 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
         phone_number: phoneNumber,
         message: options.message,
         variables: options.variables || {},
-        sender_no: process.env.KAKAO_BM_SENDER_NO || phoneNumber, // 발신 번호
+        sender_no: process.env.KAKAO_BM_SENDER_NO || process.env.BIZM_SENDER_NO || phoneNumber, // 발신 번호
         cid: `verification_${Date.now()}`, // 고객사 정의 Key ID
       }),
     });
@@ -215,7 +222,10 @@ export async function sendVerificationCodeAlimtalk(
   phoneNumber: string,
   code: string
 ): Promise<{ success: boolean; error?: string }> {
-  const templateCode = process.env.KAKAO_BM_VERIFICATION_TEMPLATE_CODE || "VERIFICATION_CODE";
+  const templateCode =
+    process.env.KAKAO_BM_VERIFICATION_TEMPLATE_CODE ||
+    process.env.BIZM_VERIFICATION_TEMPLATE_CODE ||
+    "VERIFICATION_CODE";
   
   return sendKakaoAlimtalk({
     phoneNumber,
@@ -226,7 +236,6 @@ export async function sendVerificationCodeAlimtalk(
     },
   });
 }
-
 
 
 

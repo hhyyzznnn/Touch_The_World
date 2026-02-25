@@ -205,6 +205,12 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     setIsExpanded(true);
   };
 
+  const inputPlaceholder = isExpanded
+    ? isChatting
+      ? "메시지를 입력하세요..."
+      : "메시지를 입력하거나 카테고리를 선택하세요"
+    : "AI에게 질문해보세요";
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       {/* Input Container */}
@@ -228,6 +234,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                   }
                 }}
                 className="p-2 hover:opacity-70 transition-opacity flex-shrink-0"
+                aria-label="채팅 창 닫기"
               >
                 <X className="w-4 h-4 text-text-gray" />
               </button>
@@ -238,14 +245,16 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={handleInputFocus}
-              placeholder={isExpanded ? (isChatting ? "메시지를 입력하세요..." : "카테고리를 먼저 선택해주세요") : "AI에게 질문해보세요"}
+              placeholder={inputPlaceholder}
             className="flex-1 text-sm border-none outline-none text-text-dark placeholder:text-gray-400 px-2"
+              aria-label="AI 상담 메시지 입력"
           />
             <button
             type="submit"
               className="p-2 hover:opacity-70 transition-opacity"
               onClick={(e) => e.stopPropagation()}
-              disabled={isLoading}
+              disabled={isLoading || !inputValue.trim()}
+              aria-label="메시지 전송"
             >
               <Send className="w-5 h-5 text-brand-green-primary" />
             </button>
@@ -256,7 +265,13 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
             <div className="p-4 space-y-4 animate-in slide-in-from-bottom-2 duration-300">
               {/* Chat Messages */}
               {isChatting && (
-                <div ref={messagesContainerRef} className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
+                <div
+                  ref={messagesContainerRef}
+                  className="max-h-[400px] overflow-y-auto space-y-3 pr-2"
+                  role="log"
+                  aria-live="polite"
+                  aria-label="AI 상담 대화 내용"
+                >
                   {messages.map((message) => (
                     <div key={message.id}>
                       <div
@@ -290,6 +305,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                                   type="button"
                                   onClick={() => handleCategorySelect(category.name)}
                                   className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-100 rounded-lg hover:bg-brand-green/5 transition-all"
+                                  aria-label={`${category.name} 카테고리 선택`}
                                 >
                                   <div className="w-9 h-9 bg-brand-green/10 rounded-full flex items-center justify-center mb-1">
                                     <Icon className="w-4 h-4 text-brand-green" />
@@ -304,7 +320,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                     </div>
                   ))}
                   {isLoading && (
-                    <div className="flex justify-start">
+                    <div className="flex justify-start" aria-live="polite" aria-label="AI 답변 생성 중">
                       <div className="bg-gray-100 rounded-2xl px-4 py-2">
                         <div className="flex gap-1">
                           <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
@@ -330,6 +346,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                           type="button"
                           onClick={() => handleCategorySelect(category.name)}
                           className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-100 rounded-lg hover:bg-brand-green/5 transition-all"
+                          aria-label={`${category.name} 카테고리 선택`}
                         >
                           <div className="w-9 h-9 bg-brand-green/10 rounded-full flex items-center justify-center mb-1">
                             <Icon className="w-4 h-4 text-brand-green" />

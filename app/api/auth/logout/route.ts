@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { clearAuthSession } from "@/lib/session-auth";
 
 export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
-    cookieStore.delete("user-id");
+    clearAuthSession(cookieStore);
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -15,4 +16,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

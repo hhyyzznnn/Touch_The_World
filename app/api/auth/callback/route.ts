@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
+import { setAuthSession } from "@/lib/session-auth";
 
 // 소셜 로그인 콜백 후 우리 시스템 쿠키 설정
 export async function GET(request: NextRequest) {
@@ -13,37 +15,22 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const token = searchParams.get("token");
-
-    if (!token) {
-      return NextResponse.redirect(new URL("/login?error=invalid_token", request.url));
+    const session = await auth();
+    if (!session?.user?.email) {
+      return NextResponse.redirect(new URL("/login?error=no_session", request.url));
     }
 
-    // NextAuth 세션에서 사용자 정보 가져오기
-    // 실제로는 NextAuth의 세션을 확인해야 하지만,
-    // 간단하게 토큰으로 사용자 찾기
-    const account = await prisma.account.findFirst({
-      where: {
-        access_token: token,
-      },
-      include: {
-        user: true,
-      },
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
     });
 
-    if (!account || !account.user) {
+    if (!user) {
       return NextResponse.redirect(new URL("/login?error=user_not_found", request.url));
     }
 
-    // 우리 시스템 쿠키 설정
+    // 애플리케이션 세션 쿠키 설정
     const cookieStore = await cookies();
-    cookieStore.set("user-id", account.user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    setAuthSession(cookieStore, { userId: user.id, role: user.role === "admin" ? "admin" : "user" });
 
     return NextResponse.redirect(new URL("/", request.url));
   } catch (error) {
@@ -51,4 +38,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=callback_failed", request.url));
   }
 }
-

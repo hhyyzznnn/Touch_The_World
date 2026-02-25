@@ -9,6 +9,8 @@ import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
 import { KakaoScript } from "@/components/KakaoScript";
+import { getSiteUrl } from "@/lib/site-url";
+import { COMPANY_INFO } from "@/lib/constants";
 
 const notoSerif = Noto_Serif_KR({ 
   subsets: ["latin"],
@@ -22,19 +24,33 @@ const bonaNovaSC = Bona_Nova_SC({
   variable: "--font-bona-nova",
 });
 
+const siteUrl = getSiteUrl();
+const naverSiteVerification =
+  process.env.NAVER_SITE_VERIFICATION || "7d713c24d0a2bc5a9a32549a03dcd7bd86348d87";
+const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
+const socialLinks = [COMPANY_INFO.instagram, COMPANY_INFO.facebook].filter(Boolean) as string[];
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Touch The World - 교육·체험·AI 융합 프로그램 전문 기업",
   description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다. 학생 체험학습, 국내외 탐방, AI 교육 프로그램 등 8개 분야의 전문 프로그램을 운영합니다.",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/ttw_logo.png",
     apple: "/ttw_logo.png",
   },
   verification: {
+    ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
     other: {
-      "naver-site-verification": "7d713c24d0a2bc5a9a32549a03dcd7bd86348d87",
+      ...(naverSiteVerification
+        ? { "naver-site-verification": naverSiteVerification }
+        : {}),
     },
   },
   openGraph: {
+    url: siteUrl,
     title: "Touch The World - 교육·체험·AI 융합 프로그램 전문 기업",
     description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
     images: [
@@ -77,15 +93,32 @@ export default function RootLayout({
               "@type": "Organization",
               name: "Touch The World",
               alternateName: "터치더월드",
-              url: "https://touchtheworld.co.kr",
-              logo: "https://touchtheworld.co.kr/ttw_logo.png",
+              url: siteUrl,
+              logo: `${siteUrl}/ttw_logo.png`,
               description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
               foundingDate: "1996",
               address: {
                 "@type": "PostalAddress",
                 addressCountry: "KR",
               },
-              sameAs: [],
+              sameAs: socialLinks,
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Touch The World",
+              alternateName: "터치더월드",
+              url: siteUrl,
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${siteUrl}/search?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
             }),
           }}
         />
@@ -104,4 +137,3 @@ export default function RootLayout({
     </html>
   );
 }
-

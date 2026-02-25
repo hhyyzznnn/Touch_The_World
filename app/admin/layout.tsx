@@ -1,10 +1,17 @@
 import { AdminNav } from "@/components/AdminNav";
+import { getCurrentUser } from "@/lib/auth-user";
+import { redirect } from "next/navigation";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    redirect("/admin/login");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
@@ -12,4 +19,3 @@ export default function AdminLayout({
     </div>
   );
 }
-

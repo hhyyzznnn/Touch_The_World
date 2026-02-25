@@ -6,11 +6,14 @@ import { sendVerificationCodeAlimtalk } from "./kakao-alimtalk";
 export async function sendVerificationSMS(phone: string, code: string) {
   // 카카오 알림톡 사용 (설정되어 있는 경우)
   const isProduction = process.env.NODE_ENV === "production";
+  const hasClientId = Boolean(process.env.KAKAO_BM_CLIENT_ID || process.env.BIZM_CLIENT_ID);
+  const hasClientSecret = Boolean(process.env.KAKAO_BM_CLIENT_SECRET || process.env.BIZM_CLIENT_SECRET);
+  const hasSenderKey = Boolean(process.env.KAKAO_BM_SENDER_KEY || process.env.BIZM_SENDER_KEY);
   const useKakaoAlimtalk = 
     isProduction &&
-    process.env.KAKAO_BM_CLIENT_ID && 
-    process.env.KAKAO_BM_CLIENT_SECRET && 
-    process.env.KAKAO_BM_SENDER_KEY;
+    hasClientId &&
+    hasClientSecret &&
+    hasSenderKey;
 
   if (useKakaoAlimtalk) {
     try {
@@ -43,4 +46,3 @@ export async function sendVerificationSMS(phone: string, code: string) {
 export function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
-

@@ -1,13 +1,44 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
+interface SocialProviders {
+  kakao: boolean;
+  naver: boolean;
+  google: boolean;
+}
+
 export function SocialLoginButtons() {
-  const handleGoogleLogin = () => {
-    // NextAuth의 구글 로그인 엔드포인트로 리디렉션
-    // NextAuth가 자동으로 구글 OAuth 플로우를 처리하고
-    // 콜백 후 우리 시스템 쿠키를 설정합니다
-    window.location.href = "/api/auth/signin/google?callbackUrl=/api/auth/callback/google";
+  const [providers, setProviders] = useState<SocialProviders>({
+    kakao: false,
+    naver: false,
+    google: false,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const response = await fetch("/api/auth/social/providers", { cache: "no-store" });
+        if (!response.ok) {
+          setIsLoading(false);
+          return;
+        }
+        const data = (await response.json()) as SocialProviders;
+        setProviders(data);
+      } catch {
+        // no-op
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProviders();
+  }, []);
+
+  const handleSocialLogin = (provider: keyof SocialProviders) => {
+    window.location.href = `/api/auth/signin/${provider}?callbackUrl=/api/auth/callback`;
   };
 
   return (
@@ -15,9 +46,10 @@ export function SocialLoginButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full opacity-50 cursor-not-allowed"
-        disabled
-        title="준비 중"
+        className={`w-full ${providers.kakao ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+        disabled={isLoading || !providers.kakao}
+        title={providers.kakao ? "카카오로 로그인" : "카카오 로그인 미설정"}
+        onClick={() => handleSocialLogin("kakao")}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z" />
@@ -27,9 +59,10 @@ export function SocialLoginButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full opacity-50 cursor-not-allowed"
-        disabled
-        title="준비 중"
+        className={`w-full ${providers.naver ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+        disabled={isLoading || !providers.naver}
+        title={providers.naver ? "네이버로 로그인" : "네이버 로그인 미설정"}
+        onClick={() => handleSocialLogin("naver")}
       >
         <span className="text-green-600 font-bold">N</span>
         <span className="hidden sm:inline ml-2">네이버</span>
@@ -37,8 +70,10 @@ export function SocialLoginButtons() {
       <Button
         type="button"
         variant="outline"
-        className="w-full hover:bg-gray-50"
-        onClick={handleGoogleLogin}
+        className={`w-full ${providers.google ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+        onClick={() => handleSocialLogin("google")}
+        disabled={isLoading || !providers.google}
+        title={providers.google ? "구글로 로그인" : "구글 로그인 미설정"}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path
@@ -63,4 +98,3 @@ export function SocialLoginButtons() {
     </div>
   );
 }
-

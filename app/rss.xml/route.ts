@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -55,8 +56,8 @@ function ensureSameDomain(url: string | null, baseUrl: string): string | null {
 }
 
 export async function GET() {
-  // 네이버에 등록된 도메인과 일치해야 함 (www 포함)
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "https://www.touchtheworld.co.kr";
+  // 네이버에 등록된 도메인과 일치해야 함
+  const baseUrl = getSiteUrl();
 
   try {
     // 최근 프로그램 (최대 10개 - 네이버 권장사항: 중요한 콘텐츠만)

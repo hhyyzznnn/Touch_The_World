@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationSMS, generateVerificationCode } from "@/lib/sms";
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 
 // SMS 인증 코드 발송
 export async function POST(request: NextRequest) {
   try {
+    const clientIP = getClientIP(request);
     const { phone } = await request.json();
 
     if (!phone) {
@@ -21,6 +23,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "올바른 휴대폰 번호 형식이 아닙니다." },
         { status: 400 }
+      );
+    }
+
+    // 발송 요청 제한: IP당 분당 5회, 번호당 5분에 3회
+    const ipRateLimit = await checkRateLimit(`verify-phone:send:ip:${clientIP}`, 5, 60 * 1000);
+    if (!ipRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "인증 코드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((ipRateLimit.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    const phoneRateLimit = await checkRateLimit(`verify-phone:send:phone:${normalizedPhone}`, 3, 5 * 60 * 1000);
+    if (!phoneRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "해당 번호로 요청이 많습니다. 5분 후 다시 시도해주세요." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((phoneRateLimit.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
       );
     }
 
@@ -65,6 +94,7 @@ export async function POST(request: NextRequest) {
 // SMS 인증 코드 검증
 export async function PUT(request: NextRequest) {
   try {
+    const clientIP = getClientIP(request);
     const { phone, code } = await request.json();
 
     if (!phone || !code) {
@@ -75,6 +105,23 @@ export async function PUT(request: NextRequest) {
     }
 
     const normalizedPhone = phone.replace(/-/g, "");
+
+    // 인증 시도 제한: IP당 5분에 20회, 번호당 5분에 10회
+    const verifyIpRateLimit = await checkRateLimit(`verify-phone:check:ip:${clientIP}`, 20, 5 * 60 * 1000);
+    if (!verifyIpRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "인증 시도가 너무 많습니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+
+    const verifyPhoneRateLimit = await checkRateLimit(`verify-phone:check:phone:${normalizedPhone}`, 10, 5 * 60 * 1000);
+    if (!verifyPhoneRateLimit.allowed) {
+      return NextResponse.json(
+        { error: "해당 번호의 인증 시도가 많습니다. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
 
     // 인증 코드 확인
     const verification = await prisma.phoneVerification.findFirst({
@@ -124,4 +171,3 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
-

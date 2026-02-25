@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { setAuthSession } from "@/lib/session-auth";
 
 // NextAuth 세션 확인 및 우리 시스템 쿠키 동기화
 export async function syncAuthSession(request: NextRequest) {
@@ -11,13 +12,11 @@ export async function syncAuthSession(request: NextRequest) {
     });
 
     if (token && token.sub) {
-      // NextAuth 세션이 있으면 우리 시스템 쿠키도 설정
+      // NextAuth 세션이 있으면 애플리케이션 세션 쿠키도 설정
       const response = NextResponse.next();
-      response.cookies.set("user-id", token.sub, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
+      setAuthSession(response.cookies, {
+        userId: token.sub,
+        role: token.role === "admin" ? "admin" : "user",
       });
       return response;
     }
@@ -27,4 +26,3 @@ export async function syncAuthSession(request: NextRequest) {
 
   return NextResponse.next();
 }
-

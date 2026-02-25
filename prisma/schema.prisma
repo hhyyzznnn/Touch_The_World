@@ -422,4 +422,3 @@ model ConsultingLog {
   @@index([createdAt])
   @@index([emailSent])
 }
-

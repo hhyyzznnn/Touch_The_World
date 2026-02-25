@@ -24,7 +24,7 @@ const inquirySchema = z.object({
 export async function POST(request: NextRequest) {
   // Rate Limiting: IP당 1분에 3회 제한
   const clientIP = getClientIP(request);
-  const rateLimit = checkRateLimit(`inquiry:${clientIP}`, 3, 60 * 1000);
+  const rateLimit = await checkRateLimit(`inquiry:${clientIP}`, 3, 60 * 1000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
