@@ -18,6 +18,8 @@ export async function getCurrentUser() {
         phone: true,
         school: true,
         role: true,
+        marketingEmailOptIn: true,
+        marketingAlimtalkOptIn: true,
       },
     });
     return user;

@@ -1,7 +1,11 @@
 /**
  * 카카오 알림톡 발송 유틸리티
- * 
- * 참고: 실제 카카오 비즈니스 채널 연동 시 사용
+ *
+ * 참고: 현재 구현은 OAuth + /v2/send/kakao 기반입니다.
+ * BizM 가이드(/v2/sender/send, userid 헤더) 기준 전환 작업은
+ * docs/BIZM_ALIMTALK_TODO.md 문서를 따라 별도 진행합니다.
+ *
+ * 실제 카카오 비즈니스 채널 연동 시 사용
  * - 카카오 비즈니스 채널 개설 필요
  * - 알림톡 템플릿 등록 및 심사 필요
  * - API 키 발급 필요
@@ -21,6 +25,8 @@ function getEnv(name: string, alias?: string): string | undefined {
   return process.env[name] || (alias ? process.env[alias] : undefined);
 }
 
+const DEFAULT_BIZMSG_BASE_URL = "https://bizmsg-web.kakaoenterprise.com";
+
 // 액세스 토큰 캐시 (토큰 만료 전까지 재사용)
 let cachedAccessToken: {
   token: string;
@@ -39,7 +45,7 @@ async function getKakaoBMAccessToken(): Promise<string> {
 
   const clientId = getEnv("KAKAO_BM_CLIENT_ID", "BIZM_CLIENT_ID");
   const clientSecret = getEnv("KAKAO_BM_CLIENT_SECRET", "BIZM_CLIENT_SECRET");
-  const baseUrl = process.env.KAKAO_BM_BASE_URL || "https://bizmsg-web.kakaoenterprise.com";
+  const baseUrl = process.env.KAKAO_BM_BASE_URL || DEFAULT_BIZMSG_BASE_URL;
 
   if (!clientId || !clientSecret) {
     throw new Error("KAKAO_BM_CLIENT_ID와 KAKAO_BM_CLIENT_SECRET이 설정되지 않았습니다.");
@@ -98,7 +104,7 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
   const baseUrl =
     process.env.KAKAO_BM_BASE_URL ||
     process.env.BIZM_BASE_URL ||
-    "https://bizmsg-web.kakaoenterprise.com";
+    DEFAULT_BIZMSG_BASE_URL;
 
   // 개발 환경 또는 설정이 없으면 콘솔에 출력
   const isDevelopment = process.env.NODE_ENV !== "production";
@@ -236,7 +242,6 @@ export async function sendVerificationCodeAlimtalk(
     },
   });
 }
-
 
 
 

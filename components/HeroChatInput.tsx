@@ -4,10 +4,19 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Send, X } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
-import { saveChatMessages, loadChatMessages, ChatMessage } from "@/lib/chat-storage";
+import {
+  saveChatMessages,
+  loadChatMessages,
+  clearLegacyAnonymousChatMessages,
+  ChatMessage,
+} from "@/lib/chat-storage";
 
 interface HeroChatInputProps {
   initialCategory?: string;
+}
+
+function createSessionId(): string {
+  return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
 export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
@@ -17,14 +26,32 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [landingCategory, setLandingCategory] = useState<string | undefined>(initialCategory);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId] = useState(() => {
-    const loaded = loadChatMessages();
-    return loaded.sessionId || `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  });
+  const [sessionId, setSessionId] = useState<string>(createSessionId);
+  const landingCategoryRef = useRef<string | undefined>(landingCategory);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    landingCategoryRef.current = landingCategory;
+  }, [landingCategory]);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        setUserId(data?.user?.id ?? null);
+      })
+      .catch(() => {
+        setUserId(null);
+      })
+      .finally(() => {
+        setAuthLoaded(true);
+      });
+  }, []);
 
   useEffect(() => {
     const category = searchParams?.get("category") || initialCategory;
@@ -34,31 +61,54 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   }, [searchParams, initialCategory]);
 
   useEffect(() => {
+    if (!authLoaded) return;
+
     // 저장된 채팅 기록 불러오기
-    const loaded = loadChatMessages();
-    if (loaded.messages.length > 0) {
-      setMessages(loaded.messages);
-      setIsChatting(true);
-      // 저장된 기록이 있어도 처음에는 확장하지 않음
-      setIsExpanded(false);
-    } else {
-      // 초기 메시지 설정
-      const getInitialMessage = () => {
-        if (landingCategory) {
-          return `안녕하세요! 터치더월드 AI 어시스턴트입니다.\n\n${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 지역을 알려주시면 맞춤형 일정을 제안해드리겠습니다!`;
-        }
-        return `안녕하세요! 터치더월드 AI 어시스턴트입니다.\n\n어떤 프로그램에 관심이 있으신가요? 아래 버튼을 클릭하시거나 직접 입력해주세요!`;
-      };
-      
+    const getInitialMessage = () => {
+      const currentLandingCategory = landingCategoryRef.current;
+      if (currentLandingCategory) {
+        return `안녕하세요! 터치더월드 AI 어시스턴트입니다.\n\n${currentLandingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 지역을 알려주시면 맞춤형 일정을 제안해드리겠습니다!`;
+      }
+      return `안녕하세요! 터치더월드 AI 어시스턴트입니다.\n\n어떤 프로그램에 관심이 있으신가요? 아래 버튼을 클릭하시거나 직접 입력해주세요!`;
+    };
+
+    if (!userId) {
+      clearLegacyAnonymousChatMessages();
       setMessages([{
         id: "1",
         role: "assistant",
         content: getInitialMessage(),
         timestamp: new Date(),
-        showCategoryButtons: !landingCategory,
+        showCategoryButtons: !landingCategoryRef.current,
       }]);
+      setSessionId(createSessionId());
+      setIsChatting(false);
+      setIsExpanded(false);
+      return;
     }
-  }, [landingCategory]);
+
+    const loaded = loadChatMessages({ userId, enabled: true });
+    if (loaded.messages.length > 0) {
+      setMessages(loaded.messages);
+      setIsChatting(true);
+      // 저장된 기록이 있어도 처음에는 확장하지 않음
+      setIsExpanded(false);
+      if (loaded.sessionId) {
+        setSessionId(loaded.sessionId);
+      }
+    } else {
+      setMessages([{
+        id: "1",
+        role: "assistant",
+        content: getInitialMessage(),
+        timestamp: new Date(),
+        showCategoryButtons: !landingCategoryRef.current,
+      }]);
+      setSessionId(createSessionId());
+      setIsChatting(false);
+      setIsExpanded(false);
+    }
+  }, [authLoaded, userId]);
 
   useEffect(() => {
     // 채팅 중일 때만 채팅 영역 내부 스크롤 (페이지 전체 스크롤 방지)
@@ -73,14 +123,14 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
 
   useEffect(() => {
     // 채팅 기록 저장
-    if (messages.length > 0) {
-      saveChatMessages(messages, sessionId);
+    if (messages.length > 0 && userId) {
+      saveChatMessages(messages, sessionId, { userId, enabled: true });
     }
-  }, [messages, sessionId]);
+  }, [messages, sessionId, userId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+    if (!authLoaded || !inputValue.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -102,17 +152,26 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
+          messages: userId
+            ? [...messages, userMessage].map((msg) => ({
+                role: msg.role,
+                content: msg.content,
+              }))
+            : [{ role: "user", content: userMessage.content }],
           sessionId: sessionId,
           landingCategory: landingCategory,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("API 호출 실패");
+        let errorMessage = "API 호출 실패";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData?.error || errorMessage;
+        } catch {
+          // ignore json parse error
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -127,10 +186,12 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("채팅 오류:", error);
+      const message =
+        error instanceof Error ? error.message : "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        content: message,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -140,6 +201,8 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   };
 
   const handleCategorySelect = async (categoryName: string) => {
+    if (!authLoaded || isLoading) return;
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
@@ -164,17 +227,26 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
+          messages: userId
+            ? [...messages, userMessage].map((msg) => ({
+                role: msg.role,
+                content: msg.content,
+              }))
+            : [{ role: "user", content: userMessage.content }],
           sessionId: sessionId,
           landingCategory: categoryName,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("API 호출 실패");
+        let errorMessage = "API 호출 실패";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData?.error || errorMessage;
+        } catch {
+          // ignore json parse error
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -189,10 +261,12 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("채팅 오류:", error);
+      const message =
+        error instanceof Error ? error.message : "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        content: message,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -213,6 +287,11 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
+      {!userId && authLoaded && (
+        <p className="text-xs text-text-gray mb-2 px-2">
+          비로그인 상태에서는 일일 5회 이용 가능하며, 대화 저장/이어보기는 로그인 후 사용할 수 있습니다.
+        </p>
+      )}
       {/* Input Container */}
       <form onSubmit={handleSubmit}>
         <div 
@@ -246,6 +325,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={handleInputFocus}
               placeholder={inputPlaceholder}
+              disabled={!authLoaded || isLoading}
             className="flex-1 text-sm border-none outline-none text-text-dark placeholder:text-gray-400 px-2"
               aria-label="AI 상담 메시지 입력"
           />
@@ -253,7 +333,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
             type="submit"
               className="p-2 hover:opacity-70 transition-opacity"
               onClick={(e) => e.stopPropagation()}
-              disabled={isLoading || !inputValue.trim()}
+              disabled={!authLoaded || isLoading || !inputValue.trim()}
               aria-label="메시지 전송"
             >
               <Send className="w-5 h-5 text-brand-green-primary" />

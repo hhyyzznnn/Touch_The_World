@@ -2,8 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 async function getEvent(id: string) {
   return await prisma.event.findUnique({
@@ -23,6 +25,75 @@ async function getEvent(id: string) {
       },
     },
   });
+}
+
+async function getEventSeoData(id: string) {
+  return await prisma.event.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      date: true,
+      location: true,
+      school: {
+        select: { name: true },
+      },
+      program: {
+        select: {
+          title: true,
+          category: true,
+        },
+      },
+      images: {
+        take: 1,
+        orderBy: { createdAt: "asc" },
+        select: { url: true },
+      },
+    },
+  });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const event = await getEventSeoData(id);
+
+  if (!event) {
+    return {
+      title: "행사 정보 | 터치더월드",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = `${event.school.name} ${event.program.title} 행사 | 터치더월드`;
+  const description = `${format(new Date(event.date), "yyyy년 MM월 dd일")} ${event.location}에서 진행한 ${event.program.title} 행사 사례입니다.`;
+
+  return {
+    title,
+    description,
+    keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, [
+      event.program.category,
+      event.program.title,
+      event.school.name,
+      event.location,
+      "행사 사례",
+    ]),
+    alternates: {
+      canonical: `/events/${event.id}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/events/${event.id}`,
+      type: "article",
+      images: event.images[0]?.url ? [event.images[0].url] : undefined,
+    },
+  };
 }
 
 export default async function EventDetailPage({
@@ -110,4 +181,3 @@ export default async function EventDetailPage({
     </div>
   );
 }
-

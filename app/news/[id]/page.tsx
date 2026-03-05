@@ -1,14 +1,67 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { BRAND_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 async function getNews(id: string) {
   return await prisma.companyNews.findUnique({
     where: { id },
   });
+}
+
+async function getNewsSeoData(id: string) {
+  return await prisma.companyNews.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      createdAt: true,
+      isPinned: true,
+    },
+  });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const news = await getNewsSeoData(id);
+
+  if (!news) {
+    return {
+      title: "회사 소식 | 터치더월드",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const description =
+    news.summary ||
+    `${format(new Date(news.createdAt), "yyyy년 MM월 dd일")} 게시된 터치더월드 소식입니다.`;
+
+  return {
+    title: `${news.title} | 터치더월드`,
+    description,
+    keywords: mergeKeywords(BRAND_KEYWORDS, ["회사 소식", "공지", news.title]),
+    alternates: {
+      canonical: `/news/${news.id}`,
+    },
+    openGraph: {
+      title: `${news.title} | 터치더월드`,
+      description,
+      url: `/news/${news.id}`,
+      type: "article",
+    },
+  };
 }
 
 export default async function NewsDetailPage({

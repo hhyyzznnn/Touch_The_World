@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -9,6 +10,7 @@ import { ShareButton } from "@/components/ShareButton";
 import ReactMarkdown from "react-markdown";
 import { ProgramImage } from "@/components/ProgramImage";
 import remarkGfm from "remark-gfm";
+import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 async function getProgram(id: string) {
   return await prisma.program.findUnique({
@@ -37,6 +39,59 @@ async function getProgram(id: string) {
       },
     },
   });
+}
+
+async function getProgramSeoData(id: string) {
+  return await prisma.program.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      category: true,
+      thumbnailUrl: true,
+    },
+  });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const program = await getProgramSeoData(id);
+
+  if (!program) {
+    return {
+      title: "프로그램 정보 | 터치더월드",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const categoryName = getCategoryDisplayName(program.category);
+  const description =
+    program.summary ||
+    `터치더월드의 ${categoryName} 프로그램 상세 정보를 확인하세요.`;
+
+  return {
+    title: `${program.title} | ${categoryName} | 터치더월드`,
+    description,
+    keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, [categoryName, program.title]),
+    alternates: {
+      canonical: `/programs/${program.id}`,
+    },
+    openGraph: {
+      title: `${program.title} | 터치더월드`,
+      description,
+      url: `/programs/${program.id}`,
+      type: "article",
+      images: program.thumbnailUrl ? [program.thumbnailUrl] : undefined,
+    },
+  };
 }
 
 // 페이지 재검증 시간 설정 (5분)
@@ -249,4 +304,3 @@ export default async function ProgramDetailPage({
     </div>
   );
 }
-

@@ -82,7 +82,7 @@ export function Footer() {
               상호명: {COMPANY_INFO.name} ({COMPANY_INFO.englishName})
             </p>
             <p className="text-text-dark mb-2 text-sm sm:text-base">
-              {COMPANY_INFO.founded} 설립 | 28년 이상의 운영 경험
+              {COMPANY_INFO.founded} 설립 | 1996년부터 운영
             </p>
             <p className="text-text-dark text-sm sm:text-base">
               {COMPANY_INFO.businessType}

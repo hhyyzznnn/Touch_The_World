@@ -58,6 +58,9 @@ function ensureSameDomain(url: string | null, baseUrl: string): string | null {
 export async function GET() {
   // 네이버에 등록된 도메인과 일치해야 함
   const baseUrl = getSiteUrl();
+  const channelTitle = "터치더월드 | 교육여행·체험학습·AI 교육 프로그램";
+  const channelDescription =
+    "1996년부터 학교·지자체 대상 교육여행과 체험학습을 기획·운영해온 전문 기업입니다. 안전 중심 운영과 맞춤형 설계로 현장 완성도를 높입니다.";
 
   try {
     // 최근 프로그램 (최대 10개 - 네이버 권장사항: 중요한 콘텐츠만)
@@ -134,9 +137,9 @@ export async function GET() {
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Touch The World - 교육·체험·AI 융합 프로그램 전문 기업</title>
+    <title>${channelTitle}</title>
     <link>${baseUrl}</link>
-    <description>1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.</description>
+    <description>${channelDescription}</description>
 ${items.join("\n")}
   </channel>
 </rss>`;

@@ -448,6 +448,8 @@ NAVER_SITE_VERIFICATION=naver-site-verification-token
 - [docs/KAKAO_ALIMTALK_VERIFICATION_SETUP.md](./docs/KAKAO_ALIMTALK_VERIFICATION_SETUP.md) - 카카오 알림톡 인증번호 발송 설정 가이드
 - [docs/KAKAO_ALIMTALK_QUICK_START.md](./docs/KAKAO_ALIMTALK_QUICK_START.md) - 카카오 알림톡 빠른 시작 가이드
 - [docs/YOUR_TODO_LIST.md](./docs/YOUR_TODO_LIST.md) - 카카오 알림톡 설정 작업 체크리스트
+- [docs/BIZM_CONNECTION_GUIDELINE.md](./docs/BIZM_CONNECTION_GUIDELINE.md) - BizM 운영 연결 가이드라인 (현재 코드 기준)
+- [docs/BIZM_ALIMTALK_TODO.md](./docs/BIZM_ALIMTALK_TODO.md) - BizM 본인인증 알림톡 전환 TODO
 - [docs/AUTH_IMPLEMENTATION.md](./docs/AUTH_IMPLEMENTATION.md) - 인증 기능 구현 가이드
 
 ### 도메인 연결

@@ -10,6 +10,8 @@ interface User {
   name: string;
   phone: string | null;
   school: string | null;
+  marketingEmailOptIn?: boolean;
+  marketingAlimtalkOptIn?: boolean;
   role?: string;
 }
 
@@ -22,6 +24,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
     name: user.name,
     phone: user.phone || "",
     school: user.school || "",
+    marketingEmailOptIn: user.marketingEmailOptIn || false,
+    marketingAlimtalkOptIn: user.marketingAlimtalkOptIn || false,
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -31,7 +35,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]:
+        e.target.type === "checkbox" ? e.target.checked : e.target.value,
     });
     setError("");
     setSuccess("");
@@ -134,6 +139,32 @@ export function ProfileForm({ user }: ProfileFormProps) {
         />
       </div>
 
+      <div className="rounded-md border border-gray-200 bg-gray-50 p-4 space-y-3">
+        <p className="text-sm font-medium text-gray-700">마케팅 정보 수신 동의 (선택)</p>
+        <label className="flex items-start gap-3 text-sm text-gray-700">
+          <input
+            id="marketingEmailOptIn"
+            name="marketingEmailOptIn"
+            type="checkbox"
+            checked={formData.marketingEmailOptIn}
+            onChange={handleChange}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-green-primary focus:ring-brand-green-primary"
+          />
+          <span>이메일로 유용한 교육여행/연수 정보를 받겠습니다.</span>
+        </label>
+        <label className="flex items-start gap-3 text-sm text-gray-700">
+          <input
+            id="marketingAlimtalkOptIn"
+            name="marketingAlimtalkOptIn"
+            type="checkbox"
+            checked={formData.marketingAlimtalkOptIn}
+            onChange={handleChange}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-green-primary focus:ring-brand-green-primary"
+          />
+          <span>알림톡으로 유용한 교육여행/연수 정보를 받겠습니다.</span>
+        </label>
+      </div>
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}
@@ -154,4 +185,3 @@ export function ProfileForm({ user }: ProfileFormProps) {
     </form>
   );
 }
-

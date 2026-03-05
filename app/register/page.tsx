@@ -18,6 +18,8 @@ export default function RegisterPage() {
     name: "",
     phone: "",
     school: "",
+    marketingEmailOptIn: false,
+    marketingAlimtalkOptIn: false,
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +29,8 @@ export default function RegisterPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]:
+        e.target.type === "checkbox" ? e.target.checked : e.target.value,
     });
     setError("");
   };
@@ -62,6 +65,8 @@ export default function RegisterPage() {
           name: formData.name,
           phone: formData.phone || undefined,
           school: formData.school || undefined,
+          marketingEmailOptIn: formData.marketingEmailOptIn,
+          marketingAlimtalkOptIn: formData.marketingAlimtalkOptIn,
         }),
       });
 
@@ -284,6 +289,35 @@ export default function RegisterPage() {
                 placeholder="예: 서울고등학교"
               />
             </div>
+
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 space-y-3">
+              <p className="text-sm font-medium text-gray-700">마케팅 정보 수신 동의 (선택)</p>
+              <label className="flex items-start gap-3 text-sm text-gray-700">
+                <input
+                  id="marketingEmailOptIn"
+                  name="marketingEmailOptIn"
+                  type="checkbox"
+                  checked={formData.marketingEmailOptIn}
+                  onChange={handleChange}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-green-primary focus:ring-brand-green-primary"
+                />
+                <span>이메일로 유용한 교육여행/연수 정보를 받겠습니다.</span>
+              </label>
+              <label className="flex items-start gap-3 text-sm text-gray-700">
+                <input
+                  id="marketingAlimtalkOptIn"
+                  name="marketingAlimtalkOptIn"
+                  type="checkbox"
+                  checked={formData.marketingAlimtalkOptIn}
+                  onChange={handleChange}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-green-primary focus:ring-brand-green-primary"
+                />
+                <span>알림톡으로 유용한 교육여행/연수 정보를 받겠습니다.</span>
+              </label>
+              <p className="text-xs text-gray-500">
+                선택 동의이며, 회원가입 후 프로필에서 언제든지 변경할 수 있습니다.
+              </p>
+            </div>
           </div>
 
           {error && (
@@ -329,4 +363,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

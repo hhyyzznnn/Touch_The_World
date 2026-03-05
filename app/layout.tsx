@@ -11,6 +11,7 @@ import { ourFileRouter } from "@/app/api/uploadthing/core";
 import { KakaoScript } from "@/components/KakaoScript";
 import { getSiteUrl } from "@/lib/site-url";
 import { COMPANY_INFO } from "@/lib/constants";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 const notoSerif = Noto_Serif_KR({ 
   subsets: ["latin"],
@@ -29,13 +30,22 @@ const naverSiteVerification =
   process.env.NAVER_SITE_VERIFICATION || "7d713c24d0a2bc5a9a32549a03dcd7bd86348d87";
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
 const socialLinks = [COMPANY_INFO.instagram, COMPANY_INFO.facebook].filter(Boolean) as string[];
+const SEO_TITLE = "터치더월드 | 교육여행·체험학습·AI 교육 프로그램";
+const SEO_DESCRIPTION =
+  "1996년부터 학교·지자체 대상 교육여행과 체험학습을 기획·운영해온 전문 기업입니다. 안전 중심 운영과 맞춤형 설계로 현장 완성도를 높입니다.";
+const SEO_KEYWORDS = mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS);
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Touch The World - 교육·체험·AI 융합 프로그램 전문 기업",
-  description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다. 학생 체험학습, 국내외 탐방, AI 교육 프로그램 등 8개 분야의 전문 프로그램을 운영합니다.",
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
+  keywords: SEO_KEYWORDS,
   alternates: {
     canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
   icons: {
     icon: "/ttw_logo.png",
@@ -51,21 +61,23 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: siteUrl,
-    title: "Touch The World - 교육·체험·AI 융합 프로그램 전문 기업",
-    description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    siteName: "터치더월드",
+    locale: "ko_KR",
     images: [
       {
         url: "/ttw_logo.png",
         width: 1200,
         height: 630,
-        alt: "Touch The World",
+        alt: "터치더월드 로고",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Touch The World - 교육·체험·AI 융합 프로그램 전문 기업",
-    description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     images: ["/ttw_logo.png"],
   },
 };
@@ -95,12 +107,35 @@ export default function RootLayout({
               alternateName: "터치더월드",
               url: siteUrl,
               logo: `${siteUrl}/ttw_logo.png`,
-              description: "1996년 설립된 터치더월드는 28년 이상의 운영 경험으로 안전하고 질 높은 교육 프로그램을 제공합니다.",
+              description: SEO_DESCRIPTION,
               foundingDate: "1996",
               address: {
                 "@type": "PostalAddress",
                 addressCountry: "KR",
               },
+              sameAs: socialLinks,
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "TravelAgency",
+              name: "Touch The World",
+              alternateName: "터치더월드",
+              url: siteUrl,
+              image: `${siteUrl}/ttw_logo.png`,
+              telephone: COMPANY_INFO.phone,
+              email: COMPANY_INFO.email,
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: COMPANY_INFO.address,
+                addressCountry: "KR",
+              },
+              areaServed: "KR",
+              knowsAbout: mergeKeywords(CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS),
               sameAs: socialLinks,
             }),
           }}

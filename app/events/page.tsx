@@ -2,12 +2,24 @@ import { prisma } from "@/lib/prisma";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { format } from "date-fns";
 import { EventFilters } from "@/components/EventFilters";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { Pagination } from "@/components/Pagination";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 const ITEMS_PER_PAGE = 12;
+
+export const metadata: Metadata = {
+  title: "교육여행 행사 포트폴리오 | 터치더월드",
+  description:
+    "터치더월드가 진행한 교육여행, 수학여행, 체험학습, 교사연수 및 해외연수 행사 포트폴리오를 확인하세요.",
+  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["행사", "포트폴리오", "사례"]),
+  alternates: {
+    canonical: "/events",
+  },
+};
 
 async function getEvents(
   year?: string,

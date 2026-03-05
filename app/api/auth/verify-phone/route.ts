@@ -76,7 +76,21 @@ export async function POST(request: NextRequest) {
     });
 
     // SMS 발송
-    await sendVerificationSMS(normalizedPhone, code);
+    const sendResult = await sendVerificationSMS(normalizedPhone, code);
+    if (!sendResult.success) {
+      // 발송 실패 시 방금 저장한 미인증 코드 정리
+      await prisma.phoneVerification.deleteMany({
+        where: {
+          phone: normalizedPhone,
+          verified: false,
+        },
+      });
+
+      return NextResponse.json(
+        { error: "인증 코드 발송에 실패했습니다. 잠시 후 다시 시도해주세요." },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

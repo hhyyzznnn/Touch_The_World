@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
         phone: user.phone,
         school: user.school,
         role: user.role,
+        marketingEmailOptIn: user.marketingEmailOptIn,
+        marketingAlimtalkOptIn: user.marketingAlimtalkOptIn,
       },
     });
   } catch (error) {
@@ -24,4 +26,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user: null });
   }
 }
-

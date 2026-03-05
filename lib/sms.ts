@@ -3,17 +3,22 @@
 
 import { sendVerificationCodeAlimtalk } from "./kakao-alimtalk";
 
-export async function sendVerificationSMS(phone: string, code: string) {
-  // 카카오 알림톡 사용 (설정되어 있는 경우)
-  const isProduction = process.env.NODE_ENV === "production";
+export interface SmsSendResult {
+  success: boolean;
+  error?: string;
+}
+
+function isAlimtalkConfigured(): boolean {
   const hasClientId = Boolean(process.env.KAKAO_BM_CLIENT_ID || process.env.BIZM_CLIENT_ID);
   const hasClientSecret = Boolean(process.env.KAKAO_BM_CLIENT_SECRET || process.env.BIZM_CLIENT_SECRET);
   const hasSenderKey = Boolean(process.env.KAKAO_BM_SENDER_KEY || process.env.BIZM_SENDER_KEY);
-  const useKakaoAlimtalk = 
-    isProduction &&
-    hasClientId &&
-    hasClientSecret &&
-    hasSenderKey;
+  return hasClientId && hasClientSecret && hasSenderKey;
+}
+
+export async function sendVerificationSMS(phone: string, code: string): Promise<SmsSendResult> {
+  // 카카오 알림톡 사용 (설정되어 있는 경우)
+  const isProduction = process.env.NODE_ENV === "production";
+  const useKakaoAlimtalk = isProduction && isAlimtalkConfigured();
 
   if (useKakaoAlimtalk) {
     try {

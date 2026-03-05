@@ -4,6 +4,7 @@ import { saveConsultingLog, sendConsultingSummaryEmail, searchPrograms } from "@
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { z } from "zod";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { getCurrentUser } from "@/lib/auth-user";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -67,16 +68,19 @@ const categoryList = PROGRAM_CATEGORIES.map((cat, idx) => {
   return `${idx + 1}. ${name}`;
 }).join("\n");
 
-const getSystemPrompt = (landingCategory?: string): string => {
+const getSystemPrompt = (landingCategory?: string, canSaveConsultingLog: boolean = true): string => {
   let categoryContext = "";
   if (landingCategory) {
     categoryContext = "\n**중요:** 사용자가 랜딩 페이지에서 \"" + landingCategory + "\" 카테고리로 접근했습니다. 초기 대화에서 이 카테고리를 먼저 언급하고, 해당 카테고리에 맞춘 상담을 진행하세요.";
   }
+  const closingStep = canSaveConsultingLog
+    ? "6. 사용자가 상담을 마무리하거나 '상세 견적 요청' 의사를 표시하면, saveConsultingLog 함수를 호출하여 정보를 저장하세요.\n\n"
+    : "6. 비로그인 사용자는 상담 저장/이어보기가 제한됩니다. 상담 마무리 단계에서는 로그인 후 이어서 진행할 수 있다고 안내하세요.\n\n";
 
   const prompt = "당신은 '터치더월드'의 전문 교육 컨설턴트입니다. 친절하고 신뢰감 있으며, 특히 '안전'과 '교육적 목적'을 강조하는 말투를 사용하세요.\n\n" +
     "**회사 정보:**\n" +
     "- 회사명: 주식회사 터치더월드 (Touch The World)\n" +
-    "- 설립: 1996년 (28년 이상의 운영 경험)\n" +
+    "- 설립: 1996년 (장기 운영 노하우 보유)\n" +
     "- 업종: 종합여행업, 유학 및 교육\n" +
     "- 연락처: 1800-8078\n\n" +
     "**제공 프로그램 카테고리:**\n" +
@@ -93,7 +97,7 @@ const getSystemPrompt = (landingCategory?: string): string => {
     "3. 정보 수집 중간에, 고객의 요구사항(카테고리, 지역, 목적 등)이 충분히 수집되면 searchPrograms 함수를 호출하여 데이터베이스에서 실제 프로그램을 검색하고 추천하세요. 검색된 프로그램이 있으면 구체적인 프로그램 제목, 지역, 가격 정보를 포함하여 추천하세요.\n" +
     "4. 추천 후에는 \"특별히 고려해야 할 사항(예: 알러지, 장애 학생 지원, 특정 견학지 포함 등)\"이 있는지 반드시 물어보세요.\n" +
     "5. 예상 예산이 있으면 물어보고, 즉시 견적 가능 여부를 판단하세요.\n" +
-    "6. 사용자가 상담을 마무리하거나 '상세 견적 요청' 의사를 표시하면, saveConsultingLog 함수를 호출하여 정보를 저장하세요.\n\n" +
+    closingStep +
     "**핵심 운영 규칙:**\n" +
     "1. 질문에 답만 하고 끝내지 마세요. 모든 응답은 다음 행동을 제안하고, 추가 정보 1개 이상을 요청해야 합니다.\n" +
     "2. searchPrograms 결과가 없으면 반드시 '현재 조건으로는 추천 가능한 프로그램이 없다'고 명확히 말하세요.\n" +
@@ -119,6 +123,28 @@ const chatRequestSchema = z.object({
   sessionId: z.string().max(200).optional(),
   landingCategory: z.string().max(100).optional(),
 });
+
+const ANON_DAILY_CHAT_LIMIT = 5;
+const USER_DAILY_CHAT_LIMIT = 120;
+
+function getChatMeta(
+  isAuthenticated: boolean,
+  dailyLimit: number,
+  dailyRemaining: number
+) {
+  return {
+    isAuthenticated,
+    historyEnabled: isAuthenticated,
+    dailyLimit,
+    dailyRemaining,
+  };
+}
+
+function withHistoryNotice(content: string, isAuthenticated: boolean): string {
+  if (isAuthenticated) return content;
+  if (content.includes("로그인하면 대화 저장")) return content;
+  return `${content}\n\n로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.`;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -151,117 +177,154 @@ export async function POST(request: NextRequest) {
       );
     }
     const { messages, sessionId, landingCategory } = parsedBody.data;
+    const currentUser = await getCurrentUser();
+    const isAuthenticated = Boolean(currentUser?.id);
+    const dailyLimit = isAuthenticated ? USER_DAILY_CHAT_LIMIT : ANON_DAILY_CHAT_LIMIT;
+    const dailyRateLimitKey = isAuthenticated
+      ? `chat:daily:user:${currentUser!.id}`
+      : `chat:daily:anon:${clientIP}`;
+    const dailyRateLimit = await checkRateLimit(
+      dailyRateLimitKey,
+      dailyLimit,
+      24 * 60 * 60 * 1000
+    );
+
+    if (!dailyRateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: isAuthenticated
+            ? "오늘 AI 상담 사용 한도에 도달했습니다. 내일 다시 시도해주세요."
+            : "비로그인 사용 한도에 도달했습니다. 로그인 후 계속 이용해주세요.",
+          requiresLogin: !isAuthenticated,
+          retryAfter: Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000),
+          meta: getChatMeta(isAuthenticated, dailyLimit, 0),
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
+    // 비로그인 사용자는 단일 턴(마지막 사용자 메시지)만 처리
+    const effectiveMessages = isAuthenticated ? messages : messages.slice(-1);
 
     // OpenAI 메시지 형식으로 변환
     const openaiMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: getSystemPrompt(landingCategory),
+        content: getSystemPrompt(landingCategory, isAuthenticated),
       },
-      ...messages.map((msg: any) => ({
+      ...effectiveMessages.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),
     ];
 
     // Function Calling 정의
+    const searchProgramsFunction: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function = {
+      name: "searchPrograms",
+      description: "고객의 요구사항에 맞는 프로그램을 데이터베이스에서 검색합니다. 카테고리, 지역, 목적 등의 정보가 수집되면 호출하여 실제 프로그램을 추천하세요.",
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            description: "프로그램 카테고리 (예: 체험학습, 수련활동, 국내외교육여행 등)",
+          },
+          region: {
+            type: "string",
+            description: "희망 지역 (예: 서울, 경기, 부산, 제주 등)",
+          },
+          participantCount: {
+            type: "number",
+            description: "예상 인원 (명)",
+          },
+          purpose: {
+            type: "string",
+            description: "여행 목적/성격 (예: 역사 탐방, 문화 체험, 자연 학습 등)",
+          },
+          duration: {
+            type: "string",
+            description: "희망 일정 (예: 3박 4일, 4박5일)",
+          },
+          estimatedBudget: {
+            type: "number",
+            description: "예상 예산 (원). 인원당 예산이면 participantCount와 함께 계산됩니다.",
+          },
+          limit: {
+            type: "number",
+            description: "검색 결과 개수 (기본값: 5, 최대: 10)",
+          },
+        },
+        required: [],
+      },
+    };
+
+    const saveConsultingLogFunction: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function = {
+      name: "saveConsultingLog",
+      description: "상담 내용을 저장하고 요약 이메일을 발송합니다. 사용자가 상담을 마무리하거나 견적 요청을 할 때 호출하세요.",
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            description: "선택한 프로그램 카테고리",
+          },
+          participantCount: {
+            type: "number",
+            description: "예상 인원 (명)",
+          },
+          region: {
+            type: "string",
+            description: "희망 지역",
+          },
+          purpose: {
+            type: "string",
+            description: "여행 목적/성격",
+          },
+          hasInstructor: {
+            type: "boolean",
+            description: "인솔자 필요 여부",
+          },
+          preferredTransport: {
+            type: "string",
+            description: "선호 이동수단 (전세버스, KTX, 항공, 기타)",
+          },
+          mealPreference: {
+            type: "string",
+            description: "식사 취향/요구사항 (할랄, 채식, 알러지 등)",
+          },
+          specialRequests: {
+            type: "string",
+            description: "특별 요구사항 (알러지, 장애 지원, 특정 견학지 등)",
+          },
+          estimatedBudget: {
+            type: "number",
+            description: "예상 예산 (원)",
+          },
+          estimatedQuote: {
+            type: "string",
+            description: "예상 견적가 가이드 (예: 인원당 15만원, 총 300만원 예상)",
+          },
+          canQuoteImmediately: {
+            type: "boolean",
+            description: "즉시 견적 가능 여부",
+          },
+          summary: {
+            type: "string",
+            description: "상담 내용 요약 (3줄 형식: [고객 유형/카테고리], [예상 인원 및 지역], [핵심 요구사항])",
+          },
+        },
+        required: ["summary"],
+      },
+    };
+
     const functions: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function[] = [
-      {
-        name: "searchPrograms",
-        description: "고객의 요구사항에 맞는 프로그램을 데이터베이스에서 검색합니다. 카테고리, 지역, 목적 등의 정보가 수집되면 호출하여 실제 프로그램을 추천하세요.",
-        parameters: {
-          type: "object",
-          properties: {
-            category: {
-              type: "string",
-              description: "프로그램 카테고리 (예: 체험학습, 수련활동, 국내외교육여행 등)",
-            },
-            region: {
-              type: "string",
-              description: "희망 지역 (예: 서울, 경기, 부산, 제주 등)",
-            },
-            participantCount: {
-              type: "number",
-              description: "예상 인원 (명)",
-            },
-            purpose: {
-              type: "string",
-              description: "여행 목적/성격 (예: 역사 탐방, 문화 체험, 자연 학습 등)",
-            },
-            duration: {
-              type: "string",
-              description: "희망 일정 (예: 3박 4일, 4박5일)",
-            },
-            estimatedBudget: {
-              type: "number",
-              description: "예상 예산 (원). 인원당 예산이면 participantCount와 함께 계산됩니다.",
-            },
-            limit: {
-              type: "number",
-              description: "검색 결과 개수 (기본값: 5, 최대: 10)",
-            },
-          },
-          required: [],
-        },
-      },
-      {
-        name: "saveConsultingLog",
-        description: "상담 내용을 저장하고 요약 이메일을 발송합니다. 사용자가 상담을 마무리하거나 견적 요청을 할 때 호출하세요.",
-        parameters: {
-          type: "object",
-          properties: {
-            category: {
-              type: "string",
-              description: "선택한 프로그램 카테고리",
-            },
-            participantCount: {
-              type: "number",
-              description: "예상 인원 (명)",
-            },
-            region: {
-              type: "string",
-              description: "희망 지역",
-            },
-            purpose: {
-              type: "string",
-              description: "여행 목적/성격",
-            },
-            hasInstructor: {
-              type: "boolean",
-              description: "인솔자 필요 여부",
-            },
-            preferredTransport: {
-              type: "string",
-              description: "선호 이동수단 (전세버스, KTX, 항공, 기타)",
-            },
-            mealPreference: {
-              type: "string",
-              description: "식사 취향/요구사항 (할랄, 채식, 알러지 등)",
-            },
-            specialRequests: {
-              type: "string",
-              description: "특별 요구사항 (알러지, 장애 지원, 특정 견학지 등)",
-            },
-            estimatedBudget: {
-              type: "number",
-              description: "예상 예산 (원)",
-            },
-            estimatedQuote: {
-              type: "string",
-              description: "예상 견적가 가이드 (예: 인원당 15만원, 총 300만원 예상)",
-            },
-            canQuoteImmediately: {
-              type: "boolean",
-              description: "즉시 견적 가능 여부",
-            },
-            summary: {
-              type: "string",
-              description: "상담 내용 요약 (3줄 형식: [고객 유형/카테고리], [예상 인원 및 지역], [핵심 요구사항])",
-            },
-          },
-          required: ["summary"],
-        },
-      },
+      searchProgramsFunction,
+      ...(isAuthenticated ? [saveConsultingLogFunction] : []),
     ];
 
     // OpenAI API 호출
@@ -331,34 +394,43 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: withServiceGuidance(
-                `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`
+              content: withHistoryNotice(
+                withServiceGuidance(
+                  `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`
+                ),
+                isAuthenticated
               ),
             },
             functionCall: {
               name: functionName,
               result: { count: searchResult.count, programs: searchResult.programs },
             },
+            meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
           });
         } else {
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: withServiceGuidance(
-                "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
-                { noProgramFound: true }
+              content: withHistoryNotice(
+                withServiceGuidance(
+                  "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
+                  { noProgramFound: true }
+                ),
+                isAuthenticated
               ),
             },
             functionCall: {
               name: functionName,
               result: { count: 0, programs: [] },
             },
+            meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
           });
         }
       } else if (functionName === "saveConsultingLog") {
         // 상담 로그 저장
         const saveResult = await saveConsultingLog({
           sessionId: sessionId || `session_${Date.now()}`,
+          userId: currentUser?.id,
           category: typeof functionArgs.category === "string" ? functionArgs.category : undefined,
           participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
           region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
@@ -370,7 +442,7 @@ export async function POST(request: NextRequest) {
           estimatedBudget: typeof functionArgs.estimatedBudget === "number" ? functionArgs.estimatedBudget : undefined,
           estimatedQuote: typeof functionArgs.estimatedQuote === "string" ? functionArgs.estimatedQuote : undefined,
           canQuoteImmediately: typeof functionArgs.canQuoteImmediately === "boolean" ? functionArgs.canQuoteImmediately : false,
-          conversation: messages.map((msg: any) => ({
+          conversation: effectiveMessages.map((msg: any) => ({
             role: msg.role,
             content: msg.content,
             timestamp: new Date().toISOString(),
@@ -399,17 +471,21 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           message: {
             role: "assistant",
-            content: withServiceGuidance(
-              typeof functionArgs.summary === "string"
-                ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
-                : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.",
-              { savedConsulting: true }
+            content: withHistoryNotice(
+              withServiceGuidance(
+                typeof functionArgs.summary === "string"
+                  ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
+                  : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.",
+                { savedConsulting: true }
+              ),
+              isAuthenticated
             ),
           },
           functionCall: {
             name: functionName,
             result: saveResult,
           },
+          meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
         });
       }
     }
@@ -418,10 +494,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: {
         role: "assistant",
-        content: withServiceGuidance(
-          assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."
+        content: withHistoryNotice(
+          withServiceGuidance(
+            assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."
+          ),
+          isAuthenticated
         ),
       },
+      meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
     });
   } catch (error) {
     console.error("Chat API 오류:", error);

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const profileUpdateSchema = z.object({
+  name: z.string().trim().min(1),
+  phone: z.string().trim().optional(),
+  school: z.string().trim().optional(),
+  marketingEmailOptIn: z.boolean().optional(),
+  marketingAlimtalkOptIn: z.boolean().optional(),
+});
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -13,14 +22,25 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const { name, phone, school } = await request.json();
-
-    if (!name) {
+    const payload = await request.json();
+    const parsed = profileUpdateSchema.safeParse(payload);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "이름은 필수입니다." },
+        { error: "입력값을 다시 확인해주세요." },
         { status: 400 }
       );
     }
+    const {
+      name,
+      phone,
+      school,
+      marketingEmailOptIn,
+      marketingAlimtalkOptIn,
+    } = parsed.data;
+
+    const nextMarketingEmailOptIn = marketingEmailOptIn ?? user.marketingEmailOptIn;
+    const nextMarketingAlimtalkOptIn = marketingAlimtalkOptIn ?? user.marketingAlimtalkOptIn;
+    const now = new Date();
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -28,6 +48,14 @@ export async function PATCH(request: NextRequest) {
         name,
         phone: phone || null,
         school: school || null,
+        marketingEmailOptIn: nextMarketingEmailOptIn,
+        marketingEmailOptInAt: nextMarketingEmailOptIn
+          ? (user.marketingEmailOptIn ? undefined : now)
+          : null,
+        marketingAlimtalkOptIn: nextMarketingAlimtalkOptIn,
+        marketingAlimtalkOptInAt: nextMarketingAlimtalkOptIn
+          ? (user.marketingAlimtalkOptIn ? undefined : now)
+          : null,
       },
       select: {
         id: true,
@@ -35,6 +63,8 @@ export async function PATCH(request: NextRequest) {
         name: true,
         phone: true,
         school: true,
+        marketingEmailOptIn: true,
+        marketingAlimtalkOptIn: true,
       },
     });
 
@@ -50,4 +80,3 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
-

@@ -126,11 +126,11 @@ export default function AboutPage() {
                   박정주 대표이사
                 </h3>
                 <p className="text-text-gray">
-                  1996년부터 현재까지 28년 이상의 교육 여행 및 현장 체험학습 운영 전문가
+                  1996년부터 현재까지 교육 여행 및 현장 체험학습을 이끌어온 운영 전문가
                 </p>
               </div>
               <blockquote className="text-xl md:text-2xl font-serif text-center text-text-dark leading-relaxed italic border-l-4 border-brand-green pl-6 py-4">
-                &ldquo;28년, 아이들의 꿈과 함께 현장을 지켜왔습니다.<br />
+                &ldquo;1996년부터 아이들의 꿈과 함께 현장을 지켜왔습니다.<br />
                 안전을 넘어 감동이 있는 교육 여행을 약속드립니다.&rdquo;
               </blockquote>
               <p className="text-center text-text-gray mt-4 font-medium">
@@ -153,7 +153,7 @@ export default function AboutPage() {
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="font-semibold text-text-dark min-w-[100px]">경력:</span>
-                    <span>1996년부터 현재까지 <strong className="text-brand-green">28년 이상</strong>의 교육 여행 및 현장 체험학습 운영 전문가</span>
+                    <span>1996년부터 현재까지 <strong className="text-brand-green">축적된 운영 경험</strong>을 바탕으로 한 교육 여행 및 현장 체험학습 운영 전문가</span>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="font-semibold text-text-dark min-w-[100px]">철학:</span>
@@ -202,7 +202,7 @@ export default function AboutPage() {
                     <Globe className="w-10 h-10 text-brand-green mx-auto mb-3" />
                     <h4 className="font-semibold text-text-dark mb-2">신뢰 (Trust)</h4>
                     <p className="text-sm text-text-gray leading-relaxed">
-                      28년간 전국 학교 및 지자체와 쌓아온 두터운 신뢰와 검증된 운영 실적
+                      전국 학교 및 지자체와 쌓아온 두터운 신뢰와 검증된 운영 실적
                     </p>
                   </div>
                   <div className="text-center p-4 bg-brand-green/5 rounded-lg">
@@ -227,7 +227,7 @@ export default function AboutPage() {
               터치더월드의 전문성
             </h2>
             <p className="text-center text-text-gray mb-12">
-              28년 운영 노하우로 쌓아온 현장 경험과 전문성
+              1996년부터 축적해온 현장 경험과 전문성
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* 현장 행사의 생동감 */}
@@ -269,7 +269,7 @@ export default function AboutPage() {
                       전문 인솔 및 운영 역량
                     </h3>
                     <p className="text-text-gray leading-relaxed mb-3">
-                      28년 운영 노하우의 핵심은 &lsquo;안전&rsquo;입니다. 사전 답사부터 현장 밀착 케어까지, 전문 인솔 인력이 모든 행사를 체계적으로 관리합니다.
+                      장기 운영 노하우의 핵심은 &lsquo;안전&rsquo;입니다. 사전 답사부터 현장 밀착 케어까지, 전문 인솔 인력이 모든 행사를 체계적으로 관리합니다.
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
@@ -443,4 +443,3 @@ export default function AboutPage() {
     </div>
   );
 }
-

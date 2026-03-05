@@ -3,9 +3,21 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import { AchievementAccordion } from "@/components/AchievementAccordion";
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { format } from "date-fns";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { ChevronRight } from "lucide-react";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "교육여행 운영 실적 | 터치더월드",
+  description:
+    "터치더월드의 교육여행, 수학여행, 교사연수, 해외연수 운영 실적과 연도별 프로젝트 이력을 확인하세요.",
+  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["실적", "운영 사례", "사업 실적"]),
+  alternates: {
+    canonical: "/achievements",
+  },
+};
 
 async function getAchievementsByYear() {
   const achievements = await prisma.achievement.findMany({

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { ProgramCard } from "@/components/ProgramCard";
 import { getCategoryDisplayName, getCategoryDetailKey } from "@/lib/category-utils";
@@ -8,6 +9,17 @@ import { CategoryCardNews } from "@/components/CategoryCardNews";
 import { Pagination } from "@/components/Pagination";
 import { ProgramSort } from "@/components/ProgramSort";
 import { Suspense } from "react";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "교육여행·수학여행 프로그램 | 터치더월드",
+  description:
+    "터치더월드의 교육여행, 수학여행, 체험학습, 교사연수, 해외연수 프로그램을 카테고리별로 확인하세요.",
+  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["프로그램", "여행 코스"]),
+  alternates: {
+    canonical: "/programs",
+  },
+};
 
 const ITEMS_PER_PAGE = 12;
 
@@ -169,4 +181,3 @@ export default async function ProgramsPage({
     </div>
   );
 }
-

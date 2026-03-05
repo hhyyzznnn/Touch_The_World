@@ -1,4 +1,5 @@
-// 채팅 기록을 sessionStorage에 저장하고 불러오는 유틸리티
+// 로그인 사용자 전용 채팅 기록 저장 유틸리티
+// 비로그인 사용자는 기록을 저장하지 않습니다.
 
 export interface ChatMessage {
   id: string;
@@ -8,32 +9,59 @@ export interface ChatMessage {
   showCategoryButtons?: boolean;
 }
 
-const STORAGE_KEY = "ttw_chat_messages";
-const SESSION_ID_KEY = "ttw_chat_session_id";
+interface ChatStorageOptions {
+  userId?: string | null;
+  enabled?: boolean;
+}
 
-export function saveChatMessages(messages: ChatMessage[], sessionId: string) {
+const STORAGE_KEY_PREFIX = "ttw_chat_messages";
+const SESSION_ID_KEY_PREFIX = "ttw_chat_session_id";
+const LEGACY_STORAGE_KEY = "ttw_chat_messages";
+const LEGACY_SESSION_ID_KEY = "ttw_chat_session_id";
+
+function getScopedKey(prefix: string, userId: string): string {
+  return `${prefix}:${userId}`;
+}
+
+export function saveChatMessages(
+  messages: ChatMessage[],
+  sessionId: string,
+  options?: ChatStorageOptions
+) {
   if (typeof window === "undefined") return;
+  if (options?.enabled === false) return;
+  if (!options?.userId) return;
   
   try {
+    const storageKey = getScopedKey(STORAGE_KEY_PREFIX, options.userId);
+    const sessionKey = getScopedKey(SESSION_ID_KEY_PREFIX, options.userId);
     const messagesToSave = messages.map((msg) => ({
       ...msg,
       timestamp: msg.timestamp.toISOString(),
     }));
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messagesToSave));
-    sessionStorage.setItem(SESSION_ID_KEY, sessionId);
+    localStorage.setItem(storageKey, JSON.stringify(messagesToSave));
+    localStorage.setItem(sessionKey, sessionId);
   } catch (error) {
     console.error("Failed to save chat messages:", error);
   }
 }
 
-export function loadChatMessages(): { messages: ChatMessage[]; sessionId: string | null } {
+export function loadChatMessages(options?: ChatStorageOptions): { messages: ChatMessage[]; sessionId: string | null } {
   if (typeof window === "undefined") {
+    return { messages: [], sessionId: null };
+  }
+  if (options?.enabled === false) {
+    return { messages: [], sessionId: null };
+  }
+  if (!options?.userId) {
     return { messages: [], sessionId: null };
   }
   
   try {
-    const messagesData = sessionStorage.getItem(STORAGE_KEY);
-    const sessionId = sessionStorage.getItem(SESSION_ID_KEY);
+    const storageKey = getScopedKey(STORAGE_KEY_PREFIX, options.userId);
+    const sessionKey = getScopedKey(SESSION_ID_KEY_PREFIX, options.userId);
+    const messagesData = localStorage.getItem(storageKey);
+    const sessionId = localStorage.getItem(sessionKey);
     
     if (!messagesData) {
       return { messages: [], sessionId: sessionId || null };
@@ -52,14 +80,27 @@ export function loadChatMessages(): { messages: ChatMessage[]; sessionId: string
   }
 }
 
-export function clearChatMessages() {
+export function clearChatMessages(options?: ChatStorageOptions) {
   if (typeof window === "undefined") return;
+  if (!options?.userId) return;
   
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(SESSION_ID_KEY);
+    const storageKey = getScopedKey(STORAGE_KEY_PREFIX, options.userId);
+    const sessionKey = getScopedKey(SESSION_ID_KEY_PREFIX, options.userId);
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(sessionKey);
   } catch (error) {
     console.error("Failed to clear chat messages:", error);
   }
 }
 
+export function clearLegacyAnonymousChatMessages() {
+  if (typeof window === "undefined") return;
+
+  try {
+    sessionStorage.removeItem(LEGACY_STORAGE_KEY);
+    sessionStorage.removeItem(LEGACY_SESSION_ID_KEY);
+  } catch (error) {
+    console.error("Failed to clear chat messages:", error);
+  }
+}

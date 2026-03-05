@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { 
   List, 
@@ -16,6 +17,26 @@ import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
 import { NewsTicker } from "@/components/NewsTicker";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
+  description:
+    "터치더월드는 교육여행, 수학여행, 교사연수, 해외연수를 전문으로 기획·운영하는 교육여행 전문 여행사입니다.",
+  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
+    description:
+      "학교·지자체 맞춤형 교육여행과 체험학습, 교사연수·해외연수를 운영하는 터치더월드의 프로그램을 확인하세요.",
+    url: "/",
+    siteName: "터치더월드",
+    locale: "ko_KR",
+    type: "website",
+  },
+};
 
 const EVENT_IMAGE_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==";
@@ -137,6 +158,21 @@ export default async function HomePage({
       {/* 회사 소식 한 줄 */}
       <NewsTicker items={newsTickerItems} />
 
+      {/* 검색 의도형 소개 섹션 */}
+      <section className="py-8 sm:py-10 bg-white border-b border-gray-100">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto text-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-4">
+              교육여행·수학여행·교사연수·해외연수 전문, 터치더월드
+            </h2>
+            <p className="text-sm sm:text-base text-text-gray leading-relaxed">
+              터치더월드(Touch The World, touchtheworld)는 학교와 지자체를 위한 교육여행 전문 여행사로,
+              체험학습, 수학여행, 교사연수, 해외연수 프로그램을 교육 목표에 맞춰 설계하고 안전 중심으로 운영합니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Program Categories */}
       <section className="py-10 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
@@ -177,7 +213,7 @@ export default async function HomePage({
                 1996년 설립
               </span>
               <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
-                28년+ 운영 노하우
+                1996년부터 운영
               </span>
               <Link
                 href="/achievements"

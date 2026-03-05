@@ -4,6 +4,18 @@ import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/lib/email";
 import crypto from "crypto";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  email: z.string().trim().email(),
+  username: z.string().trim().min(3).max(20),
+  password: z.string().min(6),
+  name: z.string().trim().min(1),
+  phone: z.string().trim().min(1),
+  school: z.string().trim().optional(),
+  marketingEmailOptIn: z.boolean().optional().default(false),
+  marketingAlimtalkOptIn: z.boolean().optional().default(false),
+});
 
 export async function POST(request: NextRequest) {
   // Rate Limiting: IP당 1시간에 3회 제한
@@ -29,7 +41,24 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { email, username, password, name, phone, school } = await request.json();
+    const payload = await request.json();
+    const parsed = registerSchema.safeParse(payload);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "입력값을 다시 확인해주세요." },
+        { status: 400 }
+      );
+    }
+    const {
+      email,
+      username,
+      password,
+      name,
+      phone,
+      school,
+      marketingEmailOptIn,
+      marketingAlimtalkOptIn,
+    } = parsed.data;
 
     // 입력 검증
     if (!email || !username || !password || !name || !phone) {
@@ -127,6 +156,7 @@ export async function POST(request: NextRequest) {
     }
 
     const phoneVerified = true;
+    const now = new Date();
 
     // 사용자 생성
     const user = await prisma.user.create({
@@ -139,6 +169,10 @@ export async function POST(request: NextRequest) {
         phoneVerified,
         school: school || null,
         emailVerified: false,
+        marketingEmailOptIn,
+        marketingEmailOptInAt: marketingEmailOptIn ? now : null,
+        marketingAlimtalkOptIn,
+        marketingAlimtalkOptInAt: marketingAlimtalkOptIn ? now : null,
         emailVerifications: {
           create: {
             token,
