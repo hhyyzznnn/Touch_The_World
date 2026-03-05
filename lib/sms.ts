@@ -33,9 +33,16 @@ export async function sendVerificationSMS(phone: string, code: string): Promise<
       if (result.success) {
         return { success: true };
       }
-      console.warn("카카오 알림톡 발송 실패:", result.error);
+      return {
+        success: false,
+        error: result.error || "카카오 알림톡 발송 실패",
+      };
     } catch (error) {
-      console.error("카카오 알림톡 발송 오류:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `카카오 알림톡 발송 오류: ${message}`,
+      };
     }
   }
 
@@ -51,7 +58,10 @@ export async function sendVerificationSMS(phone: string, code: string): Promise<
     return { success: true };
   }
 
-  return { success: false, error: "카카오 알림톡 설정이 필요합니다." };
+  return {
+    success: false,
+    error: "카카오 알림톡 설정이 필요합니다.",
+  };
 }
 
 // 인증 코드 생성 (6자리 숫자)

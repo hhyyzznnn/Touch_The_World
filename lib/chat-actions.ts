@@ -72,15 +72,20 @@ export async function saveConsultingLog(data: {
     // 카카오 알림톡 발송 (전화번호가 있는 경우)
     if (data.contactPhone && data.summary) {
       try {
-        await sendConsultingCompleteAlimtalk(
+        const kakaoResult = await sendConsultingCompleteAlimtalk(
           data.contactPhone.replace(/[^0-9]/g, ""), // 하이픈 제거
           data.category || "미선택",
           data.summary
         );
-        await prisma.consultingLog.update({
-          where: { id: log.id },
-          data: { kakaoSent: true, kakaoSentAt: new Date() },
-        });
+
+        if (kakaoResult.success) {
+          await prisma.consultingLog.update({
+            where: { id: log.id },
+            data: { kakaoSent: true, kakaoSentAt: new Date() },
+          });
+        } else {
+          console.warn("카카오 알림톡 발송 실패 (무시):", kakaoResult.error);
+        }
       } catch (error) {
         console.error("카카오 알림톡 발송 실패 (무시):", error);
       }
@@ -261,4 +266,3 @@ export async function searchPrograms(criteria: {
     return { success: false, error: errorMessage, programs: [], count: 0 };
   }
 }
-

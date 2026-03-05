@@ -23,6 +23,7 @@ function getEnv(name: string, alias?: string): string | undefined {
 }
 
 const DEFAULT_BIZMSG_BASE_URL = "https://alimtalk-api.bizmsg.kr";
+const DEFAULT_BIZMSG_SEND_PATH = "/v2/sender/send";
 
 function resolveBizmUserId(): string | undefined {
   return (
@@ -60,6 +61,27 @@ function applyTemplateVariables(
   return replaced;
 }
 
+function resolveSendEndpoint(baseUrlRaw: string): string {
+  const baseUrl = baseUrlRaw.trim().replace(/\/+$/, "");
+  if (baseUrl.endsWith(DEFAULT_BIZMSG_SEND_PATH)) {
+    return baseUrl;
+  }
+  return `${baseUrl}${DEFAULT_BIZMSG_SEND_PATH}`;
+}
+
+function formatBizmError(error: unknown, endpoint: string): string {
+  if (!(error instanceof Error)) {
+    return `알 수 없는 오류: ${String(error)} (endpoint=${endpoint})`;
+  }
+
+  const cause = (error as Error & { cause?: { code?: string; message?: string } }).cause;
+  const causeText = cause?.code || cause?.message;
+  if (causeText) {
+    return `${error.message} (cause=${causeText}, endpoint=${endpoint})`;
+  }
+  return `${error.message} (endpoint=${endpoint})`;
+}
+
 /**
  * 카카오 알림톡 발송
  * 
@@ -76,6 +98,10 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
     process.env.KAKAO_BM_BASE_URL ||
     process.env.BIZM_BASE_URL ||
     DEFAULT_BIZMSG_BASE_URL;
+  const sendEndpoint =
+    process.env.KAKAO_BM_SEND_ENDPOINT ||
+    process.env.BIZM_SEND_ENDPOINT ||
+    resolveSendEndpoint(baseUrl);
 
   // 개발 환경 또는 설정이 없으면 콘솔에 출력
   const isDevelopment = process.env.NODE_ENV !== "production";
@@ -131,11 +157,16 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
       headers.userkey = userKey;
     }
 
-    const response = await fetch(`${baseUrl}/v2/sender/send`, {
+    const timeoutMs = Number(process.env.BIZM_FETCH_TIMEOUT_MS || 10000);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    const response = await fetch(sendEndpoint, {
       method: "POST",
       headers,
       body: JSON.stringify([payload]),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
     const responseText = await response.text();
     let responseData: unknown = responseText;
@@ -176,7 +207,7 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
 
     return { success: true };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = formatBizmError(error, sendEndpoint);
     console.error("❌ 카카오 알림톡 발송 실패:", errorMessage);
     
     // 오류 발생 시에도 개발 환경에서는 콘솔에 출력
@@ -250,5 +281,4 @@ export async function sendVerificationCodeAlimtalk(
     },
   });
 }
-
 
