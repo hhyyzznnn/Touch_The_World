@@ -2,8 +2,7 @@
 
 현재 상태:
 - 회원가입 휴대폰 인증 API는 구현되어 있음.
-- 알림톡 발송 유틸도 구현되어 있으나, 현재 호출 스펙은 OAuth + `/v2/send/kakao` 기준.
-- BizM API 가이드(v2.29.1)의 핵심 발송 스펙은 `/v2/sender/send` + `userid` 헤더.
+- 알림톡 발송 유틸은 BizM Sender API(`/v2/sender/send` + `userid`)로 전환 완료.
 
 ## 1. 콘솔 준비 작업
 
@@ -20,31 +19,31 @@
 - [ ] `BIZM_USER_ID` (BizM 계정명, userid 헤더용)
 - [ ] `BIZM_SENDER_KEY` (발신프로필키, profile)
 - [ ] `BIZM_VERIFICATION_TEMPLATE_CODE` (tmplId)
-- [ ] `BIZM_BASE_URL=https://alimtalk-api.bizmsg.kr`
+- [x] `BIZM_BASE_URL=https://alimtalk-api.bizmsg.kr`
 
 선택:
 - [ ] `BIZM_USER_KEY` (잔액조회 등 계정 API 사용 시)
 - [ ] `BIZM_SENDER_NO` (대체문자 기능 사용할 때)
 
-## 3. 코드 변경 작업 (나중에 구현)
+## 3. 코드 변경 작업
 
 대상 파일:
 - `lib/kakao-alimtalk.ts`
 - `lib/sms.ts`
 
 변경 체크리스트:
-- [ ] 발송 API를 `/v2/sender/send`로 전환
-- [ ] 헤더에 `userid` 추가
-- [ ] 본문 배열 구조 적용(단건도 배열 1개)
-- [ ] 알림톡 필수 필드 매핑 확인
+- [x] 발송 API를 `/v2/sender/send`로 전환
+- [x] 헤더에 `userid` 추가
+- [x] 본문 배열 구조 적용(단건도 배열 1개)
+- [x] 알림톡 필수 필드 매핑 확인
   - `message_type` (AT/AI)
   - `phn`
   - `profile`
   - `tmplId`
   - `msg`
-- [ ] 응답 파싱을 `code=success|fail` 기준으로 통일
-- [ ] 실패 메시지를 API 응답 `message`로 노출
-- [ ] 운영 실패 시 `verify-phone` API에서 502 반환 유지
+- [x] 응답 파싱을 `code=success|fail` 기준으로 통일
+- [x] 실패 메시지를 API 응답 `message`로 노출
+- [x] 운영 실패 시 `verify-phone` API에서 502 반환 유지
 
 ## 4. 테스트 작업
 

@@ -111,6 +111,7 @@ for (const key of [
   "NAVER_CLIENT_ID",
   "GOOGLE_CLIENT_ID",
   "KAKAO_BM_CLIENT_ID",
+  "BIZM_USER_ID",
   "BIZM_CLIENT_ID",
 ]) {
   if (process.env[key]) console.log(`  ✅ ${key}`);

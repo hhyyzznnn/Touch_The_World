@@ -1,15 +1,12 @@
 /**
  * 카카오 알림톡 발송 유틸리티
  *
- * 참고: 현재 구현은 OAuth + /v2/send/kakao 기반입니다.
- * BizM 가이드(/v2/sender/send, userid 헤더) 기준 전환 작업은
- * docs/BIZM_ALIMTALK_TODO.md 문서를 따라 별도 진행합니다.
+ * BizM Sender API (/v2/sender/send, userid 헤더) 기반 구현입니다.
  *
  * 실제 카카오 비즈니스 채널 연동 시 사용
  * - 카카오 비즈니스 채널 개설 필요
  * - 알림톡 템플릿 등록 및 심사 필요
- * - API 키 발급 필요
- * - 디케이테크인과의 서비스 계약 필요
+ * - BizM 계정(userid) 및 발신프로필키 필요
  */
 
 interface KakaoAlimtalkOptions {
@@ -25,68 +22,42 @@ function getEnv(name: string, alias?: string): string | undefined {
   return process.env[name] || (alias ? process.env[alias] : undefined);
 }
 
-const DEFAULT_BIZMSG_BASE_URL = "https://bizmsg-web.kakaoenterprise.com";
+const DEFAULT_BIZMSG_BASE_URL = "https://alimtalk-api.bizmsg.kr";
 
-// 액세스 토큰 캐시 (토큰 만료 전까지 재사용)
-let cachedAccessToken: {
-  token: string;
-  expiresAt: number;
-} | null = null;
+function resolveBizmUserId(): string | undefined {
+  return (
+    process.env.BIZM_USER_ID ||
+    getEnv("KAKAO_BM_CLIENT_ID", "BIZM_CLIENT_ID")
+  );
+}
 
-/**
- * 카카오 비즈니스 메시지 OAuth 2.0 인증
- * 액세스 토큰 발급
- */
-async function getKakaoBMAccessToken(): Promise<string> {
-  // 캐시된 토큰이 있고 아직 유효하면 재사용
-  if (cachedAccessToken && Date.now() < cachedAccessToken.expiresAt) {
-    return cachedAccessToken.token;
+function resolveBizmUserKey(): string | undefined {
+  return (
+    process.env.BIZM_USER_KEY ||
+    getEnv("KAKAO_BM_CLIENT_SECRET", "BIZM_CLIENT_SECRET")
+  );
+}
+
+function normalizePhoneNumber(phoneNumberRaw: string): string {
+  let phoneNumber = phoneNumberRaw.replace(/[^0-9]/g, "");
+  if (phoneNumber.startsWith("0")) {
+    phoneNumber = "82" + phoneNumber.substring(1);
+  } else if (!phoneNumber.startsWith("82")) {
+    phoneNumber = "82" + phoneNumber;
   }
+  return phoneNumber;
+}
 
-  const clientId = getEnv("KAKAO_BM_CLIENT_ID", "BIZM_CLIENT_ID");
-  const clientSecret = getEnv("KAKAO_BM_CLIENT_SECRET", "BIZM_CLIENT_SECRET");
-  const baseUrl = process.env.KAKAO_BM_BASE_URL || DEFAULT_BIZMSG_BASE_URL;
-
-  if (!clientId || !clientSecret) {
-    throw new Error("KAKAO_BM_CLIENT_ID와 KAKAO_BM_CLIENT_SECRET이 설정되지 않았습니다.");
+function applyTemplateVariables(
+  message: string,
+  variables?: Record<string, string>
+): string {
+  if (!variables) return message;
+  let replaced = message;
+  for (const [key, value] of Object.entries(variables)) {
+    replaced = replaced.replace(new RegExp(`#\\{${key}\\}`, "g"), value);
   }
-
-  try {
-    // Basic 인증 헤더 생성
-    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-
-    const response = await fetch(`${baseUrl}/v2/oauth/token`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${credentials}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`OAuth 인증 실패: ${errorText}`);
-    }
-
-    const data = await response.json();
-    const accessToken = data.access_token;
-    const expiresIn = data.expires_in || 3600; // 기본 1시간
-
-    // 토큰 캐시 (만료 5분 전까지 유효)
-    cachedAccessToken = {
-      token: accessToken,
-      expiresAt: Date.now() + (expiresIn - 300) * 1000,
-    };
-
-    return accessToken;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("카카오 비즈니스 메시지 OAuth 인증 오류:", errorMessage);
-    throw new Error(`OAuth 인증 실패: ${errorMessage}`);
-  }
+  return replaced;
 }
 
 /**
@@ -98,8 +69,8 @@ async function getKakaoBMAccessToken(): Promise<string> {
  * 3. 환경 변수 설정 완료
  */
 export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<{ success: boolean; error?: string }> {
-  const clientId = getEnv("KAKAO_BM_CLIENT_ID", "BIZM_CLIENT_ID");
-  const clientSecret = getEnv("KAKAO_BM_CLIENT_SECRET", "BIZM_CLIENT_SECRET");
+  const userId = resolveBizmUserId();
+  const userKey = resolveBizmUserKey();
   const senderKey = getEnv("KAKAO_BM_SENDER_KEY", "BIZM_SENDER_KEY");
   const baseUrl =
     process.env.KAKAO_BM_BASE_URL ||
@@ -108,10 +79,11 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
 
   // 개발 환경 또는 설정이 없으면 콘솔에 출력
   const isDevelopment = process.env.NODE_ENV !== "production";
-  if (!clientId || !clientSecret || !senderKey || isDevelopment) {
+  if (!userId || !senderKey || isDevelopment) {
     console.log("=".repeat(60));
     console.log("📱 카카오 알림톡 발송 (개발 모드)");
     console.log("=".repeat(60));
+    console.log(`사용자 계정(userid): ${userId || "미설정"}`);
     console.log(`받는 번호: ${options.phoneNumber}`);
     console.log(`템플릿 코드: ${options.templateCode}`);
     console.log(`메시지: ${options.message}`);
@@ -123,49 +95,85 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
   }
 
   try {
-    // OAuth 2.0 인증으로 액세스 토큰 발급
-    const accessToken = await getKakaoBMAccessToken();
+    const phoneNumber = normalizePhoneNumber(options.phoneNumber);
+    const finalMessage = applyTemplateVariables(options.message, options.variables);
+    const payload: Record<string, unknown> = {
+      message_type: "AT",
+      phn: phoneNumber,
+      profile: senderKey,
+      tmplId: options.templateCode,
+      msg: finalMessage,
+      reserveDt: "00000000000000",
+    };
 
-    // 전화번호 형식 변환 (한국: 01012345678 -> 821012345678)
-    let phoneNumber = options.phoneNumber.replace(/[^0-9]/g, "");
-    if (phoneNumber.startsWith("0")) {
-      phoneNumber = "82" + phoneNumber.substring(1);
-    } else if (!phoneNumber.startsWith("82")) {
-      phoneNumber = "82" + phoneNumber;
+    if (options.buttonText && options.buttonUrl) {
+      payload.button1 = {
+        name: options.buttonText,
+        type: "WL",
+        url_mobile: options.buttonUrl,
+        url_pc: options.buttonUrl,
+      };
     }
 
-    // 알림톡 발송 API 호출
-    const response = await fetch(`${baseUrl}/v2/send/kakao`, {
+    const smsSender = process.env.KAKAO_BM_SENDER_NO || process.env.BIZM_SENDER_NO;
+    if (smsSender) {
+      payload.smsSender = smsSender;
+      payload.smsKind = "S";
+      payload.msgSms = finalMessage;
+    }
+
+    const headers: Record<string, string> = {
+      userid: userId,
+      "Content-Type": "application/json;charset=UTF-8",
+      Accept: "application/json",
+    };
+    if (userKey) {
+      headers.userkey = userKey;
+    }
+
+    const response = await fetch(`${baseUrl}/v2/sender/send`, {
       method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message_type: "AT", // 알림톡
-        sender_key: senderKey,
-        template_code: options.templateCode,
-        phone_number: phoneNumber,
-        message: options.message,
-        variables: options.variables || {},
-        sender_no: process.env.KAKAO_BM_SENDER_NO || process.env.BIZM_SENDER_NO || phoneNumber, // 발신 번호
-        cid: `verification_${Date.now()}`, // 고객사 정의 Key ID
-      }),
+      headers,
+      body: JSON.stringify([payload]),
     });
 
-    if (!response.ok) {
-      let errorMessage: string;
-      try {
-        const errorData = await response.json() as { message?: string; error?: string };
-        errorMessage = errorData.message || errorData.error || "알 수 없는 오류";
-      } catch {
-        const errorText = await response.text();
-        errorMessage = errorText || "응답 파싱 실패";
-      }
-      throw new Error(`알림톡 발송 실패: ${errorMessage}`);
+    const responseText = await response.text();
+    let responseData: unknown = responseText;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      // non-json fallback
     }
 
-    await response.json(); // 응답 확인
+    if (!response.ok) {
+      throw new Error(
+        `BizM 요청 실패(status=${response.status}): ${responseText || "응답 본문 없음"}`
+      );
+    }
+
+    // /v2/sender/send 응답은 배열 또는 객체 형태가 올 수 있어 방어적으로 처리
+    const firstResult = Array.isArray(responseData)
+      ? responseData[0]
+      : responseData;
+    const resultObj =
+      firstResult && typeof firstResult === "object"
+        ? (firstResult as Record<string, unknown>)
+        : {};
+    const resultCode = String(resultObj.code || "");
+    const sendCode = String(resultObj.result || resultObj.result_code || "");
+    const message = String(resultObj.message || "");
+
+    const isSuccess =
+      resultCode.toLowerCase() === "success" ||
+      resultCode === "K000" ||
+      sendCode === "K000";
+
+    if (!isSuccess) {
+      throw new Error(
+        `BizM 발송 실패(code=${resultCode || sendCode || "unknown"}): ${message || JSON.stringify(responseData)}`
+      );
+    }
+
     return { success: true };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -242,6 +250,5 @@ export async function sendVerificationCodeAlimtalk(
     },
   });
 }
-
 
 

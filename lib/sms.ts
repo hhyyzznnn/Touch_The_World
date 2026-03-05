@@ -9,10 +9,17 @@ export interface SmsSendResult {
 }
 
 function isAlimtalkConfigured(): boolean {
-  const hasClientId = Boolean(process.env.KAKAO_BM_CLIENT_ID || process.env.BIZM_CLIENT_ID);
-  const hasClientSecret = Boolean(process.env.KAKAO_BM_CLIENT_SECRET || process.env.BIZM_CLIENT_SECRET);
+  const hasUserId = Boolean(
+    process.env.BIZM_USER_ID ||
+    process.env.KAKAO_BM_CLIENT_ID ||
+    process.env.BIZM_CLIENT_ID
+  );
   const hasSenderKey = Boolean(process.env.KAKAO_BM_SENDER_KEY || process.env.BIZM_SENDER_KEY);
-  return hasClientId && hasClientSecret && hasSenderKey;
+  const hasTemplateCode = Boolean(
+    process.env.KAKAO_BM_VERIFICATION_TEMPLATE_CODE ||
+    process.env.BIZM_VERIFICATION_TEMPLATE_CODE
+  );
+  return hasUserId && hasSenderKey && hasTemplateCode;
 }
 
 export async function sendVerificationSMS(phone: string, code: string): Promise<SmsSendResult> {

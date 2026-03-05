@@ -142,12 +142,22 @@ const optionalEnvVars: EnvVar[] = [
   {
     name: "KAKAO_BM_CLIENT_ID",
     required: false,
-    description: "카카오 비즈니스 메시지 Client ID (알림톡 인증번호 발송용)",
+    description: "BizM userid 호환 키(알림톡 인증번호 발송용)",
   },
   {
     name: "KAKAO_BM_CLIENT_SECRET",
     required: false,
-    description: "카카오 비즈니스 메시지 Client Secret",
+    description: "BizM userkey 호환 키(선택)",
+  },
+  {
+    name: "BIZM_USER_ID",
+    required: false,
+    description: "BizM 계정명(userid 헤더용, 권장)",
+  },
+  {
+    name: "BIZM_USER_KEY",
+    required: false,
+    description: "BizM userkey 헤더값(선택)",
   },
   {
     name: "KAKAO_BM_SENDER_KEY",
@@ -162,7 +172,7 @@ const optionalEnvVars: EnvVar[] = [
   {
     name: "KAKAO_BM_BASE_URL",
     required: false,
-    description: "카카오 비즈니스 메시지 API Base URL (기본값: https://bizmsg-web.kakaoenterprise.com)",
+    description: "카카오 비즈니스 메시지 API Base URL (기본값: https://alimtalk-api.bizmsg.kr)",
   },
   {
     name: "KAKAO_CLIENT_ID",

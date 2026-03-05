@@ -15,15 +15,15 @@
 
 ## 2. 현재 구현 방식(중요)
 
-현재 프로젝트는 OAuth 기반 발송 스펙(`POST /v2/send/kakao`)으로 구현되어 있습니다.
+현재 프로젝트는 BizM Sender API 기반 발송 스펙(`POST /v2/sender/send`)으로 구현되어 있습니다.
 
-- 인증 정보: `KAKAO_BM_CLIENT_ID` + `KAKAO_BM_CLIENT_SECRET` (또는 `BIZM_CLIENT_ID`, `BIZM_CLIENT_SECRET` 별칭)
+- 헤더: `userid` (필수), `userkey` (선택)
+- 인증/계정:
+  - 권장: `BIZM_USER_ID`, `BIZM_USER_KEY`
+  - 호환: `KAKAO_BM_CLIENT_ID`, `KAKAO_BM_CLIENT_SECRET` 또는 `BIZM_CLIENT_ID`, `BIZM_CLIENT_SECRET`
 - 발신 키: `KAKAO_BM_SENDER_KEY` (또는 `BIZM_SENDER_KEY`)
 - 템플릿 코드: `KAKAO_BM_VERIFICATION_TEMPLATE_CODE` (또는 `BIZM_VERIFICATION_TEMPLATE_CODE`)
-
-참고:
-- BizM `userid` 헤더 기반 `POST /v2/sender/send` 전환은 아직 미적용입니다.
-- 전환 작업은 [BIZM_ALIMTALK_TODO.md](./BIZM_ALIMTALK_TODO.md) 기준으로 진행합니다.
+- 기본 API URL: `https://alimtalk-api.bizmsg.kr`
 
 ## 3. 사전 준비
 
@@ -34,26 +34,26 @@
 
 ## 4. 환경변수 설정
 
-둘 중 하나의 키 세트를 사용하면 됩니다.
+`userid + senderKey + templateCode`가 최소 운영값입니다.
 
-### 권장: `KAKAO_BM_*`
+### 권장: `BIZM_*` (Sender API 표준)
+
+```env
+BIZM_USER_ID="..."
+BIZM_USER_KEY="..."
+BIZM_SENDER_KEY="..."
+BIZM_VERIFICATION_TEMPLATE_CODE="..."
+BIZM_BASE_URL="https://alimtalk-api.bizmsg.kr"
+```
+
+### 호환: `KAKAO_BM_*`
 
 ```env
 KAKAO_BM_CLIENT_ID="..."
 KAKAO_BM_CLIENT_SECRET="..."
 KAKAO_BM_SENDER_KEY="..."
 KAKAO_BM_VERIFICATION_TEMPLATE_CODE="..."
-KAKAO_BM_BASE_URL="https://bizmsg-web.kakaoenterprise.com"
-```
-
-### 별칭: `BIZM_*`
-
-```env
-BIZM_CLIENT_ID="..."
-BIZM_CLIENT_SECRET="..."
-BIZM_SENDER_KEY="..."
-BIZM_VERIFICATION_TEMPLATE_CODE="..."
-BIZM_BASE_URL="https://bizmsg-web.kakaoenterprise.com"
+KAKAO_BM_BASE_URL="https://alimtalk-api.bizmsg.kr"
 ```
 
 선택값:
@@ -126,4 +126,4 @@ curl -X PUT http://localhost:3000/api/auth/verify-phone \
 1. 템플릿/발신키를 운영/스테이징 분리
 2. 실패율 모니터링(일 단위) 및 알림 설정
 3. 인증 요청 급증 시 레이트리밋 정책 재조정
-4. `BIZM_USER_ID` 기반 표준 Sender API 전환은 별도 배포 계획으로 진행
+4. BizM 콘솔의 템플릿/발신 프로필 변경 시 즉시 스모크 테스트 수행

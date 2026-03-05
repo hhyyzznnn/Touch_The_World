@@ -207,10 +207,11 @@ RESEND_FROM_EMAIL="noreply@yourdomain.com"
 
 # 카카오 알림톡 인증번호 발송 (선택사항)
 # 개발 환경에서는 설정하지 않으면 터미널에 인증 코드가 출력됩니다
-KAKAO_BM_CLIENT_ID="your-kakao-bm-client-id"
-KAKAO_BM_CLIENT_SECRET="your-kakao-bm-client-secret"
-KAKAO_BM_SENDER_KEY="your-kakao-bm-sender-key"
-KAKAO_BM_VERIFICATION_TEMPLATE_CODE="your-template-code"
+BIZM_USER_ID="your-bizm-user-id"
+BIZM_USER_KEY="your-bizm-user-key"
+BIZM_SENDER_KEY="your-bizm-sender-key"
+BIZM_VERIFICATION_TEMPLATE_CODE="your-template-code"
+BIZM_BASE_URL="https://alimtalk-api.bizmsg.kr"
 
 # 소셜 로그인 (선택사항)
 KAKAO_CLIENT_ID="your-kakao-client-id"
@@ -366,7 +367,8 @@ npm run db:seed:achievements
    - `UPLOADTHING_APP_ID` (필수, 이미지 업로드용)
    - `RESEND_API_KEY` (이메일 인증용, 선택사항)
    - `RESEND_FROM_EMAIL` (이메일 발신 주소, 선택사항)
-   - `KAKAO_BM_CLIENT_ID`, `KAKAO_BM_CLIENT_SECRET`, `KAKAO_BM_SENDER_KEY`, `KAKAO_BM_VERIFICATION_TEMPLATE_CODE` (카카오 알림톡 인증번호 발송용, 선택사항)
+   - `BIZM_USER_ID`, `BIZM_SENDER_KEY`, `BIZM_VERIFICATION_TEMPLATE_CODE` (카카오 알림톡 인증번호 발송용, 선택사항)
+   - `BIZM_USER_KEY` (선택), `BIZM_BASE_URL` (미설정 시 `https://alimtalk-api.bizmsg.kr`)
    - `OPENAI_API_KEY` (AI 채팅 상담용, 필수)
    - `GOOGLE_SITE_VERIFICATION`, `NAVER_SITE_VERIFICATION` (검색엔진 소유권 검증용, 선택사항)
 4. 빌드 설정 확인:
@@ -393,10 +395,11 @@ UPLOADTHING_TOKEN=sk_live_xxxxxxxxxxxxx
 UPLOADTHING_APP_ID=your-uploadthing-app-id
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 RESEND_FROM_EMAIL=noreply@yourdomain.com
-KAKAO_BM_CLIENT_ID=your-kakao-bm-client-id
-KAKAO_BM_CLIENT_SECRET=your-kakao-bm-client-secret
-KAKAO_BM_SENDER_KEY=your-kakao-bm-sender-key
-KAKAO_BM_VERIFICATION_TEMPLATE_CODE=your-template-code
+BIZM_USER_ID=your-bizm-user-id
+BIZM_USER_KEY=your-bizm-user-key
+BIZM_SENDER_KEY=your-bizm-sender-key
+BIZM_VERIFICATION_TEMPLATE_CODE=your-template-code
+BIZM_BASE_URL=https://alimtalk-api.bizmsg.kr
 OPENAI_API_KEY=sk-xxxxxxxxxxxxx
 GOOGLE_SITE_VERIFICATION=google-site-verification-token
 NAVER_SITE_VERIFICATION=naver-site-verification-token
