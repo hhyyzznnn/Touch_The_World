@@ -74,7 +74,10 @@ export default function RegisterPage() {
 
       if (response.ok) {
         // 회원가입 성공 시 이메일 인증 안내 페이지로 이동
-        router.push(`/register/success?email=${encodeURIComponent(formData.email)}`);
+        const sentQuery = data.verificationEmailSent === false ? "&sent=0" : "&sent=1";
+        router.push(
+          `/register/success?email=${encodeURIComponent(formData.email)}${sentQuery}`
+        );
       } else {
         setError(data.error || "회원가입에 실패했습니다.");
       }

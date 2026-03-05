@@ -1,23 +1,37 @@
 import { Resend } from "resend";
 
+type VerificationEmailResult = {
+  success: boolean;
+  error?: string;
+  skipped?: boolean;
+  data?: unknown;
+};
+
 export async function sendVerificationEmail(
   email: string,
   name: string,
   token: string
-) {
+): Promise<VerificationEmailResult> {
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const verificationUrl = `${baseUrl}/verify-email?token=${token}`;
+  const isDevelopment = process.env.NODE_ENV !== "production";
 
   try {
-    // Resend API 키가 없으면 개발 환경에서 콘솔에 출력
+    // 개발 환경: 키가 없으면 콘솔 링크 출력으로 대체
     if (!process.env.RESEND_API_KEY) {
-      console.log("=".repeat(60));
-      console.log("📧 이메일 인증 링크 (개발 모드)");
-      console.log("=".repeat(60));
-      console.log(`받는 사람: ${email}`);
-      console.log(`인증 링크: ${verificationUrl}`);
-      console.log("=".repeat(60));
-      return { success: true };
+      if (isDevelopment) {
+        console.log("=".repeat(60));
+        console.log("📧 이메일 인증 링크 (개발 모드)");
+        console.log("=".repeat(60));
+        console.log(`받는 사람: ${email}`);
+        console.log(`인증 링크: ${verificationUrl}`);
+        console.log("=".repeat(60));
+        return { success: true, skipped: true };
+      }
+      return {
+        success: false,
+        error: "RESEND_API_KEY가 설정되지 않아 인증 메일을 발송할 수 없습니다.",
+      };
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
@@ -50,27 +64,32 @@ export async function sendVerificationEmail(
 
     if (error) {
       console.error("이메일 발송 오류:", error);
-      // 개발 환경에서는 콘솔에 출력
+      if (isDevelopment) {
+        console.log("=".repeat(60));
+        console.log("📧 이메일 인증 링크 (개발 모드)");
+        console.log("=".repeat(60));
+        console.log(`받는 사람: ${email}`);
+        console.log(`인증 링크: ${verificationUrl}`);
+        console.log("=".repeat(60));
+        return { success: true, skipped: true };
+      }
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("이메일 발송 오류:", message);
+    if (isDevelopment) {
       console.log("=".repeat(60));
       console.log("📧 이메일 인증 링크 (개발 모드)");
       console.log("=".repeat(60));
       console.log(`받는 사람: ${email}`);
       console.log(`인증 링크: ${verificationUrl}`);
       console.log("=".repeat(60));
-      return { success: true };
+      return { success: true, skipped: true };
     }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error("이메일 발송 오류:", error);
-    // 오류 발생 시에도 개발 환경에서는 콘솔에 출력
-    console.log("=".repeat(60));
-    console.log("📧 이메일 인증 링크 (개발 모드)");
-    console.log("=".repeat(60));
-    console.log(`받는 사람: ${email}`);
-    console.log(`인증 링크: ${verificationUrl}`);
-    console.log("=".repeat(60));
-    return { success: true };
+    return { success: false, error: message };
   }
 }
 
@@ -239,4 +258,3 @@ export async function sendInquiryNotificationEmail(
     return { success: true };
   }
 }
-

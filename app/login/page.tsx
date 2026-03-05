@@ -10,6 +10,9 @@ function LoginForm() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,6 +27,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setResendMessage("");
     setIsLoading(true);
 
     try {
@@ -42,12 +46,41 @@ function LoginForm() {
           window.location.href = "/";
         }
       } else {
+        if (data.requiresVerification && data.verificationEmail) {
+          setVerificationEmail(data.verificationEmail);
+        } else {
+          setVerificationEmail("");
+        }
         setError(data.error || "로그인에 실패했습니다.");
       }
     } catch (error) {
       setError("로그인 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!verificationEmail || isResending) return;
+
+    setIsResending(true);
+    setResendMessage("");
+    try {
+      const response = await fetch("/api/auth/verify-email/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: verificationEmail }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setResendMessage(data.message || "인증 메일을 재발송했습니다.");
+      } else {
+        setResendMessage(data.error || "인증 메일 재발송에 실패했습니다.");
+      }
+    } catch {
+      setResendMessage("재발송 요청 중 오류가 발생했습니다.");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -115,8 +148,23 @@ function LoginForm() {
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded space-y-3">
+              <p>{error}</p>
+              {verificationEmail && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleResendVerification}
+                  disabled={isResending}
+                >
+                  {isResending ? "인증 메일 재발송 중..." : "인증 메일 재발송"}
+                </Button>
+              )}
+              {resendMessage && (
+                <p className="text-xs text-gray-700">{resendMessage}</p>
+              )}
             </div>
           )}
 
@@ -170,4 +218,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

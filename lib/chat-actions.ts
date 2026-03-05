@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import { Resend } from "resend";
 import { COMPANY_INFO } from "./constants";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
+import { sendPersonalizedRecommendationsIfOptedIn } from "./personalized-recommendations";
 import type { Prisma } from "@prisma/client";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -88,6 +89,15 @@ export async function saveConsultingLog(data: {
         }
       } catch (error) {
         console.error("카카오 알림톡 발송 실패 (무시):", error);
+      }
+    }
+
+    // 로그인 사용자는 상담 데이터를 기반으로 개인화 추천 알림 발송 시도(수신동의 기반)
+    if (data.userId) {
+      try {
+        await sendPersonalizedRecommendationsIfOptedIn(data.userId);
+      } catch (error) {
+        console.warn("개인화 추천 알림 발송 실패 (무시):", error);
       }
     }
 

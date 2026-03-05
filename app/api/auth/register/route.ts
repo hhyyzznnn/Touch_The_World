@@ -183,12 +183,16 @@ export async function POST(request: NextRequest) {
     });
 
     // 이메일 인증 메일 발송
-    await sendVerificationEmail(email, name, token);
+    const emailResult = await sendVerificationEmail(email, name, token);
 
     return NextResponse.json(
       {
         success: true,
-        message: "회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요.",
+        message: emailResult.success
+          ? "회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요."
+          : "회원가입은 완료되었습니다. 인증 메일 발송에 실패했을 수 있어 재발송을 이용해주세요.",
+        verificationEmailSent: emailResult.success,
+        verificationEmailError: emailResult.success ? undefined : emailResult.error,
         user: {
           id: user.id,
           email: user.email,

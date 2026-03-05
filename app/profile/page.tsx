@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth-user";
 import { ProfileForm } from "@/components/ProfileForm";
 import { UserStats } from "@/components/UserStats";
+import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,11 @@ export default async function ProfilePage() {
           <UserStats userId={user.id} />
         </div>
 
+        {/* 개인화 추천 */}
+        <div className="mb-6">
+          <PersonalizedRecommendations userId={user.id} />
+        </div>
+
         {/* 회원 정보 수정 */}
         <div className="bg-white rounded-lg shadow p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
@@ -59,4 +65,3 @@ export default async function ProfilePage() {
     </div>
   );
 }
-

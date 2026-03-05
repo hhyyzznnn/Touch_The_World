@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
         { 
           error: "이메일 인증이 완료되지 않았습니다. 이메일을 확인하여 인증을 완료해주세요.",
           requiresVerification: true,
+          verificationEmail: user.email || undefined,
         },
         { status: 403 }
       );

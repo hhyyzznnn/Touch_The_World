@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,38 @@ import { Mail, CheckCircle } from "lucide-react";
 function RegisterSuccessContent() {
   const searchParams = useSearchParams();
   const email = searchParams?.get("email");
+  const sent = searchParams?.get("sent");
+  const [isResending, setIsResending] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [noticeType, setNoticeType] = useState<"success" | "error" | "">("");
+
+  const handleResend = async () => {
+    if (!email || isResending) return;
+    setIsResending(true);
+    setNotice("");
+    setNoticeType("");
+
+    try {
+      const response = await fetch("/api/auth/verify-email/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNotice(data.message || "인증 메일을 재발송했습니다.");
+        setNoticeType("success");
+      } else {
+        setNotice(data.error || "재발송에 실패했습니다.");
+        setNoticeType("error");
+      }
+    } catch {
+      setNotice("재발송 요청 중 오류가 발생했습니다.");
+      setNoticeType("error");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -29,11 +61,26 @@ function RegisterSuccessContent() {
             <br />
             인증 링크는 24시간 동안 유효합니다.
           </p>
+          {sent === "0" && (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3">
+              인증 메일 발송이 실패했을 수 있습니다. 아래 버튼으로 재발송해 주세요.
+            </p>
+          )}
           <div className="pt-4 border-t">
             <p className="text-xs text-text-gray mb-4">
               이메일이 오지 않았나요?
             </p>
             <div className="space-y-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="w-full"
+                onClick={handleResend}
+                disabled={!email || isResending}
+              >
+                {isResending ? "재발송 중..." : "인증 메일 재발송"}
+              </Button>
               <Button asChild variant="outline" size="sm" className="w-full">
                 <Link href="/login">로그인 페이지로</Link>
               </Button>
@@ -41,6 +88,15 @@ function RegisterSuccessContent() {
                 <Link href="/">홈으로</Link>
               </Button>
             </div>
+            {notice && (
+              <p
+                className={`mt-3 text-xs ${
+                  noticeType === "success" ? "text-green-700" : "text-red-600"
+                }`}
+              >
+                {notice}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -64,4 +120,3 @@ export default function RegisterSuccessPage() {
     </Suspense>
   );
 }
-
