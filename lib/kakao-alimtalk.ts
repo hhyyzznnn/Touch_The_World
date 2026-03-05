@@ -82,6 +82,33 @@ function formatBizmError(error: unknown, endpoint: string): string {
   return `${error.message} (endpoint=${endpoint})`;
 }
 
+function extractBizmErrorDetails(error: unknown, endpoint: string) {
+  const unknownError = error as {
+    name?: string;
+    message?: string;
+    code?: string;
+    cause?: { name?: string; message?: string; code?: string };
+    stack?: string;
+  };
+
+  const stackPreview = unknownError?.stack
+    ? unknownError.stack.split("\n").slice(0, 3).join(" | ")
+    : undefined;
+
+  return {
+    endpoint,
+    name: unknownError?.name || "UnknownError",
+    message:
+      unknownError?.message ||
+      (typeof error === "string" ? error : "알 수 없는 오류"),
+    code: unknownError?.code || undefined,
+    causeName: unknownError?.cause?.name || undefined,
+    causeCode: unknownError?.cause?.code || undefined,
+    causeMessage: unknownError?.cause?.message || undefined,
+    stack: stackPreview,
+  };
+}
+
 /**
  * 카카오 알림톡 발송
  * 
@@ -208,7 +235,9 @@ export async function sendKakaoAlimtalk(options: KakaoAlimtalkOptions): Promise<
     return { success: true };
   } catch (error) {
     const errorMessage = formatBizmError(error, sendEndpoint);
+    const errorDetails = extractBizmErrorDetails(error, sendEndpoint);
     console.error("❌ 카카오 알림톡 발송 실패:", errorMessage);
+    console.error("❌ 카카오 알림톡 발송 상세:", errorDetails);
     
     // 오류 발생 시에도 개발 환경에서는 콘솔에 출력
     const isDevelopment = process.env.NODE_ENV !== "production";
@@ -281,4 +310,3 @@ export async function sendVerificationCodeAlimtalk(
     },
   });
 }
-
