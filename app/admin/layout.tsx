@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { AdminNav } from "@/components/AdminNav";
 import { getCurrentUser } from "@/lib/auth-user";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "관리자 | 터치더월드",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function AdminLayout({
   children,

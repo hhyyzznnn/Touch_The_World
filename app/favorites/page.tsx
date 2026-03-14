@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-user";
 import { redirect } from "next/navigation";
 import { ProgramCard } from "@/components/ProgramCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Heart } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "즐겨찾기 | 터치더월드",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function FavoritesPage() {
   const user = await getCurrentUser();

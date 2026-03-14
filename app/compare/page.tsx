@@ -3,6 +3,15 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import { ProgramCompareTable } from "@/components/ProgramCompareTable";
 import { EmptyState } from "@/components/EmptyState";
 import { Scale } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "프로그램 비교 | 터치더월드",
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default async function ComparePage() {
   // localStorage는 서버 컴포넌트에서 접근할 수 없으므로 클라이언트 컴포넌트로 처리

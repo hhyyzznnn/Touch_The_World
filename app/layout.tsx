@@ -40,9 +40,6 @@ export const metadata: Metadata = {
   title: SEO_TITLE,
   description: SEO_DESCRIPTION,
   keywords: SEO_KEYWORDS,
-  alternates: {
-    canonical: "/",
-  },
   robots: {
     index: true,
     follow: true,

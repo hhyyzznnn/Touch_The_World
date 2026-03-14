@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth-user";
 import { prisma } from "@/lib/prisma";
@@ -5,6 +6,14 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 import { Star, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+export const metadata: Metadata = {
+  title: "내 후기 | 터치더월드",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 async function getUserReviews(userId: string) {
   return await prisma.review.findMany({

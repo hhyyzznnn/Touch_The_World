@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
+import type { Metadata } from "next";
 
 async function getSchool(id: string) {
   return await prisma.school.findUnique({
@@ -27,6 +28,57 @@ async function getSchool(id: string) {
       },
     },
   });
+}
+
+async function getSchoolSeoData(id: string) {
+  return await prisma.school.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      logoUrl: true,
+      _count: {
+        select: {
+          events: true,
+        },
+      },
+    },
+  });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const school = await getSchoolSeoData(id);
+
+  if (!school) {
+    return {
+      title: "학교 행사 이력 | 터치더월드",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const description = `${school.name}와 함께 진행한 교육여행 및 체험학습 행사 ${school._count.events}건을 확인하세요.`;
+
+  return {
+    title: `${school.name} 행사 이력 | 터치더월드`,
+    description,
+    alternates: {
+      canonical: `/school/${school.id}`,
+    },
+    openGraph: {
+      title: `${school.name} 행사 이력 | 터치더월드`,
+      description,
+      url: `/school/${school.id}`,
+      images: school.logoUrl ? [school.logoUrl] : undefined,
+    },
+  };
 }
 
 export default async function SchoolPage({
@@ -122,4 +174,3 @@ export default async function SchoolPage({
     </div>
   );
 }
-

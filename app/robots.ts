@@ -13,11 +13,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin/",
           "/api/",
-          "/login",
-          "/register",
-          "/profile",
-          "/verify-email",
-          "/verify-phone",
           "/api/auth/callback", // 리디렉션되는 콜백 페이지 차단
         ],
       },
@@ -28,11 +23,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin/",
           "/api/",
-          "/login",
-          "/register",
-          "/profile",
-          "/verify-email",
-          "/verify-phone",
           "/api/auth/callback",
         ],
       },

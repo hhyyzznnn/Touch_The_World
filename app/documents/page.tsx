@@ -1,10 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/Pagination";
 
 const ITEMS_PER_PAGE = 10;
+
+export const metadata: Metadata = {
+  title: "자료실 | 터치더월드",
+  description: "공문 템플릿, 안내문, 안전 매뉴얼 등 교육여행 운영에 필요한 자료를 확인하세요.",
+  alternates: {
+    canonical: "/documents",
+  },
+};
 
 async function getDocuments(category?: string, page: number = 1) {
   const where = category ? { category } : {};
@@ -127,4 +136,3 @@ export default async function DocumentsPage({
     </div>
   );
 }
-

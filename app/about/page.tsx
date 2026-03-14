@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Shield,
   Globe,
@@ -9,9 +10,12 @@ import {
   BookOpen,
 } from "lucide-react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "회사 소개 - Touch The World",
   description: "1996년 설립된 터치더월드는 국내외 교육형 수학여행, 문화 교류 탐방, 테마별 해외연수 등 다양한 교육 및 여행 프로그램을 제공합니다.",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 const companyInfo = [

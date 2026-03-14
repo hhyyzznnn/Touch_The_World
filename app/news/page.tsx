@@ -1,10 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { format } from "date-fns";
+import type { Metadata } from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "회사 소식 - Touch The World",
   description: "터치더월드의 새로운 소식과 중요한 공지입니다.",
+  alternates: {
+    canonical: "/news",
+  },
 };
 
 async function getNews() {

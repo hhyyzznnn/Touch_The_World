@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth-user";
@@ -8,6 +9,14 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, Star } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "회원 정보 | 터치더월드",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();

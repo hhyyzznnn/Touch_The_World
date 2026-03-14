@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-user";
 import { redirect } from "next/navigation";
@@ -9,6 +10,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, Calendar, Users, MapPin } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+
+export const metadata: Metadata = {
+  title: "문의 내역 | 터치더월드",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 async function getUserInquiries(userId: string) {
   return await prisma.inquiry.findMany({

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
 import { Building2, GraduationCap, Globe, Briefcase } from "lucide-react";
+import type { Metadata } from "next";
 
 async function getClients() {
   return await prisma.client.findMany({
@@ -26,9 +27,12 @@ const typeIcons: Record<string, typeof Building2> = {
   corporation: Briefcase,
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "주요 고객사 - Touch The World",
   description: "터치더월드와 함께하는 주요 고객사 및 파트너 기관을 소개합니다.",
+  alternates: {
+    canonical: "/clients",
+  },
 };
 
 export default async function ClientsPage() {
@@ -162,4 +166,3 @@ export default async function ClientsPage() {
     </div>
   );
 }
-

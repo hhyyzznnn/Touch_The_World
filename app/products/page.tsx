@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
 import { Calendar, MapPin, Users, Building2 } from "lucide-react";
+import type { Metadata } from "next";
 
 async function getProducts() {
   return await prisma.product.findMany({
@@ -27,9 +28,12 @@ const regionLabels: Record<string, string> = {
   Global: "글로벌",
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "주요 상품 - Touch The World",
   description: "터치더월드의 다양한 교육 프로그램과 상품을 소개합니다.",
+  alternates: {
+    canonical: "/products",
+  },
 };
 
 export default async function ProductsPage() {
@@ -172,4 +176,3 @@ export default async function ProductsPage() {
     </div>
   );
 }
-

@@ -121,5 +121,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Error fetching schools for sitemap:", error);
   }
 
-  return [...staticPages, ...programPages, ...eventPages, ...schoolPages];
+  // 동적 페이지: 회사 소식
+  let newsPages: MetadataRoute.Sitemap = [];
+  try {
+    const newsItems = await prisma.companyNews.findMany({
+      select: { id: true, updatedAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+    newsPages = newsItems.map((news) => ({
+      url: `${baseUrl}/news/${news.id}`,
+      lastModified: news.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+  } catch (error) {
+    console.error("Error fetching news for sitemap:", error);
+  }
+
+  return [...staticPages, ...programPages, ...eventPages, ...schoolPages, ...newsPages];
 }

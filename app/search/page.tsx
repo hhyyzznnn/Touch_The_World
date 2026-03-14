@@ -3,6 +3,7 @@ import { ProgramCard } from "@/components/ProgramCard";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
+import type { Metadata } from "next";
 import { AdvancedSearchFilters } from "@/components/AdvancedSearchFilters";
 import { SearchBar } from "@/components/SearchBar";
 import { Pagination } from "@/components/Pagination";
@@ -17,6 +18,14 @@ interface SearchFilters {
 }
 
 const ITEMS_PER_TYPE = 12; // 타입별 표시할 항목 수
+
+export const metadata: Metadata = {
+  title: "검색 | 터치더월드",
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 // 페이지 재검증 시간 설정 (5분 - 검색 결과는 자주 변경될 수 있음)
 export const revalidate = 300;
@@ -485,4 +494,3 @@ export default async function SearchPage({
     </div>
   );
 }
-
