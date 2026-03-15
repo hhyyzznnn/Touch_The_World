@@ -26,11 +26,11 @@ export async function GET(request: NextRequest) {
       prisma.favorite.count({
         where: { userId: user.id },
       }),
-      user.email
-        ? prisma.inquiry.count({
-            where: { email: user.email },
-          })
-        : Promise.resolve(0),
+      prisma.inquiry.count({
+        where: {
+          OR: [{ userId: user.id }, ...(user.email ? [{ email: user.email }] : [])],
+        },
+      }),
       prisma.consultingLog.count({
         where: { userId: user.id },
       }),

@@ -107,6 +107,7 @@ model EventImage {
 
 model Inquiry {
   id                String   @id @default(cuid())
+  userId            String?
   schoolName        String
   contact           String
   phone             String
@@ -124,6 +125,9 @@ model Inquiry {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
   @@index([status])
   @@index([createdAt])
 }
@@ -219,6 +223,7 @@ model User {
   accounts              Account[]
   favorites            Favorite[]
   reviews               Review[]
+  inquiries             Inquiry[]
   notificationSetting     NotificationSetting?
   notificationLogs        NotificationLog[]
   consultingLogs          ConsultingLog[]

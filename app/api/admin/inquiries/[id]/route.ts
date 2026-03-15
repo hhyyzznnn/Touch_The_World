@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
+import { isValidInquiryStatus } from "@/lib/inquiry-status";
 
 export async function POST(
   request: NextRequest,
@@ -15,7 +16,7 @@ export async function POST(
     const body = await request.json();
     const { status } = body;
 
-    if (!status || !["pending", "completed"].includes(status)) {
+    if (!status || !isValidInquiryStatus(status)) {
       return NextResponse.json(
         { error: "유효하지 않은 상태입니다." },
         { status: 400 }
@@ -50,7 +51,7 @@ export async function PATCH(
     const body = await request.json();
     const { status } = body;
 
-    if (!status || !["pending", "completed"].includes(status)) {
+    if (!status || !isValidInquiryStatus(status)) {
       return NextResponse.json(
         { error: "유효하지 않은 상태입니다." },
         { status: 400 }
@@ -71,4 +72,3 @@ export async function PATCH(
     );
   }
 }
-

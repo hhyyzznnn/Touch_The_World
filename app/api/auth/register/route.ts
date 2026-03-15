@@ -12,7 +12,7 @@ const registerSchema = z.object({
   password: z.string().min(6),
   name: z.string().trim().min(1),
   phone: z.string().trim().min(1),
-  school: z.string().trim().optional(),
+  school: z.string().trim().min(1),
   marketingEmailOptIn: z.boolean().optional().default(false),
   marketingAlimtalkOptIn: z.boolean().optional().default(false),
 });
@@ -59,27 +59,29 @@ export async function POST(request: NextRequest) {
       marketingEmailOptIn,
       marketingAlimtalkOptIn,
     } = parsed.data;
+    const normalizedEmail = email.toLowerCase();
+    const normalizedUsername = username.toLowerCase();
 
     // 입력 검증
-    if (!email || !username || !password || !name || !phone) {
+    if (!normalizedEmail || !normalizedUsername || !password || !name || !phone || !school) {
       return NextResponse.json(
-        { error: "아이디, 이메일, 비밀번호, 이름, 전화번호는 필수입니다." },
+        { error: "아이디, 이메일, 비밀번호, 이름, 전화번호, 소속 학교/기관은 필수입니다." },
         { status: 400 }
       );
     }
 
     // 아이디 형식 검증 (영문/숫자, 3~20자)
     const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
-    if (!usernameRegex.test(username)) {
+    if (!usernameRegex.test(normalizedUsername)) {
       return NextResponse.json(
-        { error: "아이디는 3~20자의 영문, 숫자, 언더스코어만 사용할 수 있습니다." },
+        { error: "아이디는 3~20자의 영문/숫자만 사용할 수 있습니다." },
         { status: 400 }
       );
     }
 
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return NextResponse.json(
         { error: "올바른 이메일 형식이 아닙니다." },
         { status: 400 }
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     // 중복 이메일 확인
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -108,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // 중복 아이디 확인
     const existingUsername = await prisma.user.findUnique({
-      where: { username },
+      where: { username: normalizedUsername },
     });
 
     if (existingUsername) {
@@ -161,8 +163,8 @@ export async function POST(request: NextRequest) {
     // 사용자 생성
     const user = await prisma.user.create({
       data: {
-        username,
-        email,
+        username: normalizedUsername,
+        email: normalizedEmail,
         password: hashedPassword,
         name,
         phone: phone ? phone.replace(/-/g, "") : null,
@@ -183,7 +185,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 이메일 인증 메일 발송
-    const emailResult = await sendVerificationEmail(email, name, token);
+    const emailResult = await sendVerificationEmail(normalizedEmail, name, token);
 
     return NextResponse.json(
       {

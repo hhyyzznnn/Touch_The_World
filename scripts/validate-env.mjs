@@ -83,6 +83,12 @@ if (!hasUploadthingSecret && !hasUploadthingToken) {
   errors.push(message);
 }
 
+if (!process.env.CRON_SECRET && !process.env.CRON_SECRET_KEY) {
+  warnings.push(
+    "CRON_SECRET 또는 CRON_SECRET_KEY가 없습니다. /api/cron/g2b-notification 호출이 차단됩니다."
+  );
+}
+
 const dbUrl = process.env.DATABASE_URL || "";
 const directUrl = process.env.DATABASE_DIRECT_URL || "";
 const poolUrl = process.env.DATABASE_POOLING_URL || "";

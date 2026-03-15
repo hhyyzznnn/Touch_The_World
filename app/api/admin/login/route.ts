@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { setAuthSession } from "@/lib/session-auth";
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -18,6 +19,23 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  const clientIP = getClientIP(request);
+  const rateLimit = await checkRateLimit(`admin-login:${clientIP}`, 5, 60 * 1000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.",
+        retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+        },
+      }
+    );
+  }
+
   try {
     const payload = await request.json();
     const parsed = adminLoginSchema.safeParse(payload);
@@ -48,7 +66,11 @@ export async function POST(request: NextRequest) {
     }
 
     const fallbackAdminPassword = process.env.ADMIN_PASSWORD;
-    if (!isValidPassword && fallbackAdminPassword) {
+    if (
+      !isValidPassword &&
+      fallbackAdminPassword &&
+      process.env.NODE_ENV !== "production"
+    ) {
       isValidPassword = safeEqual(password, fallbackAdminPassword);
     }
 

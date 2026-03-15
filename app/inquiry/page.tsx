@@ -27,6 +27,10 @@ type InquiryFormData = z.infer<typeof inquirySchema>;
 export default function InquiryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{
+    inquiryNumber?: string;
+    expectedReply?: string;
+  } | null>(null);
 
   const {
     register,
@@ -47,6 +51,11 @@ export default function InquiryPage() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        setSubmitResult({
+          inquiryNumber: result?.inquiryNumber,
+          expectedReply: result?.expectedReply,
+        });
         setIsSuccess(true);
         reset();
       } else {
@@ -69,9 +78,20 @@ export default function InquiryPage() {
             <p className="text-gray-600 mb-8">
               빠른 시일 내에 연락드리겠습니다.
             </p>
+            {submitResult?.inquiryNumber && (
+              <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-left text-sm">
+                <p className="font-medium text-text-dark">
+                  접수번호: {submitResult.inquiryNumber}
+                </p>
+                <p className="mt-1 text-gray-600">
+                  {submitResult.expectedReply || "영업일 기준 24시간 내 1차 회신 예정"}
+                </p>
+              </div>
+            )}
             <Button
               onClick={() => {
                 setIsSuccess(false);
+                setSubmitResult(null);
               }}
               className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
             >

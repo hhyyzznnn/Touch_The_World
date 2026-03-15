@@ -30,7 +30,7 @@ export type SchoolWithRelations = Prisma.SchoolGetPayload<{
 }>;
 
 // Inquiry 타입
-export type InquiryStatus = "pending" | "completed";
+export type InquiryStatus = "pending" | "reviewing" | "quoted" | "completed";
 
 export interface Inquiry {
   id: string;
@@ -47,7 +47,7 @@ export interface Inquiry {
   mealPreference: string | null;
   specialRequests: string | null;
   estimatedBudget: number | null;
-  status: string;
+  status: InquiryStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -104,4 +104,3 @@ export type ProgramWhereInput = Prisma.ProgramWhereInput;
 export type EventWhereInput = Prisma.EventWhereInput;
 export type SchoolWhereInput = Prisma.SchoolWhereInput;
 export type AchievementWhereInput = Prisma.AchievementWhereInput;
-

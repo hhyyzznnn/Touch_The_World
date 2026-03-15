@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, Calendar, Users, MapPin } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+import { formatInquiryNumber, getInquiryStatusMeta } from "@/lib/inquiry-status";
 
 export const metadata: Metadata = {
   title: "문의 내역 | 터치더월드",
@@ -18,18 +19,6 @@ export const metadata: Metadata = {
     follow: false,
   },
 };
-
-async function getUserInquiries(userId: string) {
-  return await prisma.inquiry.findMany({
-    where: {
-      email: {
-        // 사용자 이메일로 문의 찾기 (실제로는 userId로 연결되어야 함)
-        // 현재 스키마에는 userId가 없으므로 email로 매칭
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-}
 
 export default async function MyInquiriesPage() {
   const user = await getCurrentUser();
@@ -41,7 +30,10 @@ export default async function MyInquiriesPage() {
   // 사용자 이메일로 문의 찾기
   const inquiries = await prisma.inquiry.findMany({
     where: {
-      email: user.email || "",
+      OR: [
+        { userId: user.id },
+        ...(user.email ? [{ email: user.email }] : []),
+      ],
     },
     orderBy: { createdAt: "desc" },
   });
@@ -74,11 +66,13 @@ export default async function MyInquiriesPage() {
         />
       ) : (
         <div className="space-y-4">
-          {inquiries.map((inquiry) => (
-            <div
-              key={inquiry.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-            >
+          {inquiries.map((inquiry) => {
+            const statusMeta = getInquiryStatusMeta(inquiry.status);
+            return (
+              <div
+                key={inquiry.id}
+                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+              >
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -86,16 +80,15 @@ export default async function MyInquiriesPage() {
                       {inquiry.schoolName}
                     </h3>
                     <Badge
-                      variant={inquiry.status === "pending" ? "default" : "secondary"}
-                      className={
-                        inquiry.status === "pending"
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-green-100 text-green-800"
-                      }
+                      variant="outline"
+                      className={statusMeta.badgeClassName}
                     >
-                      {inquiry.status === "pending" ? "대기 중" : "완료"}
+                      {statusMeta.label}
                     </Badge>
                   </div>
+                  <p className="text-xs text-text-gray mb-2">
+                    접수번호: {formatInquiryNumber(inquiry.id)}
+                  </p>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-text-gray">
                     <div className="flex items-center gap-1">
                       <Mail className="w-4 h-4" />
@@ -110,6 +103,9 @@ export default async function MyInquiriesPage() {
                       </span>
                     </div>
                   </div>
+                  <p className="mt-2 text-sm text-text-gray">
+                    {statusMeta.userGuide}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button asChild variant="outline" size="sm">
@@ -165,7 +161,8 @@ export default async function MyInquiriesPage() {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

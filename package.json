@@ -32,7 +32,8 @@
     "db:cleanup": "tsx scripts/cleanup-database.ts",
     "db:reset-users": "tsx scripts/reset-users-sql.ts",
     "db:add-username": "tsx scripts/add-username-column.ts",
-    "db:add-indexes": "tsx scripts/add-program-indexes.ts"
+    "db:add-indexes": "tsx scripts/add-program-indexes.ts",
+    "db:sql": "tsx scripts/run-sql.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

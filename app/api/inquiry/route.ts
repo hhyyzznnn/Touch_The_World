@@ -4,6 +4,8 @@ import { z } from "zod";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 import { validateAndSanitize, isValidEmail, isValidPhone } from "@/lib/security";
 import { sendInquiryNotificationEmail } from "@/lib/email";
+import { getCurrentUser } from "@/lib/auth-user";
+import { formatInquiryNumber } from "@/lib/inquiry-status";
 
 const inquirySchema = z.object({
   schoolName: z.string().min(1).max(100),
@@ -45,6 +47,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const currentUser = await getCurrentUser();
     const body = await request.json();
     
     // 입력 검증 및 정리
@@ -184,6 +187,7 @@ export async function POST(request: NextRequest) {
 
     const inquiry = await prisma.inquiry.create({
       data: {
+        userId: currentUser?.id || null,
         schoolName: data.schoolName,
         contact: data.contact,
         phone: data.phone,
@@ -221,7 +225,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true, id: inquiry.id },
+      {
+        success: true,
+        id: inquiry.id,
+        inquiryNumber: formatInquiryNumber(inquiry.id),
+        expectedReply: "영업일 기준 24시간 이내 1차 회신",
+      },
       {
         headers: {
           "X-RateLimit-Limit": "3",

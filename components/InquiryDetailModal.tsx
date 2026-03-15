@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Inquiry } from "@/types";
+import { Inquiry, InquiryStatus } from "@/types";
+import { INQUIRY_STATUS_VALUES, getInquiryStatusMeta, isValidInquiryStatus } from "@/lib/inquiry-status";
 
 interface InquiryDetailModalProps {
-  inquiry: Inquiry | null;
+  inquiry: (Omit<Inquiry, "status"> & { status: string }) | null;
   isOpen: boolean;
   onClose: () => void;
-  onStatusUpdate?: (inquiry: Inquiry) => void;
+  onStatusUpdate?: (inquiry: Omit<Inquiry, "status"> & { status: string }) => void;
 }
 
 export function InquiryDetailModal({
@@ -19,18 +20,20 @@ export function InquiryDetailModal({
   onClose,
   onStatusUpdate,
 }: InquiryDetailModalProps) {
-  const [status, setStatus] = useState(inquiry?.status || "pending");
+  const [status, setStatus] = useState<InquiryStatus>(
+    inquiry?.status && isValidInquiryStatus(inquiry.status) ? inquiry.status : "pending"
+  );
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (inquiry) {
-      setStatus(inquiry.status);
+      setStatus(isValidInquiryStatus(inquiry.status) ? inquiry.status : "pending");
     }
   }, [inquiry]);
 
   if (!isOpen || !inquiry) return null;
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: InquiryStatus) => {
     setIsUpdating(true);
     try {
       const response = await fetch(`/api/admin/inquiries/${inquiry.id}`, {
@@ -46,8 +49,6 @@ export function InquiryDetailModal({
         if (onStatusUpdate) {
           onStatusUpdate({ ...inquiry, status: newStatus });
         }
-        // 페이지 새로고침하여 테이블 업데이트
-        window.location.reload();
       } else {
         alert("상태 변경에 실패했습니다.");
       }
@@ -89,32 +90,18 @@ export function InquiryDetailModal({
             <div>
               <label className="text-sm font-medium text-gray-500">상태</label>
               <div className="mt-1 flex items-center gap-3">
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="pending"
-                      checked={status === "pending"}
-                      onChange={(e) => handleStatusChange(e.target.value)}
-                      disabled={isUpdating}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">대기</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="status"
-                      value="completed"
-                      checked={status === "completed"}
-                      onChange={(e) => handleStatusChange(e.target.value)}
-                      disabled={isUpdating}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">완료</span>
-                  </label>
-                </div>
+                <select
+                  value={status}
+                  onChange={(e) => handleStatusChange(e.target.value as InquiryStatus)}
+                  disabled={isUpdating}
+                  className="h-9 rounded border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-green-primary"
+                >
+                  {INQUIRY_STATUS_VALUES.map((value) => (
+                    <option key={value} value={value}>
+                      {getInquiryStatusMeta(value).label}
+                    </option>
+                  ))}
+                </select>
                 {isUpdating && (
                   <span className="text-xs text-gray-500">업데이트 중...</span>
                 )}
@@ -236,4 +223,3 @@ export function InquiryDetailModal({
     </div>
   );
 }
-

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { InquiryDetailModal } from "@/components/InquiryDetailModal";
 import { InquiryActions } from "@/components/InquiryActions";
 import { Pagination } from "@/components/Pagination";
+import { getInquiryStatusMeta } from "@/lib/inquiry-status";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -71,7 +72,9 @@ export default async function AdminInquiriesPage({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {inquiries.map((inquiry) => (
+                {inquiries.map((inquiry) => {
+                  const statusMeta = getInquiryStatusMeta(inquiry.status);
+                  return (
                   <tr key={inquiry.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {format(new Date(inquiry.createdAt), "yyyy-MM-dd")}
@@ -89,20 +92,17 @@ export default async function AdminInquiriesPage({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          inquiry.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
+                        className={`px-2 py-1 rounded text-xs ${statusMeta.badgeClassName}`}
                       >
-                        {inquiry.status === "pending" ? "대기" : "완료"}
+                        {statusMeta.label}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <InquiryActions inquiry={inquiry} />
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             </div>
@@ -118,4 +118,3 @@ export default async function AdminInquiriesPage({
     </div>
   );
 }
-

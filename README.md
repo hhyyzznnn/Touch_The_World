@@ -106,6 +106,9 @@ npm run dev
 - `npm run db:status` 마이그레이션 상태 확인
 - `npm run db:pull` 스키마 pull
 - `npm run db:studio` Prisma Studio
+- `npm run db:sql -- --sql "<SQL>"` SQL 직접 실행
+- `npm run db:sql -- --file <path.sql>` SQL 파일 실행
+- `npm run db:sql -- --file <path.sql> --db-url "<postgresql://...>"` URL 직접 지정 실행
 
 ### 시드/운영 스크립트
 - `npm run db:seed` 전체 시드
@@ -151,7 +154,7 @@ Touch_The_World/
 
 ## 참고
 
-- 이 저장소에는 현재 `README.md` 외 별도 문서가 포함되어 있지 않습니다.
+- 스터디용 주차별 기능 매핑 문서: `STUDY_WEEK_MAP.md`
 - 환경 변수 예시는 `.env.example`이 기준입니다.
 
 ## 라이선스
