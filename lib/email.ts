@@ -1,5 +1,7 @@
 import { Resend } from "resend";
 
+const DEFAULT_FROM_EMAIL = "no-reply@touchtheworld.co.kr";
+
 type VerificationEmailResult = {
   success: boolean;
   error?: string;
@@ -37,7 +39,7 @@ export async function sendVerificationEmail(
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+      from: process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL,
       to: email,
       subject: "터치더월드 이메일 인증",
       html: `
@@ -132,7 +134,7 @@ export async function sendInquiryNotificationEmail(
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev",
+      from: process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL,
       to: adminEmail,
       subject: `[터치더월드] 새로운 문의가 접수되었습니다 - ${inquiryData.schoolName}`,
       html: `

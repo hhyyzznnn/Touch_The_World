@@ -140,6 +140,8 @@ export async function sendConsultingSummaryEmail(summary: ConsultingSummary) {
       return { success: true, skipped: true };
     }
 
+    const adminEmail =
+      process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || "syh2123@naver.com";
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const adminConsultingUrl = `${baseUrl}/admin`;
     const adminInquiriesUrl = `${baseUrl}/admin/inquiries`;
@@ -199,7 +201,8 @@ ${categoryText}
 
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "no-reply@touchtheworld.co.kr",
-      to: "yejun4831@gmail.com", // 기능 구현 완료 전까지 테스트용
+      to: adminEmail,
+      ...(summary.contactEmail ? { replyTo: summary.contactEmail } : {}),
       subject: `[AI 상담 리드] ${categoryText} / ${regionText} / ${participantText}`,
       text: summaryText,
       html: `

@@ -130,6 +130,11 @@ const optionalEnvVars: EnvVar[] = [
     description: "NextAuth URL (사용자 로그인 기능 사용 시)",
   },
   {
+    name: "ADMIN_EMAIL",
+    required: false,
+    description: "운영 알림 메일 수신 주소",
+  },
+  {
     name: "RESEND_API_KEY",
     required: false,
     description: "Resend API 키 (이메일 인증용)",
@@ -138,6 +143,11 @@ const optionalEnvVars: EnvVar[] = [
     name: "RESEND_FROM_EMAIL",
     required: false,
     description: "Resend 발신 이메일 주소",
+  },
+  {
+    name: "OPENAI_CHAT_MODEL",
+    required: false,
+    description: "AI 상담 모델명 (기본값: gpt-4o-mini)",
   },
   {
     name: "KAKAO_BM_CLIENT_ID",
@@ -286,6 +296,14 @@ function main() {
     warnings.push(
       "DATABASE_POOLING_URL이 direct 주소로 보입니다. Pooler URL(포트 6543 + pgbouncer=true) 사용을 권장합니다."
     );
+  }
+
+  if (!process.env.ADMIN_EMAIL) {
+    warnings.push("ADMIN_EMAIL이 없습니다. 주요 알림 메일 수신 대상을 명시적으로 설정하세요.");
+  }
+
+  if (!process.env.RESEND_FROM_EMAIL) {
+    warnings.push("RESEND_FROM_EMAIL이 없습니다. 운영 도메인 발신 이메일 설정을 권장합니다.");
   }
 
   // 선택적 환경 변수 확인

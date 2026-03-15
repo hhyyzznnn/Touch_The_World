@@ -89,6 +89,14 @@ if (!process.env.CRON_SECRET && !process.env.CRON_SECRET_KEY) {
   );
 }
 
+if (!process.env.ADMIN_EMAIL) {
+  warnings.push("ADMIN_EMAIL이 없습니다. 주요 알림 메일 수신 대상을 명시적으로 설정하세요.");
+}
+
+if (!process.env.RESEND_FROM_EMAIL) {
+  warnings.push("RESEND_FROM_EMAIL이 없습니다. 운영 도메인 발신 이메일 설정을 권장합니다.");
+}
+
 const dbUrl = process.env.DATABASE_URL || "";
 const directUrl = process.env.DATABASE_DIRECT_URL || "";
 const poolUrl = process.env.DATABASE_POOLING_URL || "";
@@ -106,12 +114,20 @@ if (poolUrl && !isPoolLike(poolUrl)) {
   warnings.push("DATABASE_POOLING_URL이 direct 주소로 보입니다. Pooler URL(포트 6543 + pgbouncer=true) 사용을 권장합니다.");
 }
 
+if (process.env.NODE_ENV === "production" && (process.env.NEXTAUTH_URL || "").includes("localhost")) {
+  warnings.push("프로덕션 환경에서는 NEXTAUTH_URL을 실제 도메인으로 설정하세요.");
+}
+
 console.log("\n📋 선택적 핵심 환경 변수:");
 for (const key of [
   "DATABASE_DIRECT_URL",
   "DATABASE_POOLING_URL",
+  "NEXTAUTH_URL",
   "SESSION_SECRET",
   "NEXTAUTH_SECRET",
+  "ADMIN_EMAIL",
+  "RESEND_FROM_EMAIL",
+  "OPENAI_CHAT_MODEL",
   "NEXT_PUBLIC_KAKAO_CHANNEL_URL",
   "KAKAO_CLIENT_ID",
   "NAVER_CLIENT_ID",

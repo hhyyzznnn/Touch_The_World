@@ -25,10 +25,20 @@ if (fs.existsSync(envPath)) {
 }
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const recipientEmail = process.env.BID_NOTICE_RECIPIENT_EMAIL || "yejun4831@gmail.com";
+const recipientEmail =
+  process.env.BID_NOTICE_RECIPIENT_EMAIL ||
+  process.env.ADMIN_EMAIL ||
+  process.env.RESEND_FROM_EMAIL ||
+  "";
 
 async function sendRecentNotices() {
   try {
+    if (!recipientEmail) {
+      throw new Error(
+        "BID_NOTICE_RECIPIENT_EMAIL 또는 ADMIN_EMAIL 또는 RESEND_FROM_EMAIL 설정이 필요합니다."
+      );
+    }
+
     console.log("🔍 최근 나라장터 공고 조회 중...\n");
 
     // 화면과 동일한 날짜 범위: 2025/12/01 ~ 2025/12/30
@@ -196,4 +206,3 @@ async function sendRecentNotices() {
 }
 
 sendRecentNotices();
-
