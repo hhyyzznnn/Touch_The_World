@@ -15,6 +15,9 @@ interface HeroChatInputProps {
   initialCategory?: string;
 }
 
+const LOGIN_HISTORY_NOTICE =
+  "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
+
 function createSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
@@ -29,11 +32,38 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string>(createSessionId);
   const landingCategoryRef = useRef<string | undefined>(landingCategory);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const getChatErrorMessage = async (response: Response): Promise<string> => {
+    let errorMessage = "API 호출 실패";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData?.error || errorMessage;
+      if (typeof errorData?.meta?.dailyRemaining === "number") {
+        setDailyRemaining(errorData.meta.dailyRemaining);
+      }
+      if (errorData?.requiresLogin) {
+        const loginNotice = errorData?.loginNotice || LOGIN_HISTORY_NOTICE;
+        if (!errorMessage.includes(loginNotice)) {
+          errorMessage = `${errorMessage}\n\n${loginNotice}`;
+        }
+      }
+    } catch {
+      // ignore json parse error
+    }
+    return errorMessage;
+  };
+
+  const toRequestMessages = (source: ChatMessage[], limit = 20) =>
+    source.slice(-limit).map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
 
   useEffect(() => {
     landingCategoryRef.current = landingCategory;
@@ -152,29 +182,21 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: userId
-            ? [...messages, userMessage].map((msg) => ({
-                role: msg.role,
-                content: msg.content,
-              }))
-            : [{ role: "user", content: userMessage.content }],
+          messages: toRequestMessages([...messages, userMessage], userId ? 40 : 20),
           sessionId: sessionId,
           landingCategory: landingCategory,
         }),
       });
 
       if (!response.ok) {
-        let errorMessage = "API 호출 실패";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData?.error || errorMessage;
-        } catch {
-          // ignore json parse error
-        }
+        const errorMessage = await getChatErrorMessage(response);
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      if (typeof data?.meta?.dailyRemaining === "number") {
+        setDailyRemaining(data.meta.dailyRemaining);
+      }
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -227,29 +249,21 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: userId
-            ? [...messages, userMessage].map((msg) => ({
-                role: msg.role,
-                content: msg.content,
-              }))
-            : [{ role: "user", content: userMessage.content }],
+          messages: toRequestMessages([...messages, userMessage], userId ? 40 : 20),
           sessionId: sessionId,
           landingCategory: categoryName,
         }),
       });
 
       if (!response.ok) {
-        let errorMessage = "API 호출 실패";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData?.error || errorMessage;
-        } catch {
-          // ignore json parse error
-        }
+        const errorMessage = await getChatErrorMessage(response);
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      if (typeof data?.meta?.dailyRemaining === "number") {
+        setDailyRemaining(data.meta.dailyRemaining);
+      }
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -288,9 +302,19 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   return (
     <div className="w-full max-w-3xl mx-auto">
       {!userId && authLoaded && (
-        <p className="text-xs text-text-gray mb-2 px-2">
-          비로그인 상태에서는 일일 5회 이용 가능하며, 대화 저장/이어보기는 로그인 후 사용할 수 있습니다.
-        </p>
+        <div className="mb-2 space-y-1 px-2">
+          <p className="text-xs text-text-gray">
+            {typeof dailyRemaining === "number"
+              ? `비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회). 현재 창에서는 대화 맥락이 유지됩니다.`
+              : "비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다. 브라우저 종료 시 기록은 사라집니다."}
+          </p>
+          <p className="text-xs text-text-gray">로그인하면 대화 저장/이어보기와 한도 확장으로 상담을 끊김 없이 진행할 수 있습니다.</p>
+          {typeof dailyRemaining === "number" && dailyRemaining <= 2 && (
+            <p className="text-xs text-amber-700">
+              남은 횟수가 적습니다. 상담을 이어가려면 로그인 후 진행하는 것을 권장드립니다.
+            </p>
+          )}
+        </div>
       )}
       {/* Input Container */}
       <form onSubmit={handleSubmit}>

@@ -18,6 +18,9 @@ interface Message {
   showCategoryButtons?: boolean;
 }
 
+const LOGIN_HISTORY_NOTICE =
+  "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
+
 // ChatMessage와 Message 타입 호환
 const toMessage = (msg: ChatMessage): Message => ({
   id: msg.id,
@@ -62,9 +65,39 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string>(createSessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const getChatErrorMessage = async (response: Response): Promise<string> => {
+    let errorMessage = "API 호출 실패";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData?.error || errorMessage;
+      if (typeof errorData?.meta?.dailyRemaining === "number") {
+        setDailyRemaining(errorData.meta.dailyRemaining);
+      }
+      if (errorData?.requiresLogin) {
+        const loginNotice = errorData?.loginNotice || LOGIN_HISTORY_NOTICE;
+        if (!errorMessage.includes(loginNotice)) {
+          errorMessage = `${errorMessage}\n\n${loginNotice}`;
+        }
+      }
+    } catch {
+      // ignore json parse error
+    }
+    return errorMessage;
+  };
+
+  const toRequestMessages = (
+    source: Array<{ role: "user" | "assistant"; content: string }>,
+    limit = 20
+  ) =>
+    source.slice(-limit).map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -206,29 +239,21 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: userId
-            ? allMessages.map((msg) => ({
-                role: msg.role,
-                content: msg.content,
-              }))
-            : [{ role: "user", content: contentToSend }],
+          messages: toRequestMessages(allMessages, userId ? 40 : 20),
           sessionId: sessionId,
           landingCategory: landingCategory,
         }),
       });
 
       if (!response.ok) {
-        let errorMessage = "API 호출 실패";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData?.error || errorMessage;
-        } catch {
-          // ignore json parse error
-        }
+        const errorMessage = await getChatErrorMessage(response);
         throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      if (typeof data?.meta?.dailyRemaining === "number") {
+        setDailyRemaining(data.meta.dailyRemaining);
+      }
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -363,9 +388,19 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
       {/* Input */}
       <div className="p-3 border-t border-gray-100">
         {!userId && authLoaded && (
-          <p className="text-xs text-text-gray mb-2">
-            비로그인 상태에서는 일일 5회 이용 가능하며, 대화 저장/이어보기는 로그인 후 사용할 수 있습니다.
-          </p>
+          <div className="mb-2 space-y-1">
+            <p className="text-xs text-text-gray">
+              {typeof dailyRemaining === "number"
+                ? `비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회). 현재 창에서는 대화 맥락이 유지됩니다.`
+                : "비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다. 브라우저 종료 시 기록은 사라집니다."}
+            </p>
+            <p className="text-xs text-text-gray">로그인하면 대화 저장/이어보기와 한도 확장으로 상담을 끊김 없이 진행할 수 있습니다.</p>
+            {typeof dailyRemaining === "number" && dailyRemaining <= 2 && (
+              <p className="text-xs text-amber-700">
+                남은 횟수가 적습니다. 상담을 이어가려면 로그인 후 진행하는 것을 권장드립니다.
+              </p>
+            )}
+          </div>
         )}
         <div className="flex gap-2">
           <input

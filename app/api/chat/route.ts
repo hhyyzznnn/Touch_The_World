@@ -14,7 +14,10 @@ const DEFAULT_SERVICE_CTA =
   "원하시면 지금 바로 상담 접수를 도와드릴게요. 인원, 희망 지역, 이동수단(전세버스/KTX/항공) 중 가능한 항목부터 알려주세요.";
 
 const NO_PROGRAM_CTA =
-  "현재 조건으로는 추천 가능한 프로그램이 없습니다. 대신 조건을 조정해 재검색하거나, 맞춤 일정 문의로 전환해 드릴 수 있습니다. 원하시는 방향을 선택해주세요: 1) 조건 조정 후 재검색 2) 맞춤 일정 문의 접수";
+  "조건 변경이 어렵다면 바로 상담 접수로 전환해 드릴 수 있습니다. 연락받으실 휴대폰 또는 이메일, 희망 연락 시간을 남겨주시면 담당자가 이어서 도와드립니다.";
+
+const LOGIN_HISTORY_NOTICE =
+  "로그인하면 대화 내용이 저장되어 상담을 이어볼 수 있고, 비로그인 한도(일 5회)도 해제됩니다.";
 
 const hasActionPrompt = (text: string): boolean =>
   /(문의|접수|견적|연락|진행|재검색|조건|선택|알려주시면|말씀해주시면)/.test(text);
@@ -22,31 +25,145 @@ const hasActionPrompt = (text: string): boolean =>
 const hasQuestionEnding = (text: string): boolean =>
   text.includes("?") || /(까요|할까요|해주세요|주실 수 있을까요)\s*$/.test(text.trim());
 
+const EMAIL_MATCH_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+const PHONE_MATCH_REGEX = /(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}/g;
+const EMAIL_TEST_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+const PHONE_TEST_REGEX = /(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}/;
+
+type ChatRequestMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
+
+interface ChatContextSnapshot {
+  hasCategory: boolean;
+  hasParticipantCount: boolean;
+  hasRegion: boolean;
+  hasPurpose: boolean;
+  hasContact: boolean;
+  hasConsultingIntent: boolean;
+  userWantsToEnd: boolean;
+}
+
+interface ExtractedContact {
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+}
+
+function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  const normalized = digits.startsWith("82") ? `0${digits.slice(2)}` : digits;
+
+  if (normalized.length === 11) {
+    return `${normalized.slice(0, 3)}-${normalized.slice(3, 7)}-${normalized.slice(7)}`;
+  }
+  if (normalized.length === 10) {
+    return `${normalized.slice(0, 3)}-${normalized.slice(3, 6)}-${normalized.slice(6)}`;
+  }
+  return phone;
+}
+
+function extractContactInfo(messages: ChatRequestMessage[]): ExtractedContact {
+  const userText = messages
+    .filter((msg) => msg.role === "user")
+    .map((msg) => msg.content)
+    .join("\n");
+
+  const emails = userText.match(EMAIL_MATCH_REGEX);
+  const phones = userText.match(PHONE_MATCH_REGEX);
+  const nameMatch = userText.match(
+    /(?:이름|성함|담당자)\s*(?:은|는|:)?\s*([가-힣A-Za-z]{2,20})/
+  );
+
+  return {
+    contactEmail: emails?.[emails.length - 1]?.trim(),
+    contactPhone: phones?.[phones.length - 1]
+      ? normalizePhone(phones[phones.length - 1])
+      : undefined,
+    contactName: nameMatch?.[1],
+  };
+}
+
+function buildChatContext(
+  messages: ChatRequestMessage[],
+  landingCategory?: string
+): ChatContextSnapshot {
+  const userMessages = messages
+    .filter((msg) => msg.role === "user")
+    .map((msg) => msg.content);
+  const userText = userMessages.join("\n");
+  const compactUserText = userText.replace(/\s+/g, "");
+  const normalizedCategories = PROGRAM_CATEGORIES.map((cat) =>
+    cat.name.replace(/\n/g, "").replace(/\s+/g, "")
+  );
+
+  const hasCategory =
+    Boolean(landingCategory) ||
+    normalizedCategories.some((cat) => compactUserText.includes(cat)) ||
+    /(수학여행|체험학습|교사연수|수련활동|교육여행|유학|취업|RISE|특성화고)/.test(userText);
+  const hasParticipantCount = /\b\d{1,4}\s*명\b/.test(userText);
+  const hasRegion =
+    /(서울|경기|인천|부산|대구|광주|대전|울산|세종|제주|강원|충북|충남|전북|전남|경북|경남|해외|일본|대만|싱가포르|베트남|중국|미국|유럽)/.test(
+      userText
+    );
+  const hasPurpose =
+    /(목적|진로|탐방|체험|연수|행사|프로그램|캠프|교육)/.test(userText) &&
+    userText.length > 8;
+  const hasContact = EMAIL_TEST_REGEX.test(userText) || PHONE_TEST_REGEX.test(userText);
+  const hasConsultingIntent = /(상담|문의|견적|연락|접수|진행)/.test(userText);
+  const userWantsToEnd = /(고마워|감사해|여기까지|종료|마칠게|끝낼게|됐어)/.test(
+    userText
+  );
+
+  return {
+    hasCategory,
+    hasParticipantCount,
+    hasRegion,
+    hasPurpose,
+    hasContact,
+    hasConsultingIntent,
+    userWantsToEnd,
+  };
+}
+
 const withServiceGuidance = (
   content: string,
   opts?: {
     noProgramFound?: boolean;
     savedConsulting?: boolean;
+    context?: ChatContextSnapshot;
+    contactProvided?: boolean;
   }
 ): string => {
   let next = content.trim();
+  const context = opts?.context;
 
   if (opts?.noProgramFound) {
     if (!next.includes("추천 가능한 프로그램이 없습니다")) {
       next = `${next}\n\n현재 조건으로는 추천 가능한 프로그램이 없습니다.`;
     }
-    if (!next.includes("맞춤 일정 문의")) {
+    if (!/상담|문의|연락/.test(next)) {
       next = `${next}\n\n${NO_PROGRAM_CTA}`;
     }
     if (!hasQuestionEnding(next)) {
-      next = `${next}\n\n인원 또는 지역 조건을 먼저 조정해볼까요?`;
+      next = context?.hasContact
+        ? `${next}\n\n남겨주신 연락처로 담당자가 이어서 도와드릴까요?`
+        : `${next}\n\n조건 변경 없이 바로 상담 접수로 진행할까요? 연락받으실 휴대폰 또는 이메일을 알려주세요.`;
     }
     return next;
   }
 
   if (opts?.savedConsulting) {
-    if (!/연락처|전화|이메일/.test(next)) {
+    if (!opts.contactProvided) {
       next = `${next}\n\n빠른 진행을 위해 연락처(전화 또는 이메일)를 남겨주실 수 있을까요?`;
+    }
+    return next;
+  }
+
+  if (context?.userWantsToEnd) {
+    if (!/언제든|필요하시면/.test(next)) {
+      next = `${next}\n\n필요하실 때 같은 창에서 바로 다시 이어서 도와드리겠습니다.`;
     }
     return next;
   }
@@ -56,7 +173,19 @@ const withServiceGuidance = (
   }
 
   if (!hasQuestionEnding(next)) {
-    next = `${next}\n\n우선 어떤 카테고리로 진행할지 알려주실 수 있을까요?`;
+    if (!context?.hasCategory) {
+      next = `${next}\n\n원하시는 프로그램 유형(예: 체험학습, 교사연수)부터 알려주실 수 있을까요?`;
+    } else if (!context.hasParticipantCount) {
+      next = `${next}\n\n예상 인원은 몇 명인지 알려주실 수 있을까요?`;
+    } else if (!context.hasRegion) {
+      next = `${next}\n\n희망 지역(국내/해외 포함)을 알려주시면 바로 맞춰보겠습니다.`;
+    } else if (!context.hasPurpose) {
+      next = `${next}\n\n이번 행사의 핵심 목적(진로/체험/연수 등)을 알려주실 수 있을까요?`;
+    } else if (context.hasConsultingIntent && !context.hasContact) {
+      next = `${next}\n\n상담 접수를 위해 연락받으실 휴대폰 또는 이메일을 남겨주실 수 있을까요?`;
+    } else {
+      next = `${next}\n\n추가로 꼭 반영해야 할 조건(일정, 안전, 식사, 이동수단)이 있을까요?`;
+    }
   }
 
   return next;
@@ -68,49 +197,43 @@ const categoryList = PROGRAM_CATEGORIES.map((cat, idx) => {
   return `${idx + 1}. ${name}`;
 }).join("\n");
 
-const getSystemPrompt = (landingCategory?: string, canSaveConsultingLog: boolean = true): string => {
-  let categoryContext = "";
-  if (landingCategory) {
-    categoryContext = "\n**중요:** 사용자가 랜딩 페이지에서 \"" + landingCategory + "\" 카테고리로 접근했습니다. 초기 대화에서 이 카테고리를 먼저 언급하고, 해당 카테고리에 맞춘 상담을 진행하세요.";
-  }
-  const closingStep = canSaveConsultingLog
-    ? "6. 사용자가 상담을 마무리하거나 '상세 견적 요청' 의사를 표시하면, saveConsultingLog 함수를 호출하여 정보를 저장하세요.\n\n"
-    : "6. 비로그인 사용자는 상담 저장/이어보기가 제한됩니다. 상담 마무리 단계에서는 로그인 후 이어서 진행할 수 있다고 안내하세요.\n\n";
+const getSystemPrompt = (landingCategory?: string): string => {
+  const categoryContext = landingCategory
+    ? `\n**중요 맥락:** 사용자가 랜딩 페이지에서 "${landingCategory}"로 진입했습니다. 카테고리를 다시 강요하지 말고, 해당 맥락부터 자연스럽게 이어가세요.`
+    : "";
 
-  const prompt = "당신은 '터치더월드'의 전문 교육 컨설턴트입니다. 친절하고 신뢰감 있으며, 특히 '안전'과 '교육적 목적'을 강조하는 말투를 사용하세요.\n\n" +
+  return (
+    "당신은 '터치더월드'의 전문 교육 컨설턴트입니다. 친절하고 신뢰감 있는 말투로, 안전과 교육 목적을 중심으로 상담하세요.\n\n" +
     "**회사 정보:**\n" +
     "- 회사명: 주식회사 터치더월드 (Touch The World)\n" +
-    "- 설립: 1996년 (장기 운영 노하우 보유)\n" +
+    "- 설립: 1996년\n" +
     "- 업종: 종합여행업, 유학 및 교육\n" +
-    "- 연락처: 1800-8078\n\n" +
-    "**제공 프로그램 카테고리:**\n" +
-    categoryList + categoryContext + "\n\n" +
-    "**상담 프로세스:**\n" +
-    "1. 사용자가 이미 카테고리를 선택했다면 바로 다음 단계로 진행하세요. 선택하지 않았다면 8개 카테고리 중 관심 분야를 선택하도록 유도하세요.\n" +
-    "2. 카테고리 선택 후, 다음 핵심 정보를 자연스러운 대화로 수집하세요 (순서대로):\n" +
-    "   - 예상 인원 (명)\n" +
-    "   - 희망 지역\n" +
-    "   - 여행 목적/성격\n" +
-    "   - 인솔자 필요 여부 (필수)\n" +
-    "   - 선호 이동수단 (전세버스/KTX/항공/기타) (필수)\n" +
-    "   - 식사 취향/요구사항 (할랄, 채식, 알러지 등)\n" +
-    "3. 정보 수집 중간에, 고객의 요구사항(카테고리, 지역, 목적 등)이 충분히 수집되면 searchPrograms 함수를 호출하여 데이터베이스에서 실제 프로그램을 검색하고 추천하세요. 검색된 프로그램이 있으면 구체적인 프로그램 제목, 지역, 가격 정보를 포함하여 추천하세요.\n" +
-    "4. 추천 후에는 \"특별히 고려해야 할 사항(예: 알러지, 장애 학생 지원, 특정 견학지 포함 등)\"이 있는지 반드시 물어보세요.\n" +
-    "5. 예상 예산이 있으면 물어보고, 즉시 견적 가능 여부를 판단하세요.\n" +
-    closingStep +
-    "**핵심 운영 규칙:**\n" +
-    "1. 질문에 답만 하고 끝내지 마세요. 모든 응답은 다음 행동을 제안하고, 추가 정보 1개 이상을 요청해야 합니다.\n" +
-    "2. searchPrograms 결과가 없으면 반드시 '현재 조건으로는 추천 가능한 프로그램이 없다'고 명확히 말하세요.\n" +
-    "3. 프로그램이 없을 때는 대화를 종료하지 말고, (a) 조건 조정 후 재검색 또는 (b) 맞춤 일정 문의 접수 중 하나로 유도하세요.\n" +
-    "4. 일반 정보 질문(예: 비용, 일정)에도 서비스 흐름으로 연결하세요. 예: 카테고리/인원/지역 확인 -> 추천/문의.\n\n" +
+    "- 대표 연락처: 1800-8078\n\n" +
+    "**제공 카테고리(참고):**\n" +
+    categoryList +
+    categoryContext +
+    "\n\n" +
+    "**상담 운영 원칙:**\n" +
+    "1. 템플릿을 기계적으로 따르지 말고, 사용자가 이미 준 정보(카테고리/인원/지역/연락처)를 우선 활용해 자연스럽게 이어가세요.\n" +
+    "2. 이미 받은 정보를 반복 질문하지 마세요. 특히 카테고리, 연락처, 인원, 지역 재질문을 최소화하세요.\n" +
+    "3. 사용자가 대화 종료 의사를 보이면 추가 질문을 강요하지 말고 간결히 마무리하세요.\n" +
+    "4. 정보가 충분하면 searchPrograms를 호출해 실제 프로그램을 추천하세요.\n" +
+    "5. searchPrograms 결과가 없으면 조건 변경을 강하게 요구하지 말고 상담 접수(연락처/희망 연락 시간)로 우선 유도하세요.\n" +
+    "6. 사용자가 전화번호/이메일/담당자명을 남기면 반드시 인식해 확인하고, 상담 마무리 또는 견적 의사 표현 시 saveConsultingLog를 호출하세요. 비로그인 사용자도 연락처가 있으면 저장을 시도하세요.\n\n" +
+    "**우선 수집할 핵심 정보:**\n" +
+    "- 프로그램 유형(이미 주어졌다면 재질문 금지)\n" +
+    "- 예상 인원\n" +
+    "- 희망 지역\n" +
+    "- 행사 목적/성격\n" +
+    "- 인솔자 필요 여부\n" +
+    "- 선호 이동수단\n" +
+    "- 식사/안전/특별 요구사항\n\n" +
     "**응답 스타일:**\n" +
-    "- 친절하고 전문적인 톤 유지\n" +
-    "- 안전과 교육적 가치 강조\n" +
-    "- 간결하고 명확한 답변\n" +
-    "- 사용자가 카테고리를 선택했다면 바로 해당 카테고리에 대한 상담을 시작하세요\n" +
-    "- 마지막 문장은 반드시 다음 행동을 묻는 질문으로 마무리하세요";
-  
-  return prompt;
+    "- 간결하고 명확하게 답변\n" +
+    "- 매 턴에서 다음 행동을 1개 제안\n" +
+    "- 필요한 경우에만 질문하고, 질문은 최대 1~2개로 제한\n" +
+    "- 과도한 카테고리 나열/선택 강요 금지"
+  );
 };
 
 const chatMessageSchema = z.object({
@@ -123,6 +246,15 @@ const chatRequestSchema = z.object({
   sessionId: z.string().max(200).optional(),
   landingCategory: z.string().max(100).optional(),
 });
+
+function toOpenAIMessage(
+  msg: ChatRequestMessage
+): OpenAI.Chat.Completions.ChatCompletionMessageParam {
+  return {
+    role: msg.role,
+    content: msg.content,
+  };
+}
 
 const ANON_DAILY_CHAT_LIMIT = 5;
 const USER_DAILY_CHAT_LIMIT = 120;
@@ -138,12 +270,6 @@ function getChatMeta(
     dailyLimit,
     dailyRemaining,
   };
-}
-
-function withHistoryNotice(content: string, isAuthenticated: boolean): string {
-  if (isAuthenticated) return content;
-  if (content.includes("로그인하면 대화 저장")) return content;
-  return `${content}\n\n로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.`;
 }
 
 export async function POST(request: NextRequest) {
@@ -194,8 +320,13 @@ export async function POST(request: NextRequest) {
         {
           error: isAuthenticated
             ? "오늘 AI 상담 사용 한도에 도달했습니다. 내일 다시 시도해주세요."
-            : "비로그인 사용 한도에 도달했습니다. 로그인 후 계속 이용해주세요.",
+            : "비로그인 일일 상담 한도(5회)에 도달했습니다. 로그인하면 지금까지의 상담 맥락을 이어서 계속 진행할 수 있습니다.",
           requiresLogin: !isAuthenticated,
+          ...(isAuthenticated
+            ? {}
+            : {
+                loginNotice: LOGIN_HISTORY_NOTICE,
+              }),
           retryAfter: Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000),
           meta: getChatMeta(isAuthenticated, dailyLimit, 0),
         },
@@ -208,19 +339,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 비로그인 사용자는 단일 턴(마지막 사용자 메시지)만 처리
-    const effectiveMessages = isAuthenticated ? messages : messages.slice(-1);
+    // 비로그인도 현재 세션 맥락을 유지할 수 있도록 최근 대화를 제한적으로 포함
+    const effectiveMessages = isAuthenticated ? messages : messages.slice(-16);
+    const chatContext = buildChatContext(effectiveMessages, landingCategory);
+    const inferredContact = extractContactInfo(effectiveMessages);
 
     // OpenAI 메시지 형식으로 변환
     const openaiMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: getSystemPrompt(landingCategory, isAuthenticated),
+        content: getSystemPrompt(landingCategory),
       },
-      ...effectiveMessages.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
+      ...effectiveMessages.map(toOpenAIMessage),
     ];
 
     // Function Calling 정의
@@ -269,6 +399,18 @@ export async function POST(request: NextRequest) {
       parameters: {
         type: "object",
         properties: {
+          contactName: {
+            type: "string",
+            description: "담당자 이름",
+          },
+          contactPhone: {
+            type: "string",
+            description: "연락 가능한 전화번호 (예: 010-1234-5678)",
+          },
+          contactEmail: {
+            type: "string",
+            description: "연락 가능한 이메일 주소",
+          },
           category: {
             type: "string",
             description: "선택한 프로그램 카테고리",
@@ -324,7 +466,7 @@ export async function POST(request: NextRequest) {
 
     const functions: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function[] = [
       searchProgramsFunction,
-      ...(isAuthenticated ? [saveConsultingLogFunction] : []),
+      saveConsultingLogFunction,
     ];
 
     // OpenAI API 호출
@@ -394,11 +536,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: withHistoryNotice(
-                withServiceGuidance(
-                  `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`
-                ),
-                isAuthenticated
+              content: withServiceGuidance(
+                `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`,
+                { context: chatContext }
               ),
             },
             functionCall: {
@@ -411,12 +551,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: withHistoryNotice(
-                withServiceGuidance(
-                  "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
-                  { noProgramFound: true }
-                ),
-                isAuthenticated
+              content: withServiceGuidance(
+                "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
+                { noProgramFound: true, context: chatContext }
               ),
             },
             functionCall: {
@@ -427,10 +564,26 @@ export async function POST(request: NextRequest) {
           });
         }
       } else if (functionName === "saveConsultingLog") {
+        const contactName =
+          typeof functionArgs.contactName === "string"
+            ? functionArgs.contactName
+            : inferredContact.contactName;
+        const contactPhone =
+          typeof functionArgs.contactPhone === "string"
+            ? normalizePhone(functionArgs.contactPhone)
+            : inferredContact.contactPhone;
+        const contactEmail =
+          typeof functionArgs.contactEmail === "string"
+            ? functionArgs.contactEmail
+            : inferredContact.contactEmail;
+
         // 상담 로그 저장
         const saveResult = await saveConsultingLog({
           sessionId: sessionId || `session_${Date.now()}`,
           userId: currentUser?.id,
+          contactName,
+          contactPhone,
+          contactEmail,
           category: typeof functionArgs.category === "string" ? functionArgs.category : undefined,
           participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
           region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
@@ -442,7 +595,7 @@ export async function POST(request: NextRequest) {
           estimatedBudget: typeof functionArgs.estimatedBudget === "number" ? functionArgs.estimatedBudget : undefined,
           estimatedQuote: typeof functionArgs.estimatedQuote === "string" ? functionArgs.estimatedQuote : undefined,
           canQuoteImmediately: typeof functionArgs.canQuoteImmediately === "boolean" ? functionArgs.canQuoteImmediately : false,
-          conversation: effectiveMessages.map((msg: any) => ({
+          conversation: effectiveMessages.map((msg) => ({
             role: msg.role,
             content: msg.content,
             timestamp: new Date().toISOString(),
@@ -453,6 +606,9 @@ export async function POST(request: NextRequest) {
         // 이메일 발송
         if (saveResult.success) {
           await sendConsultingSummaryEmail({
+            contactName,
+            contactPhone,
+            contactEmail,
             category: typeof functionArgs.category === "string" ? functionArgs.category : "미선택",
             participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
             region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
@@ -467,18 +623,25 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        const saveConfirmationMessage = Boolean(contactPhone || contactEmail)
+          ? typeof functionArgs.summary === "string"
+            ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
+            : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다."
+          : typeof functionArgs.summary === "string"
+            ? `상담 내용이 저장되었습니다.\n\n${functionArgs.summary}\n\n연락처가 확인되지 않아 담당자 배정이 보류되었습니다. 휴대폰 또는 이메일을 남겨주세요.`
+            : "상담 내용이 저장되었습니다. 연락처가 확인되지 않아 담당자 배정이 보류되었습니다. 휴대폰 또는 이메일을 남겨주세요.";
+
         // Function 호출 후 응답 메시지 생성
         return NextResponse.json({
           message: {
             role: "assistant",
-            content: withHistoryNotice(
-              withServiceGuidance(
-                typeof functionArgs.summary === "string"
-                  ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
-                  : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.",
-                { savedConsulting: true }
-              ),
-              isAuthenticated
+            content: withServiceGuidance(
+              saveConfirmationMessage,
+              {
+                savedConsulting: true,
+                context: chatContext,
+                contactProvided: Boolean(contactPhone || contactEmail),
+              }
             ),
           },
           functionCall: {
@@ -494,11 +657,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: {
         role: "assistant",
-        content: withHistoryNotice(
-          withServiceGuidance(
-            assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."
-          ),
-          isAuthenticated
+        content: withServiceGuidance(
+          assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다.",
+          { context: chatContext }
         ),
       },
       meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),

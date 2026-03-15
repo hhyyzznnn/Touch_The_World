@@ -2,7 +2,6 @@
 
 import { prisma } from "./prisma";
 import { Resend } from "resend";
-import { COMPANY_INFO } from "./constants";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
 import { sendPersonalizedRecommendationsIfOptedIn } from "./personalized-recommendations";
 import type { Prisma } from "@prisma/client";
@@ -10,6 +9,9 @@ import type { Prisma } from "@prisma/client";
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface ConsultingSummary {
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
   category: string;
   participantCount?: number;
   region?: string;
@@ -21,6 +23,25 @@ interface ConsultingSummary {
   estimatedBudget?: number;
   estimatedQuote?: string;
   canQuoteImmediately?: boolean;
+}
+
+function escapeHtml(value: unknown): string {
+  const text = String(value ?? "");
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function escapeHtmlWithLineBreaks(value: unknown): string {
+  return escapeHtml(value).replace(/\n/g, "<br/>");
+}
+
+function formatBudget(value?: number): string {
+  if (typeof value !== "number") return "미입력";
+  return `${value.toLocaleString("ko-KR")}원`;
 }
 
 /**
@@ -119,38 +140,150 @@ export async function sendConsultingSummaryEmail(summary: ConsultingSummary) {
       return { success: true, skipped: true };
     }
 
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const adminConsultingUrl = `${baseUrl}/admin`;
+    const adminInquiriesUrl = `${baseUrl}/admin/inquiries`;
+    const contactPhoneDigits = summary.contactPhone?.replace(/\D/g, "");
+    const contactPhoneHref = contactPhoneDigits ? `tel:${contactPhoneDigits}` : "";
+    const contactEmailHref = summary.contactEmail ? `mailto:${summary.contactEmail}` : "";
+
+    const categoryText = summary.category || "미선택";
+    const regionText = summary.region || "미입력";
+    const participantText = summary.participantCount ? `${summary.participantCount}명` : "미입력";
+    const purposeText = summary.purpose || "미입력";
+    const instructorText =
+      summary.hasInstructor !== undefined
+        ? summary.hasInstructor
+          ? "필요"
+          : "불필요"
+        : "미입력";
+    const transportText = summary.preferredTransport || "미입력";
+    const mealText = summary.mealPreference || "없음";
+    const specialText = summary.specialRequests || "없음";
+    const quoteText = summary.estimatedQuote || "미입력";
+    const immediateQuoteText = summary.canQuoteImmediately ? "가능" : "추가 확인 필요";
+    const budgetText = formatBudget(summary.estimatedBudget);
+
     const summaryText = `[고객 유형/카테고리]
-${summary.category || "미선택"}
+${categoryText}
 
 [예상 인원 및 지역]
-인원: ${summary.participantCount ? `${summary.participantCount}명` : "미입력"}
-지역: ${summary.region || "미입력"}
+인원: ${participantText}
+지역: ${regionText}
+
+[연락처]
+담당자명: ${summary.contactName || "미입력"}
+전화번호: ${summary.contactPhone || "미입력"}
+이메일: ${summary.contactEmail || "미입력"}
 
 [핵심 요구사항 및 커스텀 요청]
-목적/성격: ${summary.purpose || "미입력"}
-인솔자: ${summary.hasInstructor !== undefined ? (summary.hasInstructor ? "필요" : "불필요") : "미입력"}
-이동수단: ${summary.preferredTransport || "미입력"}
-식사 취향: ${summary.mealPreference || "없음"}
-특별 요구사항: ${summary.specialRequests || "없음"}
+목적/성격: ${purposeText}
+인솔자: ${instructorText}
+이동수단: ${transportText}
+식사 취향: ${mealText}
+특별 요구사항: ${specialText}
 
 [견적 정보]
-예상 예산: ${summary.estimatedBudget ? `${(Number(summary.estimatedBudget) / 10000).toFixed(0)}만원` : "미입력"}
-예상 견적가: ${summary.estimatedQuote || "미입력"}
-즉시 견적 가능: ${summary.canQuoteImmediately ? "가능" : "추가 확인 필요"}`;
+예상 예산: ${budgetText}
+예상 견적가: ${quoteText}
+즉시 견적 가능: ${immediateQuoteText}`;
+
+    const renderRow = (label: string, value: string, isMultiline = false) => `
+      <tr>
+        <td style="padding: 10px 0; width: 140px; color: #5f6368; font-weight: 600; vertical-align: top;">${escapeHtml(label)}</td>
+        <td style="padding: 10px 0; color: #202124; line-height: 1.5;">
+          ${isMultiline ? escapeHtmlWithLineBreaks(value) : escapeHtml(value)}
+        </td>
+      </tr>
+    `;
 
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || "no-reply@touchtheworld.co.kr",
       to: "yejun4831@gmail.com", // 기능 구현 완료 전까지 테스트용
-      subject: `[AI 상담 리드] ${summary.category || "신규 문의"} - ${summary.region || "지역 미입력"}`,
+      subject: `[AI 상담 리드] ${categoryText} / ${regionText} / ${participantText}`,
+      text: summaryText,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2E6D45;">AI 상담 리드 알림</h2>
-          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <pre style="white-space: pre-wrap; font-family: Arial, sans-serif; margin: 0;">${summaryText}</pre>
-          </div>
-          <p style="color: #666; font-size: 12px; margin-top: 20px;">
-            이 이메일은 AI 채팅 상담에서 자동으로 생성되었습니다.
-          </p>
+        <div style="margin: 0; padding: 24px 0; background: #f3f6f4; font-family: Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color: #202124;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 720px; margin: 0 auto;">
+            <tr>
+              <td style="padding: 0 16px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff; border: 1px solid #d7e4dc; border-radius: 14px; overflow: hidden;">
+                  <tr>
+                    <td style="padding: 20px 24px; background: #2E6D45; color: #ffffff;">
+                      <div style="font-size: 12px; opacity: 0.92; margin-bottom: 6px;">Touch The World · AI Consulting Lead</div>
+                      <div style="font-size: 22px; font-weight: 700; line-height: 1.3;">AI 상담 리드가 접수되었습니다</div>
+                      <div style="font-size: 13px; opacity: 0.9; margin-top: 8px;">${escapeHtml(categoryText)} / ${escapeHtml(regionText)} / ${escapeHtml(participantText)}</div>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 20px 24px 10px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f8faf8; border: 1px solid #e3ece7; border-radius: 10px; padding: 12px;">
+                        ${renderRow("담당자명", summary.contactName || "미입력")}
+                        ${renderRow("전화번호", summary.contactPhone || "미입력")}
+                        ${renderRow("이메일", summary.contactEmail || "미입력")}
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 8px 24px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top: 1px solid #edf2ef;">
+                        ${renderRow("카테고리", categoryText)}
+                        ${renderRow("예상 인원", participantText)}
+                        ${renderRow("희망 지역", regionText)}
+                        ${renderRow("목적/성격", purposeText)}
+                        ${renderRow("인솔자 필요", instructorText)}
+                        ${renderRow("이동수단", transportText)}
+                        ${renderRow("식사 취향", mealText)}
+                        ${renderRow("특별 요구사항", specialText, true)}
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 8px 24px 20px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: #f8faf8; border: 1px solid #e3ece7; border-radius: 10px; padding: 12px;">
+                        ${renderRow("예상 예산", budgetText)}
+                        ${renderRow("예상 견적가", quoteText, true)}
+                        ${renderRow("즉시 견적 가능", immediateQuoteText)}
+                      </table>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding: 0 24px 24px;">
+                      <div style="text-align: center;">
+                        <a href="${adminConsultingUrl}"
+                           style="display: inline-block; margin: 0 4px 8px; padding: 11px 16px; background: #2E6D45; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                          관리자에서 확인
+                        </a>
+                        <a href="${adminInquiriesUrl}"
+                           style="display: inline-block; margin: 0 4px 8px; padding: 11px 16px; background: #ffffff; color: #2E6D45; border: 1px solid #2E6D45; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                          문의 목록 바로가기
+                        </a>
+                        ${contactPhoneHref
+                          ? `<a href="${contactPhoneHref}"
+                               style="display: inline-block; margin: 0 4px 8px; padding: 11px 16px; background: #ffffff; color: #2E6D45; border: 1px solid #2E6D45; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                               전화 연결
+                             </a>`
+                          : ""}
+                        ${contactEmailHref
+                          ? `<a href="${contactEmailHref}"
+                               style="display: inline-block; margin: 0 4px 8px; padding: 11px 16px; background: #ffffff; color: #2E6D45; border: 1px solid #2E6D45; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                               이메일 작성
+                             </a>`
+                          : ""}
+                      </div>
+                      <div style="margin-top: 14px; font-size: 12px; color: #7a8288; text-align: center;">
+                        이 메일은 AI 상담 대화에서 자동 생성되었습니다.
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
         </div>
       `,
     });

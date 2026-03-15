@@ -24,7 +24,17 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
   const router = useRouter();
+
+  const isPasswordMismatch =
+    confirmPasswordTouched &&
+    formData.confirmPassword.length > 0 &&
+    formData.password !== formData.confirmPassword;
+  const isPasswordMatch =
+    confirmPasswordTouched &&
+    formData.confirmPassword.length > 0 &&
+    formData.password === formData.confirmPassword;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -93,7 +103,7 @@ export default function RegisterPage() {
       <div className="max-w-md w-full space-y-6">
         <div>
           <h2 className="text-center text-3xl font-medium text-text-dark">
-            회원가입
+            교사/담당자 회원가입
           </h2>
           <p className="mt-2 text-center text-sm text-text-gray">
             이미 계정이 있으신가요?{" "}
@@ -104,6 +114,9 @@ export default function RegisterPage() {
               로그인
             </Link>
           </p>
+          <p className="mt-1 text-center text-xs text-text-gray">
+            학교·기관 담당자 기준 기본 정보를 입력해 주세요.
+          </p>
         </div>
         <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -112,7 +125,7 @@ export default function RegisterPage() {
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                아이디 <span className="text-red-500">*</span>
+                로그인 아이디 <span className="text-red-500">*</span>
               </label>
               <input
                 id="username"
@@ -179,16 +192,23 @@ export default function RegisterPage() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
+                onBlur={() => setConfirmPasswordTouched(true)}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
                 placeholder="비밀번호를 다시 입력하세요"
               />
+              {isPasswordMismatch && (
+                <p className="mt-1 text-sm text-red-600">비밀번호가 일치하지 않습니다.</p>
+              )}
+              {isPasswordMatch && (
+                <p className="mt-1 text-sm text-green-600">비밀번호가 일치합니다.</p>
+              )}
             </div>
             <div>
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                이름 <span className="text-red-500">*</span>
+                담당자 이름 <span className="text-red-500">*</span>
               </label>
               <input
                 id="name"
@@ -200,6 +220,28 @@ export default function RegisterPage() {
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
                 placeholder="홍길동"
               />
+            </div>
+            <div>
+              <label
+                htmlFor="school"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                소속 학교/기관 (담당 부서) <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="school"
+                name="school"
+                type="text"
+                required
+                value={formData.school}
+                onChange={handleChange}
+                autoComplete="organization"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                placeholder="예: 서울고등학교 2학년부(체험학습 담당)"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                교사/행사 담당자 확인용 정보입니다. 학교(기관)명과 담당 부서 또는 역할을 함께 입력해 주세요.
+              </p>
             </div>
             <div>
               <label
@@ -274,23 +316,6 @@ export default function RegisterPage() {
               {phoneVerified && (
                 <p className="mt-2 text-sm text-green-600">✓ 휴대폰 인증이 완료되었습니다.</p>
               )}
-            </div>
-            <div>
-              <label
-                htmlFor="school"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                소속 학교
-              </label>
-              <input
-                id="school"
-                name="school"
-                type="text"
-                value={formData.school}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-                placeholder="예: 서울고등학교"
-              />
             </div>
 
             <div className="rounded-md border border-gray-200 bg-gray-50 p-4 space-y-3">
