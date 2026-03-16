@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { format } from "date-fns";
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "회사 소식 - Touch The World",
@@ -36,6 +37,9 @@ export default async function NewsPage() {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase w-20 sm:w-24">
+                      이미지
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase w-20 sm:w-24">
                       분류
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
@@ -55,6 +59,15 @@ export default async function NewsPage() {
                         key={item.id}
                         className="hover:bg-gray-50 transition-colors"
                       >
+                        <td className="px-4 py-3">
+                          {item.imageUrl ? (
+                            <div className="relative w-14 h-20 sm:w-16 sm:h-20 rounded-md overflow-hidden border">
+                              <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <span className="text-text-gray text-xs">-</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
                           {item.isPinned && (
                             <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-bold bg-brand-green-primary text-white">

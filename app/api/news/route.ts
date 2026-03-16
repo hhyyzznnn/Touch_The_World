@@ -10,6 +10,7 @@ export async function GET() {
         id: true,
         title: true,
         summary: true,
+        imageUrl: true,
         link: true,
         isPinned: true,
         createdAt: true,

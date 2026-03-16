@@ -21,10 +21,11 @@ export async function POST(request: NextRequest) {
       title: string;
       summary?: string;
       content?: string;
+      imageUrl?: string | null;
       link?: string;
       isPinned?: boolean;
     }>(request);
-    const { title, summary, content, link, isPinned } = body;
+    const { title, summary, content, imageUrl, link, isPinned } = body;
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력하세요." }, { status: 400 });
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
         title: title.trim(),
         summary: summary?.trim() || null,
         content: content?.trim() || null,
+        imageUrl: imageUrl?.trim() || null,
         link: link?.trim() || null,
         isPinned: !!isPinned,
       },

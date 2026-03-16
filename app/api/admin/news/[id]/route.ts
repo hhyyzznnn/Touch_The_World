@@ -15,10 +15,11 @@ export async function PUT(
       title: string;
       summary?: string;
       content?: string;
+      imageUrl?: string | null;
       link?: string;
       isPinned?: boolean;
     }>(request);
-    const { title, summary, content, link, isPinned } = body;
+    const { title, summary, content, imageUrl, link, isPinned } = body;
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력하세요." }, { status: 400 });
@@ -30,6 +31,7 @@ export async function PUT(
         title: title.trim(),
         summary: summary?.trim() ?? undefined,
         content: content?.trim() ?? undefined,
+        imageUrl: imageUrl?.trim() || null,
         link: link?.trim() ?? undefined,
         isPinned: !!isPinned,
       },

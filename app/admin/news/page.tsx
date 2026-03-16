@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { NewsDeleteButton } from "./NewsDeleteButton";
 import { format } from "date-fns";
+import Image from "next/image";
 
 async function getNews() {
   return await prisma.companyNews.findMany({
@@ -33,6 +34,9 @@ export default async function AdminNewsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    이미지
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     제목
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -49,6 +53,15 @@ export default async function AdminNewsPage() {
               <tbody className="divide-y">
                 {list.map((item) => (
                   <tr key={item.id}>
+                    <td className="px-6 py-4">
+                      {item.imageUrl ? (
+                        <div className="relative w-16 h-20 rounded-md overflow-hidden border">
+                          <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4">
                       <span className="font-medium">{item.title}</span>
                     </td>

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
-import { 
-  List, 
-  Send, 
+import {
+  List,
+  Send,
   Shield,
   Lightbulb,
   Settings,
@@ -54,6 +54,31 @@ async function getNewsForTicker() {
   }
 }
 
+async function getCardNewsForHome() {
+  try {
+    return await prisma.companyNews.findMany({
+      where: {
+        imageUrl: {
+          not: null,
+        },
+      },
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      take: 4,
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        imageUrl: true,
+        link: true,
+        isPinned: true,
+        createdAt: true,
+      },
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function getRecentEvents() {
   try {
     return await prisma.event.findMany({
@@ -93,102 +118,64 @@ export default async function HomePage({
   searchParams?: Promise<{ category?: string; copy?: "a" | "b" }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const [recentEvents, newsTickerItems] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
+    getCardNewsForHome(),
   ]);
   const copyVariant = resolvedSearchParams?.copy === "b" ? "b" : "a";
   const heroSubTitle =
     copyVariant === "b"
-      ? "교육여행·수학여행·교사연수·해외연수 전문"
-      : "학교와 지자체를 위한 교육여행 전문 여행사";
+      ? "안전한 운영과 명확한 교육 설계로\n학교 맞춤형 체험학습을 완성합니다"
+      : "안전과 교육의 가치를 실현하는\n프리미엄 교육여행 파트너";
   const heroDescription =
     copyVariant === "b"
-      ? "기획부터 운영, 사후 정리까지 한 번에 연결해 담당 선생님의 준비 부담을 줄입니다."
-      : "교육 목표에 맞춘 맞춤형 설계와 안전 중심 운영으로, 가장 유익한 현장 학습을 완성합니다.";
-  const representativeEvent = recentEvents.find((event) => event.images[0]?.url);
+      ? "계획부터 현장 운영, 사후 정리까지\n교육자가 핵심에만 집중할 수 있게 돕습니다."
+      : "교육자의 시간을 절약하고,\n학습자의 세계를 확장합니다.";
 
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-green/5 via-brand-green/10 to-white py-12 sm:py-16 md:py-20">
+      <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-6 lg:gap-10 items-center max-w-6xl mx-auto">
-            <div className="text-center lg:text-left space-y-4 sm:space-y-5">
-              <p className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-xs sm:text-sm text-text-dark">
-                터치더월드
-              </p>
-              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide">
-                <span className="text-brand-green-primary">TOUCH</span>{" "}
-                <span className="text-text-dark">THE WORLD</span>
-              </h1>
-              <p className="text-lg sm:text-xl md:text-2xl font-medium text-text-dark leading-snug">
-                {heroSubTitle}
-              </p>
-              <p className="text-sm sm:text-base md:text-lg text-text-gray leading-relaxed">
-                {heroDescription}
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center lg:justify-start text-xs sm:text-sm">
-                <span className="inline-flex items-center rounded-full bg-white border border-brand-green/20 px-3 py-1 text-text-dark">
-                  🎓 교육여행
+          <div className="text-center space-y-4 sm:space-y-6 max-w-4xl mx-auto">
+            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide mb-2 sm:mb-4">
+              <span className="text-brand-green-primary">TOUCH</span>{" "}
+              <span className="text-text-dark">THE WORLD</span>
+            </h1>
+            <p className="text-lg sm:text-xl md:text-2xl font-medium text-text-dark" style={{ lineHeight: "1.4", letterSpacing: "-0.02em" }}>
+              {heroSubTitle.split("\n").map((line) => (
+                <span key={line} className="block">
+                  {line}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-white border border-brand-green/20 px-3 py-1 text-text-dark">
-                  🧭 수학여행
+              ))}
+            </p>
+            <p className="text-sm sm:text-base md:text-lg text-text-gray leading-relaxed">
+              {heroDescription.split("\n").map((line) => (
+                <span key={line} className="block">
+                  {line}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-white border border-brand-green/20 px-3 py-1 text-text-dark">
-                  🧑‍🏫 교사연수
-                </span>
-                <span className="inline-flex items-center rounded-full bg-white border border-brand-green/20 px-3 py-1 text-text-dark">
-                  ✈️ 해외연수
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start pt-2">
-                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200 min-h-11">
-                  <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
-                    <List className="w-4 h-4 sm:w-5 sm:h-5" />
-                    전체 프로그램
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11">
-                  <Link href="/inquiry" className="flex items-center justify-center gap-2 sm:gap-3">
-                    <Send className="w-4 h-4" />
-                    문의하기
-                  </Link>
-                </Button>
-              </div>
+              ))}
+            </p>
+
+            {/* AI Chat Input */}
+            <div className="pt-4 sm:pt-6">
+              <HeroChatInputWrapper category={resolvedSearchParams?.category} />
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-3 rounded-3xl bg-brand-green/15 blur-xl" aria-hidden="true" />
-              <div className="relative overflow-hidden rounded-3xl border border-brand-green/20 bg-white shadow-lg">
-                {representativeEvent?.images[0] ? (
-                  <div className="relative h-56 sm:h-72 md:h-80 w-full">
-                    <Image
-                      src={representativeEvent.images[0].url}
-                      alt={`${representativeEvent.school.name} 행사 현장`}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 520px"
-                      className="object-cover"
-                      priority
-                      placeholder="blur"
-                      blurDataURL={EVENT_IMAGE_BLUR_DATA_URL}
-                    />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-                      <p className="text-xs sm:text-sm text-white/85">최근 운영 현장</p>
-                      <p className="text-base sm:text-lg font-medium">{representativeEvent.school.name}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-56 sm:h-72 md:h-80 w-full bg-gradient-to-br from-brand-green/20 via-brand-green/10 to-white p-6 sm:p-8 flex flex-col justify-between">
-                    <p className="text-sm sm:text-base font-medium text-text-dark">학교 맞춤 교육여행 파트너</p>
-                    <p className="text-xs sm:text-sm text-text-gray leading-relaxed">
-                      프로그램 기획, 안전 운영, 현장 케어까지.
-                      <br />
-                      담당 선생님이 필요한 핵심을 빠르게 제공합니다.
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
+              <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200 min-h-11">
+                <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
+                  <List className="w-4 h-4 sm:w-5 sm:h-5" />
+                  전체 프로그램
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11">
+                <Link href="/inquiry" className="flex items-center justify-center gap-2 sm:gap-3">
+                  <Send className="w-4 h-4" />
+                  문의하기
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -197,54 +184,80 @@ export default async function HomePage({
       {/* 회사 소식 한 줄 */}
       <NewsTicker items={newsTickerItems} />
 
-      {/* AI 상담 섹션 */}
-      <section className="py-10 sm:py-12 bg-white border-b border-gray-100">
+      {/* 카드뉴스 */}
+      {cardNewsItems.length > 0 && (
+        <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-5 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">카드뉴스</h2>
+              <Link href="/news" className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base">
+                전체 보기
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+              {cardNewsItems.map((item) => {
+                const href = item.link?.trim() || `/news/${item.id}`;
+                const isExternal = !!item.link?.trim()?.startsWith("http");
+                return (
+                  <Link
+                    key={item.id}
+                    href={href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                  >
+                    <div className="relative aspect-[4/5] bg-gray-100">
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.title}
+                          fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
+                          className="object-cover group-hover:scale-[1.02] transition-transform duration-200"
+                        />
+                      ) : (
+                        <ImagePlaceholder text="카드뉴스" className="text-xs" />
+                      )}
+                      {item.isPinned && (
+                        <span className="absolute top-2 left-2 inline-flex items-center rounded bg-brand-green-primary px-2 py-0.5 text-xs font-bold text-white">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-3 sm:p-4">
+                      <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
+                      {item.summary && <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 검색 의도형 소개 섹션 */}
+      <section className="py-8 sm:py-10 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-6 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-3">
-                AI 상담으로 조건에 맞는 프로그램을 빠르게 찾으세요
-              </h2>
-              <p className="text-sm sm:text-base text-text-gray leading-relaxed">
-                초기 조건 확인부터 상담 접수까지 한 흐름으로 이어집니다.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
-              <p className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs sm:text-sm text-text-gray leading-relaxed">
-                비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다.
-                브라우저 종료 시 기록은 사라집니다.
-              </p>
-              <p className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-xs sm:text-sm text-text-gray leading-relaxed">
-                로그인하면 대화 저장/이어보기와 한도 확장으로
-                상담을 끊김 없이 진행할 수 있습니다.
-              </p>
-              <p className="rounded-xl border border-brand-green/20 bg-brand-green/5 px-4 py-3 text-xs sm:text-sm text-text-dark leading-relaxed">
-                터치더월드는 학교·지자체 대상 체험학습, 수학여행,
-                교사연수, 해외연수를 교육 목표 중심으로 설계·운영합니다.
-              </p>
-            </div>
-            <div className="max-w-3xl mx-auto">
-              <HeroChatInputWrapper category={resolvedSearchParams?.category} />
-            </div>
-            <p className="text-center text-text-dark mt-5 sm:mt-6 text-sm sm:text-base font-medium">
-              가장 안전하고 유익한 여행, 지금 준비하세요.
-            </p>
-            <p className="sr-only">
-              터치더월드(Touch The World, touchtheworld)는 학교와 지자체를 위한 교육여행 전문 여행사로, 체험학습, 수학여행, 교사연수, 해외연수 프로그램을 교육 목표에 맞춰 설계하고 안전 중심으로 운영합니다.
+          <div className="max-w-5xl mx-auto text-center">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-4">
+              교육여행·수학여행·교사연수·해외연수 전문, 터치더월드
+            </h2>
+            <p className="text-sm sm:text-base text-text-gray leading-relaxed">
+              터치더월드(Touch The World, touchtheworld)는 학교와 지자체를 위한 교육여행 전문 여행사로,
+              체험학습, 수학여행, 교사연수, 해외연수 프로그램을 교육 목표에 맞춰 설계하고 안전 중심으로 운영합니다.
             </p>
           </div>
         </div>
       </section>
 
-      {/* 프로그램 카테고리 */}
+      {/* Program Categories */}
       <section className="py-10 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-2 sm:mb-3 text-center">
-            관심 프로그램을 선택하세요
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-6 sm:mb-12 text-center">
+            | 프로그램 유형을 선택하세요
           </h2>
-          <p className="text-center text-xs sm:text-sm text-text-gray mb-6 sm:mb-12">
-            유형을 선택하면 해당 프로그램 목록으로 바로 이동합니다.
-          </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
             {PROGRAM_CATEGORIES.map((category) => {
               const Icon = category.icon;
@@ -278,11 +291,14 @@ export default async function HomePage({
               <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
                 1996년 설립
               </span>
+              <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
+                1996년부터 운영
+              </span>
               <Link
                 href="/achievements"
                 className="inline-flex items-center rounded-full border border-brand-green/30 bg-white px-3 py-1 text-brand-green hover:bg-brand-green/5 transition-colors"
               >
-                터치더월드 발자취 보기
+                실적 보기
                 <ChevronRight className="w-3 h-3 ml-0.5" />
               </Link>
             </div>

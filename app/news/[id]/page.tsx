@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { BRAND_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import Image from "next/image";
 
 async function getNews(id: string) {
   return await prisma.companyNews.findUnique({
@@ -22,6 +23,7 @@ async function getNewsSeoData(id: string) {
       summary: true,
       createdAt: true,
       isPinned: true,
+      imageUrl: true,
     },
   });
 }
@@ -60,6 +62,7 @@ export async function generateMetadata({
       description,
       url: `/news/${news.id}`,
       type: "article",
+      images: news.imageUrl ? [{ url: news.imageUrl }] : undefined,
     },
   };
 }
@@ -109,6 +112,12 @@ export default async function NewsDetailPage({
             <p className="text-lg text-text-gray mb-6 leading-relaxed">
               {news.summary}
             </p>
+          )}
+
+          {news.imageUrl && (
+            <div className="relative w-full max-w-2xl aspect-[4/5] rounded-lg overflow-hidden border mb-6">
+              <Image src={news.imageUrl} alt={news.title} fill className="object-cover" />
+            </div>
           )}
 
           {news.content && (
