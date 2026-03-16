@@ -46,7 +46,7 @@ export function Footer() {
                 <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
                   <Link href="/inquiry" className="flex items-center justify-center gap-2">
                     <MessageCircle className="w-5 h-5" />
-                    카카오톡 문의
+                    카카오톡 채널 준비중
                   </Link>
                 </Button>
               )}
@@ -65,6 +65,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <Phone className="w-5 h-5 text-brand-green" />
+              <span className="text-sm text-text-gray">대표전화</span>
               <span className="text-xl font-medium text-text-dark">{COMPANY_INFO.phone}</span>
             </div>
             <div className="flex items-center gap-2 mb-2">
@@ -79,10 +80,10 @@ export function Footer() {
           </div>
           <div className="text-left md:text-left">
             <p className="text-text-dark mb-2 text-sm sm:text-base">
-              상호명: {COMPANY_INFO.name} ({COMPANY_INFO.englishName})
+              {COMPANY_INFO.name} ({COMPANY_INFO.englishName})
             </p>
             <p className="text-text-dark mb-2 text-sm sm:text-base">
-              {COMPANY_INFO.founded} 설립 | 1996년부터 운영
+              {COMPANY_INFO.founded} 설립
             </p>
             <p className="text-text-dark text-sm sm:text-base">
               {COMPANY_INFO.businessType}

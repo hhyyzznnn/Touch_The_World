@@ -15,6 +15,7 @@ export function Header() {
   const [isProgramsOpen, setIsProgramsOpen] = useState(false);
 
   const isAdmin = pathname?.startsWith("/admin");
+  const isHome = pathname === "/";
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -41,9 +42,11 @@ export function Header() {
             <Logo />
             
             {/* 통합 검색 바 (데스크톱) */}
-            <div className="hidden md:flex flex-1 max-w-md ml-2">
-              <GlobalSearchBar />
-            </div>
+            {!isHome && (
+              <div className="hidden md:flex flex-1 max-w-md ml-2">
+                <GlobalSearchBar />
+              </div>
+            )}
           </div>
           
           {/* 데스크톱 네비게이션 */}
@@ -150,9 +153,11 @@ export function Header() {
         </div>
         
         {/* 모바일 검색 바 */}
-        <div className="md:hidden pb-3">
-          <GlobalSearchBar />
-        </div>
+        {!isHome && (
+          <div className="md:hidden pb-3">
+            <GlobalSearchBar />
+          </div>
+        )}
       </div>
 
       {/* 모바일 메뉴 드롭다운 */}

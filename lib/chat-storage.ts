@@ -14,6 +14,14 @@ interface ChatStorageOptions {
   enabled?: boolean;
 }
 
+interface PersistedChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  showCategoryButtons?: boolean;
+}
+
 const STORAGE_KEY_PREFIX = "ttw_chat_messages";
 const SESSION_ID_KEY_PREFIX = "ttw_chat_session_id";
 const LEGACY_STORAGE_KEY = "ttw_chat_messages";
@@ -21,6 +29,20 @@ const LEGACY_SESSION_ID_KEY = "ttw_chat_session_id";
 
 function getScopedKey(prefix: string, userId: string): string {
   return `${prefix}:${userId}`;
+}
+
+function isPersistedChatMessage(value: unknown): value is PersistedChatMessage {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    (candidate.role === "user" || candidate.role === "assistant") &&
+    typeof candidate.content === "string" &&
+    typeof candidate.timestamp === "string"
+  );
 }
 
 export function saveChatMessages(
@@ -68,10 +90,21 @@ export function loadChatMessages(options?: ChatStorageOptions): { messages: Chat
     }
     
     const parsed = JSON.parse(messagesData);
-    const messages: ChatMessage[] = parsed.map((msg: any) => ({
-      ...msg,
-      timestamp: new Date(msg.timestamp),
-    }));
+    if (!Array.isArray(parsed)) {
+      return { messages: [], sessionId: sessionId || null };
+    }
+
+    const messages: ChatMessage[] = parsed
+      .filter(isPersistedChatMessage)
+      .map((msg) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp),
+        ...(msg.showCategoryButtons !== undefined && {
+          showCategoryButtons: msg.showCategoryButtons,
+        }),
+      }));
     
     return { messages, sessionId: sessionId || null };
   } catch (error) {

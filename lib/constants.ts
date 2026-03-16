@@ -37,7 +37,7 @@ export const COMPANY_INFO = {
   businessType: "종합여행업, 유학 및 교육",
   address: "서울특별시 강남구 테헤란로 501 삼성동 브이플렉스",
   phone: "1800-8078",
-  email: "syh2123@naver.com",
+  email: "pjjttw@naver.com",
   businessHours: "평일 09:00 - 18:00 (점심시간 12:00 - 13:00)",
   kakaoChannel: "", // 카카오톡 채널 링크를 여기에 입력하세요 (예: https://pf.kakao.com/_xxxxx 또는 카카오톡 채널 ID)
   instagram: "https://www.instagram.com/touch_tw", // 인스타그램 링크

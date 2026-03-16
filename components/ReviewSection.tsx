@@ -25,6 +25,14 @@ interface ReviewSectionProps {
   reviewCount?: number;
 }
 
+interface AuthUser {
+  id: string;
+}
+
+interface AuthMeResponse {
+  user?: AuthUser | null;
+}
+
 export function ReviewSection({
   programId,
   initialReviews = [],
@@ -32,7 +40,7 @@ export function ReviewSection({
   reviewCount = 0,
 }: ReviewSectionProps) {
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isWriting, setIsWriting] = useState(false);
   const [rating, setRating] = useState(0);
   const [content, setContent] = useState("");
@@ -57,8 +65,8 @@ export function ReviewSection({
     // 현재 사용자 정보 가져오기
     fetch("/api/auth/me")
       .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
+      .then((data: AuthMeResponse) => {
+        if (data.user?.id) {
           setUser(data.user);
         }
       })

@@ -34,9 +34,12 @@ export function ProgramCategories() {
     <>
       <section className="py-10 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-6 sm:mb-12 text-center">
-            | 프로그램 유형을 선택하세요
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-2 sm:mb-3 text-center">
+            관심 프로그램을 선택하세요
           </h2>
+          <p className="text-center text-xs sm:text-sm text-text-gray mb-6 sm:mb-12">
+            유형을 선택하면 해당 프로그램 목록으로 이동합니다.
+          </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
             {PROGRAM_CATEGORIES.map((category) => {
               const Icon = category.icon;
@@ -74,4 +77,3 @@ export function ProgramCategories() {
     </>
   );
 }
-

@@ -9,44 +9,26 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import { EmptyState } from "@/components/EmptyState";
 import Link from "next/link";
 import Image from "next/image";
-
-interface Program {
-  id: string;
-  title: string;
-  category: string;
-  summary?: string | null;
-  thumbnailUrl?: string | null;
-  region?: string | null;
-  hashtags?: string[];
-  priceFrom?: number | null;
-  priceTo?: number | null;
-  rating?: number | null;
-  reviewCount?: number;
-  imageUrl?: string | null;
-}
+import {
+  CompareProgram,
+  readCompareList,
+  writeCompareList,
+} from "@/lib/program-compare";
 
 export function ProgramCompareTable() {
   const router = useRouter();
-  const [compareList, setCompareList] = useState<Program[]>([]);
+  const [compareList, setCompareList] = useState<CompareProgram[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("programCompare");
-    if (saved) {
-      try {
-        setCompareList(JSON.parse(saved));
-      } catch (error) {
-        console.error("Failed to load compare list:", error);
-      }
-    }
+    setCompareList(readCompareList());
   }, []);
 
   const removeFromCompare = (id: string) => {
     const updated = compareList.filter((p) => p.id !== id);
     setCompareList(updated);
-    if (updated.length > 0) {
-      localStorage.setItem("programCompare", JSON.stringify(updated));
-    } else {
-      localStorage.removeItem("programCompare");
+
+    writeCompareList(updated);
+    if (updated.length === 0) {
       router.push("/programs");
     }
   };

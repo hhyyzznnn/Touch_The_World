@@ -5,60 +5,42 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgramCard } from "@/components/ProgramCard";
 import Link from "next/link";
-
-interface Program {
-  id: string;
-  title: string;
-  category: string;
-  summary?: string | null;
-  thumbnailUrl?: string | null;
-  region?: string | null;
-  hashtags?: string[];
-  priceFrom?: number | null;
-  priceTo?: number | null;
-  rating?: number | null;
-  reviewCount?: number;
-  imageUrl?: string | null;
-}
+import {
+  addProgramToCompare,
+  CompareProgram,
+  DEFAULT_MAX_COMPARE_ITEMS,
+  readCompareList,
+  writeCompareList,
+} from "@/lib/program-compare";
 
 interface ProgramCompareProps {
   maxCompare?: number;
 }
 
 export function ProgramCompare({ maxCompare = 3 }: ProgramCompareProps) {
-  const [compareList, setCompareList] = useState<Program[]>([]);
+  const [compareList, setCompareList] = useState<CompareProgram[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     // localStorage에서 비교 목록 불러오기
-    const saved = localStorage.getItem("programCompare");
-    if (saved) {
-      try {
-        setCompareList(JSON.parse(saved));
-      } catch (error) {
-        console.error("Failed to load compare list:", error);
-      }
-    }
+    setCompareList(readCompareList());
+    setInitialized(true);
   }, []);
 
   useEffect(() => {
-    // 비교 목록이 변경될 때마다 localStorage에 저장
-    if (compareList.length > 0) {
-      localStorage.setItem("programCompare", JSON.stringify(compareList));
-    } else {
-      localStorage.removeItem("programCompare");
-    }
-  }, [compareList]);
+    if (!initialized) return;
 
-  const addToCompare = (program: Program) => {
-    if (compareList.length >= maxCompare) {
-      alert(`최대 ${maxCompare}개까지 비교할 수 있습니다.`);
+    // 비교 목록이 변경될 때마다 localStorage에 저장
+    writeCompareList(compareList);
+  }, [compareList, initialized]);
+
+  const addToCompare = (program: CompareProgram) => {
+    const result = addProgramToCompare(program, maxCompare);
+    if (!result.success) {
+      alert(result.message);
       return;
     }
-    if (compareList.some((p) => p.id === program.id)) {
-      alert("이미 비교 목록에 추가된 프로그램입니다.");
-      return;
-    }
-    setCompareList([...compareList, program]);
+    setCompareList(result.list);
   };
 
   const removeFromCompare = (id: string) => {
@@ -148,18 +130,7 @@ export function ProgramCompare({ maxCompare = 3 }: ProgramCompareProps) {
 }
 
 // 비교 기능을 위한 전역 함수 (다른 컴포넌트에서 사용)
-export function addToCompareList(program: Program) {
-  const saved = localStorage.getItem("programCompare");
-  const compareList: Program[] = saved ? JSON.parse(saved) : [];
-  
-  if (compareList.length >= 3) {
-    return { success: false, message: "최대 3개까지 비교할 수 있습니다." };
-  }
-  if (compareList.some((p) => p.id === program.id)) {
-    return { success: false, message: "이미 비교 목록에 추가된 프로그램입니다." };
-  }
-  
-  compareList.push(program);
-  localStorage.setItem("programCompare", JSON.stringify(compareList));
-  return { success: true, message: "비교 목록에 추가되었습니다." };
+export function addToCompareList(program: CompareProgram) {
+  const result = addProgramToCompare(program, DEFAULT_MAX_COMPARE_ITEMS);
+  return { success: result.success, message: result.message };
 }

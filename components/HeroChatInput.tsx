@@ -298,20 +298,20 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       ? "메시지를 입력하세요..."
       : "메시지를 입력하거나 카테고리를 선택하세요"
     : "AI에게 질문해보세요";
+  const shouldShowLoginPrompt = typeof dailyRemaining === "number" && dailyRemaining <= 2;
 
   return (
     <div className="w-full max-w-3xl mx-auto">
       {!userId && authLoaded && (
-        <div className="mb-2 space-y-1 px-2">
-          <p className="text-xs text-text-gray">
+        <div className="mb-2 space-y-1.5 px-2 text-left">
+          <p className="text-xs text-text-gray leading-relaxed">
             {typeof dailyRemaining === "number"
               ? `비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회). 현재 창에서는 대화 맥락이 유지됩니다.`
               : "비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다. 브라우저 종료 시 기록은 사라집니다."}
           </p>
-          <p className="text-xs text-text-gray">로그인하면 대화 저장/이어보기와 한도 확장으로 상담을 끊김 없이 진행할 수 있습니다.</p>
-          {typeof dailyRemaining === "number" && dailyRemaining <= 2 && (
-            <p className="text-xs text-amber-700">
-              남은 횟수가 적습니다. 상담을 이어가려면 로그인 후 진행하는 것을 권장드립니다.
+          {shouldShowLoginPrompt && (
+            <p className="text-xs text-amber-700 leading-relaxed">
+              남은 횟수가 적습니다. 로그인하면 대화 저장/이어보기와 한도 확장으로 상담을 끊김 없이 진행할 수 있습니다.
             </p>
           )}
         </div>
