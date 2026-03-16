@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { saveConsultingLog, sendConsultingSummaryEmail, searchPrograms } from "@/lib/chat-actions";
+import { maybeCreateInquiryFromConsultingLog } from "@/lib/inquiry-conversion";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { z } from "zod";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
@@ -226,6 +227,7 @@ const getSystemPrompt = (landingCategory?: string): string => {
     "- 프로그램 유형(이미 주어졌다면 재질문 금지)\n" +
     "- 예상 인원\n" +
     "- 희망 지역\n" +
+    "- 희망 일정\n" +
     "- 행사 목적/성격\n" +
     "- 인솔자 필요 여부\n" +
     "- 선호 이동수단\n" +
@@ -425,6 +427,10 @@ export async function POST(request: NextRequest) {
             type: "string",
             description: "희망 지역",
           },
+          expectedDate: {
+            type: "string",
+            description: "희망 일정 (예: 2026년 5월 셋째 주, 3박 4일)",
+          },
           purpose: {
             type: "string",
             description: "여행 목적/성격",
@@ -589,6 +595,12 @@ export async function POST(request: NextRequest) {
           category: typeof functionArgs.category === "string" ? functionArgs.category : undefined,
           participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
           region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
+          expectedDate:
+            typeof functionArgs.expectedDate === "string"
+              ? functionArgs.expectedDate
+              : typeof functionArgs.duration === "string"
+                ? functionArgs.duration
+                : undefined,
           purpose: typeof functionArgs.purpose === "string" ? functionArgs.purpose : undefined,
           hasInstructor: typeof functionArgs.hasInstructor === "boolean" ? functionArgs.hasInstructor : undefined,
           preferredTransport: typeof functionArgs.preferredTransport === "string" ? functionArgs.preferredTransport : undefined,
@@ -614,6 +626,12 @@ export async function POST(request: NextRequest) {
             category: typeof functionArgs.category === "string" ? functionArgs.category : "미선택",
             participantCount: typeof functionArgs.participantCount === "number" ? functionArgs.participantCount : undefined,
             region: typeof functionArgs.region === "string" ? functionArgs.region : undefined,
+            expectedDate:
+              typeof functionArgs.expectedDate === "string"
+                ? functionArgs.expectedDate
+                : typeof functionArgs.duration === "string"
+                  ? functionArgs.duration
+                  : undefined,
             purpose: typeof functionArgs.purpose === "string" ? functionArgs.purpose : undefined,
             hasInstructor: typeof functionArgs.hasInstructor === "boolean" ? functionArgs.hasInstructor : undefined,
             preferredTransport: typeof functionArgs.preferredTransport === "string" ? functionArgs.preferredTransport : undefined,
@@ -625,10 +643,19 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        let inquiryConversionResult = null;
+        if (saveResult.success && saveResult.id) {
+          inquiryConversionResult = await maybeCreateInquiryFromConsultingLog(saveResult.id);
+        }
+
         const saveConfirmationMessage = Boolean(contactPhone || contactEmail)
-          ? typeof functionArgs.summary === "string"
-            ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
-            : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다."
+          ? inquiryConversionResult?.created
+            ? typeof functionArgs.summary === "string"
+              ? `상담 내용이 저장되었고 문의도 자동 접수되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
+              : "상담 내용이 저장되었고 문의도 자동 접수되었습니다. 담당자가 곧 연락드리겠습니다."
+            : typeof functionArgs.summary === "string"
+              ? `상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다.\n\n${functionArgs.summary}`
+              : "상담 내용이 저장되었습니다. 담당자가 곧 연락드리겠습니다."
           : typeof functionArgs.summary === "string"
             ? `상담 내용이 저장되었습니다.\n\n${functionArgs.summary}\n\n연락처가 확인되지 않아 담당자 배정이 보류되었습니다. 휴대폰 또는 이메일을 남겨주세요.`
             : "상담 내용이 저장되었습니다. 연락처가 확인되지 않아 담당자 배정이 보류되었습니다. 휴대폰 또는 이메일을 남겨주세요.";
@@ -648,7 +675,10 @@ export async function POST(request: NextRequest) {
           },
           functionCall: {
             name: functionName,
-            result: saveResult,
+            result: {
+              saveResult,
+              inquiryConversionResult,
+            },
           },
           meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
         });

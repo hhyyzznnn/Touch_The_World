@@ -15,6 +15,7 @@ interface ConsultingSummary {
   category: string;
   participantCount?: number;
   region?: string;
+  expectedDate?: string;
   purpose?: string;
   hasInstructor?: boolean;
   preferredTransport?: string;
@@ -56,6 +57,7 @@ export async function saveConsultingLog(data: {
   category?: string;
   participantCount?: number;
   region?: string;
+  expectedDate?: string;
   purpose?: string;
   hasInstructor?: boolean;
   preferredTransport?: string;
@@ -78,6 +80,7 @@ export async function saveConsultingLog(data: {
         category: data.category,
         participantCount: data.participantCount,
         region: data.region,
+        expectedDate: data.expectedDate,
         purpose: data.purpose,
         hasInstructor: data.hasInstructor,
         preferredTransport: data.preferredTransport,
@@ -153,6 +156,7 @@ export async function sendConsultingSummaryEmail(summary: ConsultingSummary) {
     const regionText = summary.region || "미입력";
     const participantText = summary.participantCount ? `${summary.participantCount}명` : "미입력";
     const purposeText = summary.purpose || "미입력";
+    const scheduleText = summary.expectedDate || "미입력";
     const instructorText =
       summary.hasInstructor !== undefined
         ? summary.hasInstructor
@@ -172,6 +176,7 @@ ${categoryText}
 [예상 인원 및 지역]
 인원: ${participantText}
 지역: ${regionText}
+일정: ${scheduleText}
 
 [연락처]
 담당자명: ${summary.contactName || "미입력"}
@@ -235,6 +240,7 @@ ${categoryText}
                         ${renderRow("카테고리", categoryText)}
                         ${renderRow("예상 인원", participantText)}
                         ${renderRow("희망 지역", regionText)}
+                        ${renderRow("희망 일정", scheduleText)}
                         ${renderRow("목적/성격", purposeText)}
                         ${renderRow("인솔자 필요", instructorText)}
                         ${renderRow("이동수단", transportText)}

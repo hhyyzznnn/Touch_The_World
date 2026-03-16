@@ -108,6 +108,11 @@ model EventImage {
 model Inquiry {
   id                String   @id @default(cuid())
   userId            String?
+  sourceType        String   @default("manual") // manual, ai_consulting
+  sourceSessionId   String?
+  consultingLogId   String?
+  autoCreated       Boolean  @default(false)
+  aiSummary         String?
   schoolName        String
   contact           String
   phone             String
@@ -126,8 +131,15 @@ model Inquiry {
   updatedAt         DateTime @updatedAt
 
   user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  consultingLog     ConsultingLog? @relation("ConsultingLogInquiry", fields: [consultingLogId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([sourceType])
+  @@index([sourceSessionId])
+  @@index([consultingLogId])
+  @@index([autoCreated])
+  @@unique([sourceSessionId])
+  @@unique([consultingLogId])
   @@index([status])
   @@index([createdAt])
 }
@@ -405,6 +417,7 @@ model ConsultingLog {
   category        String?  // 선택한 카테고리
   participantCount Int?   // 예상 인원
   region          String?  // 희망 지역
+  expectedDate    String?  // 희망 일정
   purpose         String?  // 여행 목적/성격
   hasInstructor   Boolean? // 인솔자 필요 여부
   preferredTransport String? // 선호 이동수단 (전세버스, KTX, 항공, 기타)
@@ -419,15 +432,19 @@ model ConsultingLog {
   emailSentAt     DateTime?
   kakaoSent       Boolean  @default(false) // 카카오 알림톡 발송 여부
   kakaoSentAt     DateTime?
+  convertedToInquiry Boolean @default(false)
+  convertedAt     DateTime?
   status          String   @default("pending") // pending, quoted, contacted, completed
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  inquiry Inquiry? @relation("ConsultingLogInquiry")
 
   @@index([sessionId])
   @@index([userId])
   @@index([category])
+  @@index([convertedToInquiry])
   @@index([status])
   @@index([createdAt])
   @@index([emailSent])
