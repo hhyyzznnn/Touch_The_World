@@ -9,8 +9,13 @@ import { Button } from "@/components/ui/button";
 const inquirySchema = z.object({
   schoolName: z.string().min(1, "학교명을 입력해주세요"),
   contact: z.string().min(1, "담당자명을 입력해주세요"),
-  phone: z.string().min(1, "연락처를 입력해주세요"),
-  email: z.string().email("올바른 이메일을 입력해주세요"),
+  phone: z.string().optional(),
+  email: z
+    .string()
+    .optional()
+    .refine((val) => !val || z.string().email().safeParse(val).success, {
+      message: "올바른 이메일을 입력해주세요",
+    }),
   expectedDate: z.string().optional(),
   participantCount: z.string().optional().transform((val) => val ? parseInt(val) : undefined),
   purpose: z.string().optional(),
@@ -20,6 +25,16 @@ const inquirySchema = z.object({
   specialRequests: z.string().optional(),
   estimatedBudget: z.string().optional().transform((val) => val ? parseInt(val) : undefined),
   message: z.string().optional(),
+}).superRefine((value, ctx) => {
+  const hasPhone = typeof value.phone === "string" && value.phone.trim().length > 0;
+  const hasEmail = typeof value.email === "string" && value.email.trim().length > 0;
+  if (!hasPhone && !hasEmail) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "연락처를 입력해주세요.",
+      path: ["phone"],
+    });
+  }
 });
 
 type InquiryFormData = z.infer<typeof inquirySchema>;
@@ -151,7 +166,7 @@ export default function InquiryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium mb-2">
-                  연락처 <span className="text-red-500">*</span>
+                  연락처
                 </label>
                 <input
                   id="phone"
@@ -168,7 +183,7 @@ export default function InquiryPage() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium mb-2">
-                  이메일 <span className="text-red-500">*</span>
+                  이메일
                 </label>
                 <input
                   id="email"

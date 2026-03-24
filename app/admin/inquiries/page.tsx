@@ -86,9 +86,9 @@ export default async function AdminInquiriesPage({
                       {inquiry.contact}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {inquiry.phone}
+                      {inquiry.phone || "전화 미입력"}
                       <br />
-                      {inquiry.email}
+                      {inquiry.email || "이메일 미입력"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

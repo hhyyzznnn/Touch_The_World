@@ -93,12 +93,12 @@ export default async function InquiryDetailPage({
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-text-gray" />
             <span className="text-text-gray">연락처:</span>
-            <span className="text-text-dark font-medium">{inquiry.phone}</span>
+            <span className="text-text-dark font-medium">{inquiry.phone || "미입력"}</span>
           </div>
           <div className="flex items-center gap-2 sm:col-span-2">
             <Mail className="w-4 h-4 text-text-gray" />
             <span className="text-text-gray">이메일:</span>
-            <span className="text-text-dark font-medium">{inquiry.email}</span>
+            <span className="text-text-dark font-medium">{inquiry.email || "미입력"}</span>
           </div>
           {inquiry.expectedDate && (
             <div className="flex items-center gap-2">

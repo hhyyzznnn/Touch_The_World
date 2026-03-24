@@ -122,17 +122,21 @@ export function InquiryDetailModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-500">전화번호</label>
-              <p className="mt-1 text-sm text-gray-900">{inquiry.phone}</p>
+              <p className="mt-1 text-sm text-gray-900">{inquiry.phone || "미입력"}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-500">이메일</label>
               <p className="mt-1 text-sm text-gray-900">
-                <a
-                  href={`mailto:${inquiry.email}`}
-                  className="text-brand-green-primary hover:underline"
-                >
-                  {inquiry.email}
-                </a>
+                {inquiry.email ? (
+                  <a
+                    href={`mailto:${inquiry.email}`}
+                    className="text-brand-green-primary hover:underline"
+                  >
+                    {inquiry.email}
+                  </a>
+                ) : (
+                  "미입력"
+                )}
               </p>
             </div>
           </div>

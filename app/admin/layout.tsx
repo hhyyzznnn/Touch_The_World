@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AdminNav } from "@/components/AdminNav";
 import { getCurrentUser } from "@/lib/auth-user";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "관리자 | 터치더월드",
@@ -16,6 +17,14 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+
+  // /admin/login 은 인증 없이 접근 가능해야 하므로 리다이렉트/관리자 네비 적용 제외
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
   const user = await getCurrentUser();
   if (!user || user.role !== "admin") {
     redirect("/admin/login");

@@ -1,5 +1,5 @@
-// 로그인 사용자 전용 채팅 기록 저장 유틸리티
-// 비로그인 사용자는 기록을 저장하지 않습니다.
+// 채팅 기록 저장 유틸리티
+// 로그인 사용자는 localStorage, 비로그인 사용자는 sessionStorage를 사용합니다.
 
 export interface ChatMessage {
   id: string;
@@ -12,6 +12,7 @@ export interface ChatMessage {
 interface ChatStorageOptions {
   userId?: string | null;
   enabled?: boolean;
+  allowAnonymous?: boolean;
 }
 
 interface PersistedChatMessage {
@@ -26,6 +27,8 @@ const STORAGE_KEY_PREFIX = "ttw_chat_messages";
 const SESSION_ID_KEY_PREFIX = "ttw_chat_session_id";
 const LEGACY_STORAGE_KEY = "ttw_chat_messages";
 const LEGACY_SESSION_ID_KEY = "ttw_chat_session_id";
+const ANON_STORAGE_KEY = "ttw_chat_messages:anon";
+const ANON_SESSION_ID_KEY = "ttw_chat_session_id:anon";
 
 function getScopedKey(prefix: string, userId: string): string {
   return `${prefix}:${userId}`;
@@ -52,17 +55,24 @@ export function saveChatMessages(
 ) {
   if (typeof window === "undefined") return;
   if (options?.enabled === false) return;
-  if (!options?.userId) return;
   
   try {
-    const storageKey = getScopedKey(STORAGE_KEY_PREFIX, options.userId);
-    const sessionKey = getScopedKey(SESSION_ID_KEY_PREFIX, options.userId);
+    const isAnonymous = !options?.userId && options?.allowAnonymous;
+    if (!options?.userId && !isAnonymous) return;
+
+    const storageKey = options?.userId
+      ? getScopedKey(STORAGE_KEY_PREFIX, options.userId)
+      : ANON_STORAGE_KEY;
+    const sessionKey = options?.userId
+      ? getScopedKey(SESSION_ID_KEY_PREFIX, options.userId)
+      : ANON_SESSION_ID_KEY;
+    const storage = isAnonymous ? sessionStorage : localStorage;
     const messagesToSave = messages.map((msg) => ({
       ...msg,
       timestamp: msg.timestamp.toISOString(),
     }));
-    localStorage.setItem(storageKey, JSON.stringify(messagesToSave));
-    localStorage.setItem(sessionKey, sessionId);
+    storage.setItem(storageKey, JSON.stringify(messagesToSave));
+    storage.setItem(sessionKey, sessionId);
   } catch (error) {
     console.error("Failed to save chat messages:", error);
   }
@@ -75,15 +85,21 @@ export function loadChatMessages(options?: ChatStorageOptions): { messages: Chat
   if (options?.enabled === false) {
     return { messages: [], sessionId: null };
   }
-  if (!options?.userId) {
+  const isAnonymous = !options?.userId && options?.allowAnonymous;
+  if (!options?.userId && !isAnonymous) {
     return { messages: [], sessionId: null };
   }
   
   try {
-    const storageKey = getScopedKey(STORAGE_KEY_PREFIX, options.userId);
-    const sessionKey = getScopedKey(SESSION_ID_KEY_PREFIX, options.userId);
-    const messagesData = localStorage.getItem(storageKey);
-    const sessionId = localStorage.getItem(sessionKey);
+    const storageKey = options?.userId
+      ? getScopedKey(STORAGE_KEY_PREFIX, options.userId)
+      : ANON_STORAGE_KEY;
+    const sessionKey = options?.userId
+      ? getScopedKey(SESSION_ID_KEY_PREFIX, options.userId)
+      : ANON_SESSION_ID_KEY;
+    const storage = isAnonymous ? sessionStorage : localStorage;
+    const messagesData = storage.getItem(storageKey);
+    const sessionId = storage.getItem(sessionKey);
     
     if (!messagesData) {
       return { messages: [], sessionId: sessionId || null };
@@ -115,13 +131,20 @@ export function loadChatMessages(options?: ChatStorageOptions): { messages: Chat
 
 export function clearChatMessages(options?: ChatStorageOptions) {
   if (typeof window === "undefined") return;
-  if (!options?.userId) return;
   
   try {
-    const storageKey = getScopedKey(STORAGE_KEY_PREFIX, options.userId);
-    const sessionKey = getScopedKey(SESSION_ID_KEY_PREFIX, options.userId);
-    localStorage.removeItem(storageKey);
-    localStorage.removeItem(sessionKey);
+    const isAnonymous = !options?.userId && options?.allowAnonymous;
+    if (!options?.userId && !isAnonymous) return;
+
+    const storageKey = options?.userId
+      ? getScopedKey(STORAGE_KEY_PREFIX, options.userId)
+      : ANON_STORAGE_KEY;
+    const sessionKey = options?.userId
+      ? getScopedKey(SESSION_ID_KEY_PREFIX, options.userId)
+      : ANON_SESSION_ID_KEY;
+    const storage = isAnonymous ? sessionStorage : localStorage;
+    storage.removeItem(storageKey);
+    storage.removeItem(sessionKey);
   } catch (error) {
     console.error("Failed to clear chat messages:", error);
   }

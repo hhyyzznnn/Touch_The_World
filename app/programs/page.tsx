@@ -105,6 +105,13 @@ export default async function ProgramsPage({
   const sort = (params.sort || "latest") as SortOption;
   const { programs, totalPages } = await getPrograms(params.category, currentPage, sort);
   const categories = await getCategories();
+
+  const createCategoryHref = (category?: string) => {
+    const query = new URLSearchParams();
+    if (category) query.set("category", category);
+    if (sort !== "latest") query.set("sort", sort);
+    return query.toString() ? `/programs?${query.toString()}` : "/programs";
+  };
   
   // 카테고리별 상세 정보 가져오기
   const categoryDetailKey = params.category ? getCategoryDetailKey(params.category) : null;
@@ -114,26 +121,39 @@ export default async function ProgramsPage({
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">프로그램 목록</h1>
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button
-            asChild
-            variant={!params.category ? "default" : "outline"}
-            className={!params.category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
-          >
-            <Link href="/programs">전체</Link>
-          </Button>
-          {categories.map((category) => (
+        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 mb-3">
+          <p className="mb-2 text-xs font-medium text-text-gray">카테고리 필터</p>
+          <div className="flex flex-wrap gap-2">
             <Button
-              key={category}
               asChild
-              variant={params.category === category ? "default" : "outline"}
-              className={params.category === category ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white" : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"}
+              variant={!params.category ? "default" : "outline"}
+              size="sm"
+              className={
+                !params.category
+                  ? "rounded-full bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
+                  : "rounded-full bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
+              }
             >
-              <Link href={`/programs?category=${encodeURIComponent(category)}`}>
-                {getCategoryDisplayName(category)}
-              </Link>
+              <Link href={createCategoryHref()}>전체</Link>
             </Button>
-          ))}
+            {categories.map((category) => (
+              <Button
+                key={category}
+                asChild
+                variant={params.category === category ? "default" : "outline"}
+                size="sm"
+                className={
+                  params.category === category
+                    ? "rounded-full bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
+                    : "rounded-full bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
+                }
+              >
+                <Link href={createCategoryHref(category)}>
+                  {getCategoryDisplayName(category)}
+                </Link>
+              </Button>
+            ))}
+          </div>
         </div>
         <Suspense fallback={<div className="h-10" />}>
           <ProgramSort />

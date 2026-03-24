@@ -10,8 +10,8 @@ import { formatInquiryNumber } from "@/lib/inquiry-status";
 const inquirySchema = z.object({
   schoolName: z.string().min(1).max(100),
   contact: z.string().min(1).max(50),
-  phone: z.string().min(1).max(20),
-  email: z.string().email().max(100),
+  phone: z.string().max(20).optional(),
+  email: z.string().email().max(100).optional(),
   expectedDate: z.string().max(100).optional(),
   participantCount: z.number().int().positive().optional(),
   purpose: z.string().max(200).optional(),
@@ -21,6 +21,14 @@ const inquirySchema = z.object({
   specialRequests: z.string().max(1000).optional(),
   estimatedBudget: z.number().int().nonnegative().optional(),
   message: z.string().max(2000).optional(),
+}).superRefine((value, ctx) => {
+  if (!value.phone && !value.email) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["phone"],
+      message: "연락처를 입력해주세요.",
+    });
+  }
 });
 
 export async function POST(request: NextRequest) {
@@ -75,14 +83,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!isValidEmail(body.email || "")) {
+    const normalizedPhone = typeof body.phone === "string" ? body.phone.trim() : "";
+    const normalizedEmail = typeof body.email === "string" ? body.email.trim() : "";
+
+    if (!normalizedPhone && !normalizedEmail) {
+      return NextResponse.json(
+        { error: "연락처를 입력해주세요." },
+        { status: 400 }
+      );
+    }
+
+    if (normalizedEmail && !isValidEmail(normalizedEmail)) {
       return NextResponse.json(
         { error: "올바른 이메일 형식이 아닙니다." },
         { status: 400 }
       );
     }
 
-    if (!isValidPhone(body.phone || "")) {
+    if (normalizedPhone && !isValidPhone(normalizedPhone)) {
       return NextResponse.json(
         { error: "올바른 전화번호 형식이 아닙니다." },
         { status: 400 }
@@ -172,8 +190,8 @@ export async function POST(request: NextRequest) {
     const data = inquirySchema.parse({
       schoolName: schoolNameValidation.sanitized || "",
       contact: contactValidation.sanitized || "",
-      phone: body.phone,
-      email: body.email,
+      phone: normalizedPhone || undefined,
+      email: normalizedEmail || undefined,
       expectedDate: ('sanitized' in expectedDateValidation && expectedDateValidation.sanitized) || undefined,
       participantCount: body.participantCount ? parseInt(body.participantCount) : undefined,
       purpose: ('sanitized' in purposeValidation && purposeValidation.sanitized) || undefined,
@@ -190,8 +208,8 @@ export async function POST(request: NextRequest) {
         userId: currentUser?.id || null,
         schoolName: data.schoolName,
         contact: data.contact,
-        phone: data.phone,
-        email: data.email,
+        phone: data.phone || "",
+        email: data.email || "",
         expectedDate: data.expectedDate ?? null,
         participantCount: data.participantCount ?? null,
         purpose: data.purpose ?? null,
@@ -208,8 +226,8 @@ export async function POST(request: NextRequest) {
     sendInquiryNotificationEmail({
       schoolName: data.schoolName,
       contact: data.contact,
-      phone: data.phone,
-      email: data.email,
+      phone: data.phone || null,
+      email: data.email || null,
       message: data.message || null,
       expectedDate: data.expectedDate || null,
       participantCount: data.participantCount || null,

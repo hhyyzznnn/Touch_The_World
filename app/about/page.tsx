@@ -1,221 +1,324 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import {
-  Shield,
+  ArrowRight,
+  Award,
+  BookOpen,
+  Building2,
+  Compass,
   Globe,
   GraduationCap,
+  Handshake,
+  Lightbulb,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Mountain,
+  Phone,
+  Plane,
+  School,
+  Settings,
+  Shield,
+  Sparkles,
+  UserRound,
   Users,
-  Heart,
-  Activity,
-  Briefcase,
-  BookOpen,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { COMPANY_INFO } from "@/lib/constants";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "회사 소개 - Touch The World",
-  description: "1996년 설립된 터치더월드는 국내외 교육형 수학여행, 문화 교류 탐방, 테마별 해외연수 등 다양한 교육 및 여행 프로그램을 제공합니다.",
+  title: "회사 소개 | 터치더월드",
+  description:
+    "(주)터치더월드는 학교·기관·지자체를 위한 교육여행 전문 파트너입니다. 1996년부터 축적한 운영 노하우로 맞춤형 교육 프로그램을 설계·운영합니다.",
+  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, [
+    "회사 소개",
+    "교육여행 전문기업",
+    "학교 맞춤 프로그램",
+    "기관 연수",
+  ]),
   alternates: {
     canonical: "/about",
   },
 };
 
-const companyInfo = [
-  { label: "회사명", value: "주식회사 터치더월드" },
-  { label: "사업자등록번호", value: "204-81-51250" },
-  { label: "대표이사", value: "박정주" },
-  { label: "법인설립", value: "2000년 03월 16일" },
-  { label: "업종", value: "종합여행업, 유학 및 교육" },
-  { label: "주소", value: "서울특별시 강남구 테헤란로 501 삼성동 브이플렉스" },
-];
+const CONTACT = {
+  name: "(주)터치더월드",
+  englishName: "Touch The World",
+  message: "학생이 세상과 연결되는 교육",
+  phone: "1800-8078",
+  email: "syh2123@naver.com",
+  website: "www.touchtheworld.co.kr",
+};
 
-const whyChooseUs = [
-  {
-    icon: Shield,
-    title: "전문 가이드",
-    description: "전문인솔자 자격증을 겸비한 다수의 강사가 안내하여\n안전을 보장합니다.",
-  },
-  {
-    icon: Globe,
-    title: "다양한 프로그램",
-    description: "학생들의 관심과 필요에 맞춘\n다양한 프로그램을 제공합니다.",
-  },
-  {
-    icon: GraduationCap,
-    title: "교육적 가치",
-    description: "모든 여행은 교육적 가치와\n학습 기회를 제공합니다.",
-  },
-  {
-    icon: Shield,
-    title: "안전 관리",
-    description: "엄격한 안전 관리와\n비상 대책을 마련하고 있습니다.",
-  },
-  {
-    icon: Users,
-    title: "현지 문화 체험",
-    description: "학생들이 현지 문화를\n직접 체험할 수 있는 기회를 제공합니다.",
-  },
-  {
-    icon: Heart,
-    title: "고객 만족",
-    description: "고객의 요구를 충족시키기 위해\n최선을 다하고 있습니다.",
-  },
-];
+const ceo = {
+  name: "박정주",
+  title: "CEO 대표이사",
+  tagline: "대한민국 교육여행의 새로운 기준을 제시하는 리더",
+  education: [
+    "한국외국어대학교 졸업",
+    "경희대학교 관광대학원",
+    "서울미디어대학원대학교 석사",
+  ],
+  experience: [
+    "교육여행 전문가 (해외수학여행 최초 기획자)",
+    "유학원 원장",
+    "대학 겸임교수",
+    "저서: 청소년을 위한 스타트업",
+  ],
+  awards: ["2025 인천시장상", "2004 비짓재팬캠페인 이사장상", "2004 VJCO 이사장 표창"],
+};
 
 const history = [
-  { year: 1996, event: "개인회사 Touch the World 창립" },
-  { year: 2012, event: "하나투어 전문판매점 계약체결" },
-  { year: 2018, event: "하나투어 아웃소싱사 계약체결" },
-  { year: 2018, event: "미야자키 국제대학교 동아시아 독점 사무소 개설" },
-  { year: 2020, event: "(주) 터치더월드 법인 창업" },
+  { year: "1996", detail: "Touch the World 유학센터 설립" },
+  { year: "2000", detail: "(주)터치더월드 법인 전환" },
+  { year: "2004", detail: "일본 비짓재팬캠페인 이사장상 수상" },
+  { year: "2012", detail: "하나투어 전문판매점 계약" },
+  { year: "2018", detail: "일본 대학 독점 사무소 운영, 스쿨트립 공동 창업" },
+  { year: "2025", detail: "교육여행부문 인천시장상 수상" },
 ];
 
-export default function AboutPage() {
+const missions = [
+  {
+    title: "성장과 진로 탐색",
+    description: "청소년의 올바른 성장과 미래 진로 탐색을 돕는 교육 프로그램을 개발합니다.",
+  },
+  {
+    title: "다채로운 교육 경험",
+    description: "국내외 수학여행, AI 교육, 국제교류 등 폭넓고 다양한 교육 기회를 제공합니다.",
+  },
+  {
+    title: "전문적 운영 시스템",
+    description: "검증된 운영 시스템과 전문 인력을 통해 안정적이고 효과적인 교육 환경을 구축합니다.",
+  },
+  {
+    title: "맞춤형 솔루션",
+    description: "학교와 학생, 기관의 요구를 반영한 최적화된 맞춤형 교육 솔루션을 제공합니다.",
+  },
+];
+
+const services = [
+  { title: "국내외 교육여행", icon: MapPin },
+  { title: "체험학습", icon: BookOpen },
+  { title: "수련활동", icon: Mountain },
+  { title: "교사 연수", icon: GraduationCap },
+  { title: "해외 취업 및 유학", icon: Plane },
+  { title: "지자체/대학 RISE", icon: Building2 },
+  { title: "특성화고 프로그램", icon: School },
+  { title: "기타 프로그램", icon: Sparkles },
+];
+
+const strengths = [
+  {
+    title: "28년의 신뢰와 경험",
+    description: "장기 운영 경험을 바탕으로 현장 리스크를 선제적으로 관리합니다.",
+    icon: Shield,
+  },
+  {
+    title: "교육여행 전문 인력",
+    description: "교육 목적 이해도가 높은 전담 인력이 기획부터 운영까지 함께합니다.",
+    icon: Users,
+  },
+  {
+    title: "학교/기관 맞춤 설계",
+    description: "학교와 테마 특성에 맞춰 프로그램 구조를 유연하게 설계합니다.",
+    icon: Handshake,
+  },
+  {
+    title: "안정된 운영 시스템",
+    description: "사전 점검, 운영 매뉴얼, 현장 대응, 사후 공유까지 체계화했습니다.",
+    icon: Settings,
+  },
+  {
+    title: "폭넓은 네트워크",
+    description: "학교, 지자체, 대학, 해외 기관과의 협력 기반으로 실행력을 높입니다.",
+    icon: Compass,
+  },
+  {
+    title: "미래지향 프로그램",
+    description: "AI 교육, 글로벌 진로 중심 콘텐츠로 교육 현장의 변화에 대응합니다.",
+    icon: Lightbulb,
+  },
+];
+
+const trustStats = [
+  { label: "누적 협력 학교", value: "1,800+" },
+  { label: "교육여행 노하우", value: "28 Years" },
+  { label: "수상", value: "2025 인천시장상" },
+  { label: "설립", value: "1996" },
+];
+
+const achievements = [
+  "하나투어 전문판매점 계약",
+  "일본 야마나시가쿠인대학 독점 사무소",
+  "스쿨트립 공동 창업",
+  "AI 기반 교육 플랫폼",
+];
+
+function resolveKakaoUrl() {
+  const raw =
+    process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL ||
+    process.env.KAKAO_CHANNEL_URL ||
+    COMPANY_INFO.kakaoChannel;
+
+  const value = raw?.trim();
+  if (!value) return null;
+  if (value.startsWith("http")) return value;
+  return `https://pf.kakao.com/_${value.replace(/^_+/, "")}`;
+}
+
+function SectionTitle({ label, title, desc }: { label: string; title: string; desc: string }) {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-green/5 to-white pt-20 pb-12 md:pt-24 md:pb-16">
-        <div className="container mx-auto px-4">
-          <div className="text-center space-y-6 max-w-4xl mx-auto">
-            <h1 className="font-serif text-5xl md:text-6xl font-semibold tracking-wide text-text-dark mb-4">
-              Learn the <span className="text-brand-green-primary">World</span>
-              <br />
-              Lead the <span className="text-brand-green-primary">Future</span>
-            </h1>
-            <p className="text-xl md:text-2xl font-semibold text-text-dark leading-relaxed">
-              미래를 위해 항상 노력하는 터치더월드가 되겠습니다.
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="max-w-3xl">
+      <p className="text-sm font-semibold text-brand-green">{label}</p>
+      <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">{title}</h2>
+      <p className="mt-3 break-keep text-sm leading-relaxed text-text-gray sm:text-base">{desc}</p>
+    </div>
+  );
+}
 
-      {/* Company Introduction */}
-      <section className="py-16 bg-white">
+export default function AboutPage() {
+  const kakaoUrl = resolveKakaoUrl();
+
+  return (
+    <div className="bg-gradient-to-b from-brand-green/5 via-white to-white">
+      <section className="border-b border-brand-green/10 py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-text-dark mb-8 text-center">
-              회사 소개
-            </h2>
-            <div className="prose prose-lg max-w-none text-text-gray leading-relaxed space-y-4 text-center">
-              <p>
-                국내외 교육형 수학여행, 문화 교류 탐방, 테마별 해외연수, 청소년 전문 프로그램 등 다양한 교육 및 여행 프로그램을 제공합니다.
-                <br />
-                전국 학교 및 지자체를 대상으로 한 특화된 여행 및 연수 프로그램을 운영하며, 메이저 여행사와의 협력을 통해 B2B 사업을 확대하고 있습니다.
+          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <div>
+              <p className="inline-flex items-center rounded-full border border-brand-green/20 bg-white px-4 py-1.5 text-sm font-medium text-brand-green">
+                학교·기관·지자체를 위한 교육 프로그램 파트너
               </p>
-              <p>
-                또한, 어학연수 및 정규유학 프로그램, 교사 및 공무원 해외연수, 유소년 해외캠프 등을 제공하며,
-                <br />
-                다양한 캠프 및 방과후 수업 프로그램도 운영하고 있습니다.
+              <h1 className="mt-5 break-keep text-3xl font-semibold leading-tight text-text-dark sm:text-5xl">
+                {CONTACT.name}
+                <br className="hidden sm:block" />
+                <span className="text-brand-green-primary">{CONTACT.message}</span>
+              </h1>
+              <p className="mt-5 max-w-2xl break-keep text-sm leading-relaxed text-text-gray sm:text-lg">
+                터치더월드는 단순 여행사가 아니라 교육 성과를 함께 만드는 운영 파트너입니다.
+                학교와 기관의 목표를 이해하고 기획부터 현장 운영, 사후 관리까지 일관되게 지원합니다.
               </p>
-              <p className="text-center text-xl font-semibold text-text-dark mt-8 pt-8 border-t">
-                미래를 열어가는 글로벌 교육 여행,
-                <br />
-                터치더월드가 함께 하겠습니다.
-              </p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90">
+                  <Link href="/inquiry" className="inline-flex items-center gap-2">
+                    프로그램 문의하기
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                {kakaoUrl ? (
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                    <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2">
+                      카카오 상담하기
+                      <MessageCircle className="h-4 w-4" />
+                    </a>
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                    <Link href="/inquiry" className="inline-flex items-center gap-2">
+                      상담 문의하기
+                      <MessageCircle className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* CEO Introduction */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-text-dark mb-8 text-center">
-              대표 소개
-            </h2>
-            
-            {/* CEO Message */}
-            <div className="bg-gradient-to-br from-brand-green/5 to-white rounded-2xl p-8 md:p-12 mb-8 border border-brand-green/10">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-text-dark mb-2">
-                  박정주 대표이사
-                </h3>
-                <p className="text-text-gray">
-                  1996년부터 현재까지 교육 여행 및 현장 체험학습을 이끌어온 운영 전문가
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-7">
+              <h2 className="text-lg font-semibold text-text-dark">회사 기본 정보</h2>
+              <div className="mt-4 space-y-3 text-sm text-text-gray">
+                <p className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-brand-green" />
+                  대표번호 {CONTACT.phone}
+                </p>
+                <p className="flex items-center gap-2 break-all">
+                  <Mail className="h-4 w-4 text-brand-green" />
+                  {CONTACT.email}
+                </p>
+                <p className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-brand-green" />
+                  {CONTACT.website}
                 </p>
               </div>
-              <blockquote className="text-xl md:text-2xl font-serif text-center text-text-dark leading-relaxed italic border-l-4 border-brand-green pl-6 py-4">
-                &ldquo;1996년부터 아이들의 꿈과 함께 현장을 지켜왔습니다.<br />
-                안전을 넘어 감동이 있는 교육 여행을 약속드립니다.&rdquo;
-              </blockquote>
-              <p className="text-center text-text-gray mt-4 font-medium">
-                &ldquo;현장이 가장 큰 교실입니다.&rdquo;
+              <div className="mt-5 rounded-xl bg-brand-green/5 p-4">
+                <p className="text-xs font-semibold text-brand-green">Core Message</p>
+                <p className="mt-1 break-keep text-base font-medium text-text-dark">“{CONTACT.message}”</p>
+              </div>
+              <p className="mt-4 text-xs text-text-gray">
+                {CONTACT.name} ({CONTACT.englishName})
               </p>
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Career & Expertise */}
-            <div className="space-y-8">
-              {/* 인적 사항 및 경력 */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-text-dark mb-4 flex items-center gap-2">
-                  <Users className="w-6 h-6 text-brand-green" />
-                  인적 사항 및 경력
-                </h3>
-                <div className="space-y-3 text-text-gray">
-                  <div className="flex items-start gap-3">
-                    <span className="font-semibold text-text-dark min-w-[100px]">성명:</span>
-                    <span>박정주 (대표이사)</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="font-semibold text-text-dark min-w-[100px]">경력:</span>
-                    <span>1996년부터 현재까지 <strong className="text-brand-green">축적된 운영 경험</strong>을 바탕으로 한 교육 여행 및 현장 체험학습 운영 전문가</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="font-semibold text-text-dark min-w-[100px]">철학:</span>
-                    <span className="italic">&ldquo;현장이 가장 큰 교실입니다.&rdquo; (현장 중심의 교육 가치 실현)</span>
-                  </div>
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <SectionTitle
+            label="Company Overview"
+            title="교육여행을 넘어, 기관 맞춤형 교육 운영을 함께합니다"
+            desc="학교·교육청·지자체·공공기관의 운영 맥락을 이해하고, 교육 효과와 운영 안정성을 동시에 달성할 수 있도록 설계합니다."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              "행사 목적과 교육 목표를 먼저 정의한 뒤 프로그램을 구성합니다.",
+              "인원·일정·지역·예산 조건에 맞춘 현실적인 운영안을 제시합니다.",
+              "현장 운영, 안전 관리, 커뮤니케이션을 단일 파트너로 지원합니다.",
+            ].map((item) => (
+              <div key={item} className="rounded-xl border border-gray-200 bg-white p-5">
+                <p className="break-keep text-sm leading-relaxed text-text-dark sm:text-base">{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-gray-100 bg-gray-50/70 py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <SectionTitle
+            label="CEO"
+            title="현장을 아는 리더십으로 교육여행의 기준을 높입니다"
+            desc="교육·관광·운영 경험을 바탕으로 고객 기관이 신뢰할 수 있는 실행 중심 시스템을 구축해 왔습니다."
+          />
+          <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+            <div className="rounded-2xl border border-gray-200 bg-white p-6">
+              <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50">
+                <div className="text-center text-text-gray">
+                  <UserRound className="mx-auto h-12 w-12 text-brand-green/60" />
+                  <p className="mt-3 text-sm">대표이사 사진 영역</p>
                 </div>
               </div>
+              <p className="mt-4 text-sm text-text-gray">{ceo.name} | {ceo.title}</p>
+              <p className="mt-1 break-keep text-sm font-medium text-text-dark">{ceo.tagline}</p>
+            </div>
 
-              {/* 전문 역량 및 강점 */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-text-dark mb-4 flex items-center gap-2">
-                  <Briefcase className="w-6 h-6 text-brand-green" />
-                  전문 역량 및 강점
-                </h3>
-                <div className="space-y-4 text-text-gray">
-                  <div>
-                    <h4 className="font-semibold text-text-dark mb-2">독보적인 노하우</h4>
-                    <p>개인회사(1996)부터 현재의 법인(2020)까지 국내외 교육 여행 프로젝트를 직접 진두지휘하며 쌓은 전문성</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-text-dark mb-2">글로벌 네트워크</h4>
-                    <p>하나투어 전문판매점 및 아웃소싱 파트너십, 일본 미야자키 국제대학교 동아시아 독점 사무소 운영 등 글로벌 교육 인프라 보유</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-text-dark mb-2">맞춤형 설계 능력</h4>
-                    <p>단순 관광이 아닌 수학여행, 교사 연수, 특성화고 전공 연수 등 교육 목적에 부합하는 정교한 프로그램 설계 능력</p>
-                  </div>
-                </div>
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h3 className="text-base font-semibold text-text-dark">학력</h3>
+                <ul className="mt-3 space-y-2 text-sm text-text-gray">
+                  {ceo.education.map((item) => (
+                    <li key={item}>• {item}</li>
+                  ))}
+                </ul>
               </div>
 
-              {/* 경영 가치 */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-xl font-semibold text-text-dark mb-4 flex items-center gap-2">
-                  <Heart className="w-6 h-6 text-brand-green" />
-                  경영 가치
-                </h3>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 bg-brand-green/5 rounded-lg">
-                    <Shield className="w-10 h-10 text-brand-green mx-auto mb-3" />
-                    <h4 className="font-semibold text-text-dark mb-2">안전 (Safety)</h4>
-                    <p className="text-sm text-text-gray leading-relaxed">
-                      &ldquo;부모의 마음으로&rdquo; 직접 발로 뛰며 사전 답사와 안전 점검을 마친 코스만 제안하는 완벽주의
-                    </p>
-                  </div>
-                  <div className="text-center p-4 bg-brand-green/5 rounded-lg">
-                    <Globe className="w-10 h-10 text-brand-green mx-auto mb-3" />
-                    <h4 className="font-semibold text-text-dark mb-2">신뢰 (Trust)</h4>
-                    <p className="text-sm text-text-gray leading-relaxed">
-                      전국 학교 및 지자체와 쌓아온 두터운 신뢰와 검증된 운영 실적
-                    </p>
-                  </div>
-                  <div className="text-center p-4 bg-brand-green/5 rounded-lg">
-                    <GraduationCap className="w-10 h-10 text-brand-green mx-auto mb-3" />
-                    <h4 className="font-semibold text-text-dark mb-2">혁신 (Innovation)</h4>
-                    <p className="text-sm text-text-gray leading-relaxed">
-                      전통적인 여행업을 넘어 AI 상담 시스템 도입 등 미래형 교육 플랫폼으로의 도약 주도
-                    </p>
-                  </div>
+              <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h3 className="text-base font-semibold text-text-dark">주요 이력</h3>
+                <ul className="mt-3 space-y-2 text-sm text-text-gray">
+                  {ceo.experience.map((item) => (
+                    <li key={item}>• {item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-6">
+                <h3 className="text-base font-semibold text-text-dark">수상</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {ceo.awards.map((item) => (
+                    <span key={item} className="inline-flex items-center gap-1 rounded-full bg-brand-green/10 px-3 py-1 text-xs font-medium text-brand-green-primary">
+                      <Award className="h-3.5 w-3.5" />
+                      {item}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -223,222 +326,169 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Our Expertise */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold text-text-dark mb-4 text-center">
-              터치더월드의 전문성
-            </h2>
-            <p className="text-center text-text-gray mb-12">
-              1996년부터 축적해온 현장 경험과 전문성
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* 현장 행사의 생동감 */}
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-brand-green/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Activity className="w-7 h-7 text-brand-green" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-text-dark mb-3">
-                      현장 행사의 생동감
-                    </h3>
-                    <p className="text-text-gray leading-relaxed mb-3">
-                      현장이 곧 교실입니다. 아이들의 눈높이에 맞춘 체험 위주의 프로그램으로 학습 동기를 부여하고 잊지 못할 추억을 선사합니다.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #자기주도형체험
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #창의적체험활동
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #즐거운배움
-                      </span>
-                    </div>
-                  </div>
+          <SectionTitle
+            label="History"
+            title="터치더월드의 발자취"
+            desc="1996년 설립 이후 학교·기관 교육 프로그램 운영에 집중하며 전문성을 확장해왔습니다."
+          />
+          <ol className="relative mt-8 space-y-5 border-l border-brand-green/20 pl-6">
+            {history.map((item) => (
+              <li key={`${item.year}-${item.detail}`} className="relative">
+                <span className="absolute -left-[31px] top-1.5 h-3 w-3 rounded-full bg-brand-green" />
+                <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+                  <p className="text-sm font-semibold text-brand-green">{item.year}</p>
+                  <p className="mt-1 break-keep text-sm text-text-dark sm:text-base">{item.detail}</p>
                 </div>
-              </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
-              {/* 전문 인솔 및 운영 역량 */}
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-brand-green/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-7 h-7 text-brand-green" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-text-dark mb-3">
-                      전문 인솔 및 운영 역량
-                    </h3>
-                    <p className="text-text-gray leading-relaxed mb-3">
-                      장기 운영 노하우의 핵심은 &lsquo;안전&rsquo;입니다. 사전 답사부터 현장 밀착 케어까지, 전문 인솔 인력이 모든 행사를 체계적으로 관리합니다.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #안전제일
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #체계적인운영
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #전문인솔자배치
-                      </span>
-                    </div>
-                  </div>
-                </div>
+      <section className="border-y border-gray-100 bg-gray-50/70 py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <SectionTitle
+            label="Vision & Mission"
+            title="학생이 세상과 연결되는 교육"
+            desc="여행을 교육의 수단으로 활용해 학생의 성장과 기관의 목표 달성을 함께 지원합니다."
+          />
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {missions.map((mission) => (
+              <div key={mission.title} className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
+                <h3 className="text-lg font-semibold text-text-dark">{mission.title}</h3>
+                <p className="mt-2 break-keep text-sm leading-relaxed text-text-gray sm:text-base">{mission.description}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              {/* 특성화고 및 전공 심화 프로그램 */}
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-brand-green/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Briefcase className="w-7 h-7 text-brand-green" />
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <SectionTitle
+            label="Services"
+            title="8대 교육 솔루션"
+            desc="학교·기관의 목적과 상황에 맞춰 단독 또는 조합형으로 운영할 수 있습니다."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {services.map((service) => {
+              const Icon = service.icon;
+              return (
+                <div key={service.title} className="rounded-xl border border-gray-200 bg-white p-5">
+                  <div className="inline-flex rounded-lg bg-brand-green/10 p-2">
+                    <Icon className="h-5 w-5 text-brand-green" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-text-dark mb-3">
-                      특성화고 및 전공 심화 프로그램
-                    </h3>
-                    <p className="text-text-gray leading-relaxed mb-3">
-                      특성화고교의 특성에 맞춘 전공 심화 체험 프로그램을 제공합니다. 산업 현장 견학과 실습 위주의 구성으로 학생들의 진로 설계를 돕습니다.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #진로탐색
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #특성화고맞춤형
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #직업교육연계
-                      </span>
-                    </div>
-                  </div>
+                  <p className="mt-3 text-base font-semibold text-text-dark">{service.title}</p>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-              {/* 역사 및 문화 탐방의 전문성 */}
-              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-8 hover:shadow-xl transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-brand-green/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="w-7 h-7 text-brand-green" />
+      <section className="border-y border-gray-100 bg-gray-50/70 py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <SectionTitle
+            label="Strength"
+            title="기관이 다시 찾는 이유"
+            desc="오랜 운영 경험과 맞춤형 실행력으로 교육 현장에서 반복 신뢰를 만듭니다."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {strengths.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
+                  <div className="inline-flex rounded-lg bg-brand-green/10 p-2">
+                    <Icon className="h-5 w-5 text-brand-green" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold text-text-dark mb-3">
-                      역사 및 문화 탐방의 전문성
-                    </h3>
-                    <p className="text-text-gray leading-relaxed mb-3">
-                      단순한 관람을 넘어 역사의 숨결을 느낍니다. 전문 해설사가 들려주는 흥미진진한 스토리텔링으로 인문학적 소양을 기르는 품격 있는 탐방을 지향합니다.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #역사문화탐방
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #스토리텔링해설
-                      </span>
-                      <span className="text-xs px-3 py-1 bg-brand-green/10 text-brand-green rounded-full">
-                        #인문학적소양
-                      </span>
-                    </div>
-                  </div>
+                  <h3 className="mt-3 text-lg font-semibold text-text-dark">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-text-gray">{item.description}</p>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-12 sm:py-16">
+        <div className="container mx-auto px-4">
+          <SectionTitle
+            label="Trust"
+            title="수치와 이력으로 증명하는 신뢰"
+            desc="교육 현장에서 검증된 운영 경험을 바탕으로 안정적인 파트너십을 제공합니다."
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {trustStats.map((item) => (
+              <div key={item.label} className="rounded-xl border border-gray-200 bg-white p-5 text-center">
+                <p className="text-sm text-text-gray">{item.label}</p>
+                <p className="mt-2 text-2xl font-semibold text-text-dark">{item.value}</p>
               </div>
+            ))}
+          </div>
+          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+            <p className="text-sm font-semibold text-text-dark">주요 성과 및 협력 기반</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {achievements.map((item) => (
+                <span key={item} className="inline-flex items-center gap-1 rounded-full bg-brand-green/10 px-3 py-1 text-xs font-medium text-brand-green-primary sm:text-sm">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Company Information */}
-      <section className="py-16 bg-gray-50">
+      <section className="pb-16 pt-4 sm:pb-20">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-text-dark mb-8 text-center">
-              기업소개
-            </h2>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-              <dl className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {companyInfo.map((info) => (
-                  <div key={info.label} className="flex flex-col">
-                    <dt className="text-sm font-semibold text-text-gray mb-2">
-                      {info.label}
-                    </dt>
-                    <dd className="text-base text-text-dark font-medium">
-                      {info.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </div>
-        </div>
-      </section>
+          <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6 sm:p-8 lg:p-10">
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+              <div>
+                <p className="text-sm font-semibold text-brand-green">Final CTA</p>
+                <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">
+                  학교와 기관의 다음 프로그램,
+                  <br className="hidden sm:block" />
+                  터치더월드와 함께 준비하세요.
+                </h2>
+                <p className="mt-3 break-keep text-sm leading-relaxed text-text-gray sm:text-base">
+                  인원·지역·일정·목적을 알려주시면 운영 가능한 맞춤 제안으로 빠르게 안내드립니다.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3 text-sm text-text-gray">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5">
+                    <Phone className="h-4 w-4 text-brand-green" />
+                    {CONTACT.phone}
+                  </span>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5">
+                    <Mail className="h-4 w-4 text-brand-green" />
+                    {CONTACT.email}
+                  </span>
+                </div>
+              </div>
 
-      {/* Why Choose Us */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold text-text-dark mb-4 text-center">
-              Why Choose Us
-            </h2>
-            <p className="text-center text-text-gray mb-12">
-              안전한 여행 환경 제공
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {whyChooseUs.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.title}
-                    className="flex flex-col items-center p-6 border-2 border-gray-200 rounded-lg bg-white transform transition-all hover:-translate-y-1 hover:scale-105 hover:border-brand-green hover:shadow-xl hover:bg-brand-green/5 group"
-                  >
-                    <div className="w-16 h-16 bg-brand-green/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-green transition-colors">
-                      <Icon className="w-8 h-8 text-brand-green group-hover:text-white transition-colors" />
-                    </div>
-                    <h3 className="text-center font-semibold text-text-dark mb-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-text-gray text-center leading-relaxed whitespace-pre-line">
-                      {item.description}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Company History */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-text-dark mb-12 text-center">
-              회사연혁
-            </h2>
-            <div className="relative">
-              {/* Timeline line */}
-              <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-brand-green/20"></div>
-              
-              <div className="space-y-8">
-                {history.map((item, index) => (
-                  <div key={index} className="relative flex items-start gap-6">
-                    {/* Year circle */}
-                    <div className="relative z-10 flex-shrink-0 w-16 h-16 bg-brand-green rounded-full flex items-center justify-center shadow-md">
-                      <span className="text-white font-bold text-lg">
-                        {item.year}
-                      </span>
-                    </div>
-                    
-                    {/* Event content */}
-                    <div className="flex-1 pt-2">
-                      <p className="text-base md:text-lg text-text-dark font-medium">
-                        {item.event}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex flex-col gap-3">
+                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90">
+                  <Link href="/inquiry" className="inline-flex items-center gap-2">
+                    프로그램 문의하기
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                {kakaoUrl ? (
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                    <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2">
+                      카카오 상담하기
+                      <MessageCircle className="h-4 w-4" />
+                    </a>
+                  </Button>
+                ) : (
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                    <Link href="/inquiry" className="inline-flex items-center gap-2">
+                      상담 문의하기
+                      <MessageCircle className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </div>

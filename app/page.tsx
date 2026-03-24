@@ -244,9 +244,10 @@ export default async function HomePage({
             <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-4">
               교육여행·수학여행·교사연수·해외연수 전문, 터치더월드
             </h2>
-            <p className="text-sm sm:text-base text-text-gray leading-relaxed">
-              터치더월드(Touch The World, touchtheworld)는 학교와 지자체를 위한 교육여행 전문 여행사로,
-              체험학습, 수학여행, 교사연수, 해외연수 프로그램을 교육 목표에 맞춰 설계하고 안전 중심으로 운영합니다.
+            <p className="mx-auto max-w-4xl text-sm sm:text-base text-text-gray leading-relaxed break-keep">
+              터치더월드(Touch The World, touchtheworld)는 학교와 지자체의 교육 목표에 맞춰
+              <br className="hidden sm:block" />
+              체험학습, 수학여행, 교사연수, 해외연수를 설계·운영하는 교육여행 전문 여행사입니다.
             </p>
           </div>
         </div>
@@ -292,7 +293,7 @@ export default async function HomePage({
                 1996년 설립
               </span>
               <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
-                1996년부터 운영
+                학교·지자체 특화
               </span>
               <Link
                 href="/achievements"
@@ -309,8 +310,8 @@ export default async function HomePage({
                 <Shield className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
               </div>
               <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">안전 최우선</h3>
-              <p className="text-text-gray text-sm sm:text-base leading-relaxed">
-                철저한 사전 답사와 안전 점검을 통해 모든 참가자의 안전을 보장합니다.
+              <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
+                사전 답사와 안전 점검을 바탕으로 참가자 전원의 안전을 최우선으로 운영합니다.
               </p>
             </div>
             <div className="text-center p-4 sm:p-8">
@@ -318,8 +319,8 @@ export default async function HomePage({
                 <Lightbulb className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
               </div>
               <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">교육 목표 지향</h3>
-              <p className="text-text-gray text-sm sm:text-base leading-relaxed">
-                교육 목표에 최적화된 맞춤형 프로그램을 설계합니다.
+              <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
+                학교의 교육 목표에 맞춰 현장 중심의 맞춤형 프로그램을 설계합니다.
               </p>
             </div>
             <div className="text-center p-4 sm:p-8">
@@ -327,8 +328,8 @@ export default async function HomePage({
                 <Settings className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
               </div>
               <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">운영 전문성</h3>
-              <p className="text-text-gray text-sm sm:text-base leading-relaxed">
-                전문 인솔자 배치까지, 모든 과정을 체계적으로 관리합니다.
+              <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
+                기획부터 인솔, 사후 정리까지 전 과정을 체계적으로 관리합니다.
               </p>
             </div>
           </div>

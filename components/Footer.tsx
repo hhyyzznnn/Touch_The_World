@@ -61,33 +61,48 @@ export function Footer() {
         </div>
 
         {/* Contact & Company Info */}
-        <div className="grid md:grid-cols-2 gap-8 border-t border-gray-200 pt-8">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <Phone className="w-5 h-5 text-brand-green" />
-              <span className="text-sm text-text-gray">대표전화</span>
-              <span className="text-xl font-medium text-text-dark">{COMPANY_INFO.phone}</span>
+        <div className="border-t border-gray-200 pt-8">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-5 sm:p-6">
+              <p className="text-xs font-semibold tracking-wide text-text-gray uppercase">Contact</p>
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-brand-green flex-shrink-0" />
+                  <span className="text-sm text-text-gray">대표전화</span>
+                  <span className="text-2xl font-semibold text-text-dark">{COMPANY_INFO.phone}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
+                  <a
+                    href={`mailto:${COMPANY_INFO.email}`}
+                    className="text-base text-text-gray hover:text-brand-green transition-colors"
+                  >
+                    {COMPANY_INFO.email}
+                  </a>
+                </div>
+                <p className="text-sm text-text-gray break-keep">{COMPANY_INFO.businessHours}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 mb-2">
-              <Mail className="w-4 h-4 text-brand-green" />
-              <a href={`mailto:${COMPANY_INFO.email}`} className="text-text-gray hover:text-brand-green">
-                {COMPANY_INFO.email}
-              </a>
+
+            <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-5 sm:p-6">
+              <p className="text-xs font-semibold tracking-wide text-text-gray uppercase">Company</p>
+              <dl className="mt-3 space-y-2 text-sm sm:text-base">
+                <div className="grid grid-cols-[88px_1fr] gap-3">
+                  <dt className="text-text-gray">회사명</dt>
+                  <dd className="font-medium text-text-dark break-keep">
+                    {COMPANY_INFO.name} ({COMPANY_INFO.englishName})
+                  </dd>
+                </div>
+                <div className="grid grid-cols-[88px_1fr] gap-3">
+                  <dt className="text-text-gray">설립</dt>
+                  <dd className="font-medium text-text-dark">{COMPANY_INFO.founded}</dd>
+                </div>
+                <div className="grid grid-cols-[88px_1fr] gap-3">
+                  <dt className="text-text-gray">업종</dt>
+                  <dd className="font-medium text-text-dark break-keep">{COMPANY_INFO.businessType}</dd>
+                </div>
+              </dl>
             </div>
-            <p className="text-text-gray text-sm">
-              {COMPANY_INFO.businessHours}
-            </p>
-          </div>
-          <div className="text-left md:text-left">
-            <p className="text-text-dark mb-2 text-sm sm:text-base">
-              {COMPANY_INFO.name} ({COMPANY_INFO.englishName})
-            </p>
-            <p className="text-text-dark mb-2 text-sm sm:text-base">
-              {COMPANY_INFO.founded} 설립
-            </p>
-            <p className="text-text-dark text-sm sm:text-base">
-              {COMPANY_INFO.businessType}
-            </p>
           </div>
         </div>
 

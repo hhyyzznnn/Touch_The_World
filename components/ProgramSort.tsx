@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 type SortOption = "latest" | "popular" | "rating" | "price_asc" | "price_desc" | "name";
 
@@ -33,24 +33,26 @@ export function ProgramSort() {
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <ArrowUpDown className="w-4 h-4 text-gray-500" />
-      <span className="text-sm text-gray-600">정렬:</span>
-      <div className="flex flex-wrap gap-2">
+    <div className="rounded-xl border border-gray-200 bg-gray-50 p-2.5 sm:p-3">
+      <div className="mb-2 flex items-center gap-2 text-xs font-medium text-text-gray">
+        <ArrowUpDown className="h-3.5 w-3.5" />
+        정렬 기준
+      </div>
+      <div className="flex flex-wrap gap-1.5">
         {SORT_OPTIONS.map((option) => (
-          <Button
+          <button
             key={option.value}
-            variant={currentSort === option.value ? "default" : "outline"}
-            size="sm"
+            type="button"
             onClick={() => handleSortChange(option.value)}
-            className={
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-sm transition-colors",
               currentSort === option.value
-                ? "bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
-                : "bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
-            }
+                ? "border-brand-green/30 bg-white text-brand-green-primary shadow-sm"
+                : "border-transparent bg-transparent text-text-gray hover:border-gray-200 hover:bg-white hover:text-text-dark"
+            )}
           >
             {option.label}
-          </Button>
+          </button>
         ))}
       </div>
     </div>

@@ -19,18 +19,27 @@ export const metadata: Metadata = {
   },
 };
 
+const MERGED_ACHIEVEMENT_YEAR_START = 2019;
+const MERGED_ACHIEVEMENT_YEAR_END = 2022;
+
 async function getAchievementsByYear() {
   const achievements = await prisma.achievement.findMany({
     orderBy: [{ year: "desc" }, { institution: "asc" }],
   });
 
+  const resolveGroupYear = (year: number) =>
+    year >= MERGED_ACHIEVEMENT_YEAR_START && year <= MERGED_ACHIEVEMENT_YEAR_END
+      ? MERGED_ACHIEVEMENT_YEAR_END
+      : year;
+
   // 연도별로 그룹화
   const grouped: Record<number, typeof achievements> = {};
   achievements.forEach((achievement) => {
-    if (!grouped[achievement.year]) {
-      grouped[achievement.year] = [];
+    const groupYear = resolveGroupYear(achievement.year);
+    if (!grouped[groupYear]) {
+      grouped[groupYear] = [];
     }
-    grouped[achievement.year].push(achievement);
+    grouped[groupYear].push(achievement);
   });
 
   // 연도 내림차순 정렬
@@ -38,7 +47,15 @@ async function getAchievementsByYear() {
     .map(Number)
     .sort((a, b) => b - a);
 
-  return { grouped, years };
+  const yearLabels: Record<number, string> = {};
+  years.forEach((year) => {
+    yearLabels[year] =
+      year === MERGED_ACHIEVEMENT_YEAR_END
+        ? `${MERGED_ACHIEVEMENT_YEAR_START}~${MERGED_ACHIEVEMENT_YEAR_END}`
+        : String(year);
+  });
+
+  return { grouped, years, yearLabels };
 }
 
 async function getRecentEvents() {
@@ -68,7 +85,7 @@ async function getRecentEvents() {
 }
 
 export default async function AchievementsPage() {
-  const { grouped, years } = await getAchievementsByYear();
+  const { grouped, years, yearLabels } = await getAchievementsByYear();
   const recentEvents = await getRecentEvents();
 
   return (
@@ -150,7 +167,7 @@ export default async function AchievementsPage() {
             등록된 실적이 없습니다.
           </div>
         ) : (
-          <AchievementAccordion years={years} grouped={grouped} />
+          <AchievementAccordion years={years} grouped={grouped} yearLabels={yearLabels} />
         )}
       </section>
     </div>

@@ -67,7 +67,7 @@ export function CompanyNewsForm({ news }: CompanyNewsFormProps) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary"
-          placeholder="예: 인천관광공사 00상을 수상했습니다."
+          placeholder="예: 교육여행부문 인천시장상 수상"
           required
         />
         <p className="text-xs text-gray-500 mt-1">메인 페이지에 그대로 노출됩니다. &quot;~했습니다.&quot; 형태로 적으면 자연스럽습니다.</p>

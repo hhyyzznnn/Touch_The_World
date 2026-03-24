@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { saveConsultingLog, sendConsultingSummaryEmail, searchPrograms } from "@/lib/chat-actions";
 import { maybeCreateInquiryFromConsultingLog } from "@/lib/inquiry-conversion";
+import { prisma } from "@/lib/prisma";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { z } from "zod";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
@@ -187,7 +188,7 @@ const withServiceGuidance = (
     } else if (context.hasConsultingIntent && !context.hasContact) {
       next = `${next}\n\n상담 접수를 위해 연락받으실 휴대폰 또는 이메일을 남겨주실 수 있을까요?`;
     } else {
-      next = `${next}\n\n추가로 꼭 반영해야 할 조건(일정, 안전, 식사, 이동수단)이 있을까요?`;
+      next = `${next}\n\n추가로 꼭 반영해야 할 조건(일정, 안전, 이동수단, 알러지 유의사항)이 있을까요?`;
     }
   }
 
@@ -222,7 +223,8 @@ const getSystemPrompt = (landingCategory?: string): string => {
     "3. 사용자가 대화 종료 의사를 보이면 추가 질문을 강요하지 말고 간결히 마무리하세요.\n" +
     "4. 정보가 충분하면 searchPrograms를 호출해 실제 프로그램을 추천하세요.\n" +
     "5. searchPrograms 결과가 없으면 조건 변경을 강하게 요구하지 말고 상담 접수(연락처/희망 연락 시간)로 우선 유도하세요.\n" +
-    "6. 사용자가 전화번호/이메일/담당자명을 남기면 반드시 인식해 확인하고, 상담 마무리 또는 견적 의사 표현 시 saveConsultingLog를 호출하세요. 비로그인 사용자도 연락처가 있으면 저장을 시도하세요.\n\n" +
+    "6. 사용자가 전화번호/이메일/담당자명을 남기면 반드시 인식해 확인하고, 상담 마무리 또는 견적 의사 표현 시 saveConsultingLog를 호출하세요. 비로그인 사용자도 연락처가 있으면 저장을 시도하세요.\n" +
+    "7. 식사 항목은 기본 질문에서 과하게 묻지 마세요. 할랄/채식 여부는 사용자가 먼저 언급한 경우에만 확인하고, 기본은 알러지/건강상 유의사항만 간단히 확인하세요.\n\n" +
     "**우선 수집할 핵심 정보:**\n" +
     "- 프로그램 유형(이미 주어졌다면 재질문 금지)\n" +
     "- 예상 인원\n" +
@@ -231,7 +233,7 @@ const getSystemPrompt = (landingCategory?: string): string => {
     "- 행사 목적/성격\n" +
     "- 인솔자 필요 여부\n" +
     "- 선호 이동수단\n" +
-    "- 식사/안전/특별 요구사항\n\n" +
+    "- 안전/알러지(건강상 유의사항) 등 필수 운영 정보\n\n" +
     "**응답 스타일:**\n" +
     "- 간결하고 명확하게 답변\n" +
     "- 매 턴에서 다음 행동을 1개 제안\n" +
@@ -262,6 +264,7 @@ function toOpenAIMessage(
 
 const ANON_DAILY_CHAT_LIMIT = 5;
 const USER_DAILY_CHAT_LIMIT = 120;
+const AUTO_LEAD_DUPLICATE_WINDOW_MS = 60 * 60 * 1000;
 
 function getChatMeta(
   isAuthenticated: boolean,
@@ -274,6 +277,202 @@ function getChatMeta(
     dailyLimit,
     dailyRemaining,
   };
+}
+
+function findLatestPattern(source: string, pattern: RegExp): string | undefined {
+  const matches = [...source.matchAll(pattern)];
+  const latest = matches[matches.length - 1];
+  return latest?.[0]?.trim();
+}
+
+function extractFallbackLeadDetails(
+  messages: ChatRequestMessage[],
+  landingCategory?: string
+): {
+  category?: string;
+  participantCount?: number;
+  region?: string;
+  expectedDate?: string;
+  purpose?: string;
+} {
+  const userMessages = messages.filter((msg) => msg.role === "user").map((msg) => msg.content.trim());
+  const userText = userMessages.join("\n");
+  const compactUserText = userText.replace(/\s+/g, "");
+
+  const categoryFromMessages = PROGRAM_CATEGORIES.find((cat) =>
+    compactUserText.includes(cat.name.replace(/\n/g, "").replace(/\s+/g, ""))
+  )?.name.replace(/\n/g, " ");
+  const category =
+    landingCategory ||
+    categoryFromMessages ||
+    findLatestPattern(
+      userText,
+      /(수학여행|체험학습|교사연수|수련활동|교육여행|해외 취업 및 유학|지자체 및 대학 RISE 사업|특성화고교 프로그램)/g
+    );
+
+  const participantCountRaw = findLatestPattern(userText, /\b(\d{1,4})\s*명\b/g);
+  const participantCount = participantCountRaw
+    ? Number(participantCountRaw.replace(/\D/g, ""))
+    : undefined;
+
+  const region = findLatestPattern(
+    userText,
+    /(서울|경기|인천|부산|대구|광주|대전|울산|세종|제주|강원|충북|충남|전북|전남|경북|경남|해외|일본|대만|싱가포르|베트남|중국|미국|유럽)/g
+  );
+
+  const expectedDate = findLatestPattern(
+    userText,
+    /(\d{4}\s*년\s*\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|\d+\s*박\s*\d+\s*일|\d+\s*일)/g
+  );
+
+  const purposeCandidate = [...userMessages]
+    .reverse()
+    .find((message) => /(목적|진로|탐방|체험|연수|행사|프로그램|교육)/.test(message));
+  const purpose =
+    purposeCandidate && purposeCandidate.length <= 200
+      ? purposeCandidate
+      : undefined;
+
+  return {
+    category,
+    participantCount: participantCount && participantCount > 0 ? participantCount : undefined,
+    region,
+    expectedDate,
+    purpose,
+  };
+}
+
+function countLeadSignals(details: {
+  participantCount?: number;
+  region?: string;
+  expectedDate?: string;
+  purpose?: string;
+}) {
+  let score = 0;
+  if (typeof details.participantCount === "number" && details.participantCount > 0) score += 1;
+  if (details.region) score += 1;
+  if (details.expectedDate) score += 1;
+  if (details.purpose) score += 1;
+  return score;
+}
+
+function buildFallbackSummary(params: {
+  category?: string;
+  participantCount?: number;
+  region?: string;
+  expectedDate?: string;
+  purpose?: string;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+}): string {
+  return [
+    `[카테고리] ${params.category || "미선택"}`,
+    `[인원/지역/일정] ${params.participantCount ? `${params.participantCount}명` : "미입력"} / ${params.region || "미입력"} / ${params.expectedDate || "미입력"}`,
+    `[목적] ${params.purpose || "미입력"}`,
+    `[연락처] ${params.contactName || "미입력"} / ${params.contactPhone || "미입력"} / ${params.contactEmail || "미입력"}`,
+  ].join("\n");
+}
+
+async function maybeAutoCaptureLead(params: {
+  sessionId?: string;
+  currentUser: Awaited<ReturnType<typeof getCurrentUser>>;
+  effectiveMessages: ChatRequestMessage[];
+  landingCategory?: string;
+  inferredContact: ExtractedContact;
+  assistantContent: string;
+}) {
+  const normalizedSessionId = params.sessionId?.trim();
+  if (!normalizedSessionId) return;
+
+  const contactName =
+    params.inferredContact.contactName?.trim() || params.currentUser?.name || "";
+  const contactPhone =
+    params.inferredContact.contactPhone ||
+    (params.currentUser?.phone ? normalizePhone(params.currentUser.phone) : undefined);
+  const contactEmail =
+    params.inferredContact.contactEmail?.trim() ||
+    params.currentUser?.email ||
+    undefined;
+
+  if (!contactName || (!contactPhone && !contactEmail)) return;
+
+  const details = extractFallbackLeadDetails(params.effectiveMessages, params.landingCategory);
+  if (countLeadSignals(details) < 2) return;
+
+  const duplicateWhereOr = [
+    { convertedToInquiry: true },
+    ...(contactPhone ? [{ contactPhone }] : []),
+    ...(contactEmail ? [{ contactEmail }] : []),
+  ];
+
+  const existing = await prisma.consultingLog.findFirst({
+    where: {
+      sessionId: normalizedSessionId,
+      createdAt: {
+        gte: new Date(Date.now() - AUTO_LEAD_DUPLICATE_WINDOW_MS),
+      },
+      OR: duplicateWhereOr,
+    },
+    select: { id: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (existing) return;
+
+  const summary = buildFallbackSummary({
+    ...details,
+    contactName,
+    contactPhone,
+    contactEmail,
+  });
+
+  const saveResult = await saveConsultingLog({
+    sessionId: normalizedSessionId,
+    userId: params.currentUser?.id,
+    contactName,
+    contactPhone,
+    contactEmail,
+    category: details.category,
+    participantCount: details.participantCount,
+    region: details.region,
+    expectedDate: details.expectedDate,
+    purpose: details.purpose,
+    conversation: [
+      ...params.effectiveMessages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date().toISOString(),
+      })),
+      {
+        role: "assistant",
+        content: params.assistantContent,
+        timestamp: new Date().toISOString(),
+      },
+    ],
+    summary,
+    canQuoteImmediately: false,
+  });
+
+  if (!saveResult.success || !saveResult.id) return;
+
+  void sendConsultingSummaryEmail({
+    contactName,
+    contactPhone,
+    contactEmail,
+    category: details.category || "미선택",
+    participantCount: details.participantCount,
+    region: details.region,
+    expectedDate: details.expectedDate,
+    purpose: details.purpose,
+    canQuoteImmediately: false,
+  }).catch((error) => {
+    console.error("상담 요약 이메일 발송 실패(자동 리드 캡처):", error);
+  });
+
+  void maybeCreateInquiryFromConsultingLog(saveResult.id).catch((error) => {
+    console.error("문의 자동 전환 실패(자동 리드 캡처):", error);
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -445,11 +644,11 @@ export async function POST(request: NextRequest) {
           },
           mealPreference: {
             type: "string",
-            description: "식사 취향/요구사항 (할랄, 채식, 알러지 등)",
+            description: "식사 관련 요청사항. 기본적으로는 알러지/건강상 유의사항 중심으로 기록하고, 할랄/채식은 사용자가 먼저 언급한 경우에만 기록",
           },
           specialRequests: {
             type: "string",
-            description: "특별 요구사항 (알러지, 장애 지원, 특정 견학지 등)",
+            description: "특별 요구사항 (알러지, 건강상 유의사항, 장애 지원, 특정 견학지 등)",
           },
           estimatedBudget: {
             type: "number",
@@ -541,13 +740,26 @@ export async function POST(request: NextRequest) {
             return `${idx + 1}. ${p.title}\n   - 지역: ${p.region || "미지정"}\n   - 가격: ${priceInfo}\n   - 평점: ${p.rating ? p.rating.toFixed(1) : "없음"} (후기 ${p.reviewCount}개)`;
           }).join("\n\n");
 
+          const responseContent = withServiceGuidance(
+            `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`,
+            { context: chatContext }
+          );
+
+          void maybeAutoCaptureLead({
+            sessionId,
+            currentUser,
+            effectiveMessages,
+            landingCategory,
+            inferredContact,
+            assistantContent: responseContent,
+          }).catch((error) => {
+            console.error("자동 리드 캡처 실패(searchPrograms):", error);
+          });
+
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: withServiceGuidance(
-                `요청하신 조건${requestProfile ? `(${requestProfile})` : ""}을 기준으로 확인했을 때, 유사한 프로그램으로는 아래가 있습니다.\n\n${programsText}\n\n완전히 동일한 조건이 아니어도 상담을 통해 일정/인원/운영방식을 맞춘 맞춤형 프로그램으로 구성해드릴 수 있습니다. 원하시면 우선순위 1~2개를 기준으로 상세 일정과 견적 방향을 정리해드리겠습니다.`,
-                { context: chatContext }
-              ),
+              content: responseContent,
             },
             functionCall: {
               name: functionName,
@@ -556,13 +768,26 @@ export async function POST(request: NextRequest) {
             meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
           });
         } else {
+          const responseContent = withServiceGuidance(
+            "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
+            { noProgramFound: true, context: chatContext }
+          );
+
+          void maybeAutoCaptureLead({
+            sessionId,
+            currentUser,
+            effectiveMessages,
+            landingCategory,
+            inferredContact,
+            assistantContent: responseContent,
+          }).catch((error) => {
+            console.error("자동 리드 캡처 실패(searchPrograms-empty):", error);
+          });
+
           return NextResponse.json({
             message: {
               role: "assistant",
-              content: withServiceGuidance(
-                "요청하신 조건을 기준으로 검색했지만 일치하는 프로그램을 찾지 못했습니다.",
-                { noProgramFound: true, context: chatContext }
-              ),
+              content: responseContent,
             },
             functionCall: {
               name: functionName,
@@ -617,9 +842,9 @@ export async function POST(request: NextRequest) {
           summary: typeof functionArgs.summary === "string" ? functionArgs.summary : undefined,
         });
 
-        // 이메일 발송
+        // 이메일 발송 (비동기)
         if (saveResult.success) {
-          await sendConsultingSummaryEmail({
+          void sendConsultingSummaryEmail({
             contactName,
             contactPhone,
             contactEmail,
@@ -640,6 +865,8 @@ export async function POST(request: NextRequest) {
             estimatedBudget: typeof functionArgs.estimatedBudget === "number" ? functionArgs.estimatedBudget : undefined,
             estimatedQuote: typeof functionArgs.estimatedQuote === "string" ? functionArgs.estimatedQuote : undefined,
             canQuoteImmediately: typeof functionArgs.canQuoteImmediately === "boolean" ? functionArgs.canQuoteImmediately : false,
+          }).catch((error) => {
+            console.error("상담 요약 이메일 발송 실패:", error);
           });
         }
 
@@ -686,13 +913,26 @@ export async function POST(request: NextRequest) {
     }
 
     // 일반 응답
+    const responseContent = withServiceGuidance(
+      assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다.",
+      { context: chatContext }
+    );
+
+    void maybeAutoCaptureLead({
+      sessionId,
+      currentUser,
+      effectiveMessages,
+      landingCategory,
+      inferredContact,
+      assistantContent: responseContent,
+    }).catch((error) => {
+      console.error("자동 리드 캡처 실패(default):", error);
+    });
+
     return NextResponse.json({
       message: {
         role: "assistant",
-        content: withServiceGuidance(
-          assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다.",
-          { context: chatContext }
-        ),
+        content: responseContent,
       },
       meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
     });

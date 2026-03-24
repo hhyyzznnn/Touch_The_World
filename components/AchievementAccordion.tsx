@@ -13,9 +13,10 @@ interface Achievement {
 interface AchievementAccordionProps {
   years: number[];
   grouped: Record<number, Achievement[]>;
+  yearLabels?: Record<number, string>;
 }
 
-export function AchievementAccordion({ years, grouped }: AchievementAccordionProps) {
+export function AchievementAccordion({ years, grouped, yearLabels }: AchievementAccordionProps) {
   // 기본적으로 최신 연도 2개 열어두기
   const [openYears, setOpenYears] = useState<number[]>(years.slice(0, 2));
 
@@ -39,7 +40,7 @@ export function AchievementAccordion({ years, grouped }: AchievementAccordionPro
               className="w-full flex items-center justify-between px-6 py-4 bg-white hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl font-bold text-brand-green-primary">{year}</span>
+                <span className="text-xl font-bold text-brand-green-primary">{yearLabels?.[year] || year}</span>
                 <span className="text-sm text-text-gray">({achievements.length}건)</span>
               </div>
               <ChevronDown
@@ -75,4 +76,3 @@ export function AchievementAccordion({ years, grouped }: AchievementAccordionPro
     </div>
   );
 }
-

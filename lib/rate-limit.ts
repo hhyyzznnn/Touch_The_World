@@ -13,11 +13,14 @@ interface RateLimitResult {
   allowed: boolean;
   remaining: number;
   resetTime: number;
+  source: "upstash" | "memory";
+  degraded?: boolean;
 }
 
 // 메모리 기반 저장소 (프로덕션에서는 Redis 사용 권장)
 const rateLimitStore = new Map<string, RateLimitEntry>();
 let hasLoggedUpstashFailure = false;
+let hasLoggedMissingUpstashConfig = false;
 
 const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -25,7 +28,8 @@ const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 function fallbackRateLimit(
   identifier: string,
   maxRequests: number,
-  windowMs: number
+  windowMs: number,
+  degraded = false
 ): RateLimitResult {
   const now = Date.now();
   const entry = rateLimitStore.get(identifier);
@@ -40,6 +44,8 @@ function fallbackRateLimit(
       allowed: true,
       remaining: maxRequests - 1,
       resetTime: newEntry.resetTime,
+      source: "memory",
+      degraded,
     };
   }
 
@@ -48,6 +54,8 @@ function fallbackRateLimit(
       allowed: false,
       remaining: 0,
       resetTime: entry.resetTime,
+      source: "memory",
+      degraded,
     };
   }
 
@@ -58,6 +66,8 @@ function fallbackRateLimit(
     allowed: true,
     remaining: maxRequests - entry.count,
     resetTime: entry.resetTime,
+    source: "memory",
+    degraded,
   };
 }
 
@@ -99,6 +109,7 @@ async function checkRateLimitUpstash(
     allowed,
     remaining: allowed ? Math.max(0, maxRequests - (currentCount + 1)) : 0,
     resetTime,
+    source: "upstash",
   };
 }
 
@@ -114,6 +125,8 @@ export async function checkRateLimit(
   maxRequests: number,
   windowMs: number
 ): Promise<RateLimitResult> {
+  const isProduction = process.env.NODE_ENV === "production";
+
   if (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
     try {
       return await checkRateLimitUpstash(identifier, maxRequests, windowMs);
@@ -122,9 +135,18 @@ export async function checkRateLimit(
         console.error("Upstash Rate Limit 사용 실패, 메모리 모드로 폴백합니다:", error);
         hasLoggedUpstashFailure = true;
       }
+      return fallbackRateLimit(identifier, maxRequests, windowMs, isProduction);
     }
   }
-  return fallbackRateLimit(identifier, maxRequests, windowMs);
+
+  if (isProduction && !hasLoggedMissingUpstashConfig) {
+    console.error(
+      "Upstash 환경 변수가 없어 메모리 기반 Rate Limit로 동작합니다. 다중 인스턴스 환경에서는 한도 정책이 느슨해질 수 있습니다."
+    );
+    hasLoggedMissingUpstashConfig = true;
+  }
+
+  return fallbackRateLimit(identifier, maxRequests, windowMs, isProduction);
 }
 
 /**

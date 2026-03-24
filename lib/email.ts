@@ -99,8 +99,8 @@ export async function sendInquiryNotificationEmail(
   inquiryData: {
     schoolName: string;
     contact: string;
-    phone: string;
-    email: string;
+    phone?: string | null;
+    email?: string | null;
     message?: string | null;
     expectedDate?: string | null;
     participantCount?: number | null;
@@ -124,8 +124,8 @@ export async function sendInquiryNotificationEmail(
       console.log(`받는 사람: ${adminEmail}`);
       console.log(`학교명: ${inquiryData.schoolName}`);
       console.log(`담당자: ${inquiryData.contact}`);
-      console.log(`전화번호: ${inquiryData.phone}`);
-      console.log(`이메일: ${inquiryData.email}`);
+      console.log(`전화번호: ${inquiryData.phone || "(미입력)"}`);
+      console.log(`이메일: ${inquiryData.email || "(미입력)"}`);
       console.log(`문의 내용: ${inquiryData.message || "(없음)"}`);
       console.log("=".repeat(60));
       return { success: true };
@@ -152,11 +152,11 @@ export async function sendInquiryNotificationEmail(
               </tr>
               <tr>
                 <td style="padding: 8px 0; font-weight: bold; color: #333;">전화번호:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.phone}</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.phone || "미입력"}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; font-weight: bold; color: #333;">이메일:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.email}</td>
+                <td style="padding: 8px 0; color: #666;">${inquiryData.email || "미입력"}</td>
               </tr>
               ${inquiryData.expectedDate ? `
               <tr>
@@ -236,8 +236,8 @@ export async function sendInquiryNotificationEmail(
       console.log(`받는 사람: ${adminEmail}`);
       console.log(`학교명: ${inquiryData.schoolName}`);
       console.log(`담당자: ${inquiryData.contact}`);
-      console.log(`전화번호: ${inquiryData.phone}`);
-      console.log(`이메일: ${inquiryData.email}`);
+      console.log(`전화번호: ${inquiryData.phone || "(미입력)"}`);
+      console.log(`이메일: ${inquiryData.email || "(미입력)"}`);
       console.log(`문의 내용: ${inquiryData.message || "(없음)"}`);
       console.log("=".repeat(60));
       return { success: true };
@@ -253,8 +253,8 @@ export async function sendInquiryNotificationEmail(
     console.log(`받는 사람: ${adminEmail}`);
     console.log(`학교명: ${inquiryData.schoolName}`);
     console.log(`담당자: ${inquiryData.contact}`);
-    console.log(`전화번호: ${inquiryData.phone}`);
-    console.log(`이메일: ${inquiryData.email}`);
+    console.log(`전화번호: ${inquiryData.phone || "(미입력)"}`);
+    console.log(`이메일: ${inquiryData.email || "(미입력)"}`);
     console.log(`문의 내용: ${inquiryData.message || "(없음)"}`);
     console.log("=".repeat(60));
     return { success: true };
