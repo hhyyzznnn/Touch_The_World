@@ -6,6 +6,12 @@ import type { Metadata } from "next";
 
 async function getProducts() {
   return await prisma.product.findMany({
+    include: {
+      images: {
+        take: 1,
+        orderBy: { createdAt: "asc" },
+      },
+    },
     orderBy: [
       { category: "asc" },
       { title: "asc" },
@@ -93,60 +99,64 @@ export default async function ProductsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {categoryProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-6 border-2 border-gray-200 rounded-xl bg-white hover:border-brand-green hover:shadow-lg transition-all group"
-                    >
-                      {product.imageUrl && (
-                        <div className="mb-4 aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
-                          <Image
-                            src={product.imageUrl}
-                            alt={product.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform duration-200"
-                          />
+                  {categoryProducts.map((product) => {
+                    const displayImage = product.images[0]?.url || product.imageUrl;
+
+                    return (
+                      <div
+                        key={product.id}
+                        className="p-6 border-2 border-gray-200 rounded-xl bg-white hover:border-brand-green hover:shadow-lg transition-all group"
+                      >
+                        {displayImage && (
+                          <div className="mb-4 aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+                            <Image
+                              src={displayImage}
+                              alt={product.title}
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                          </div>
+                        )}
+                        <h3 className="font-bold text-lg text-text-dark mb-3">
+                          {product.title}
+                        </h3>
+
+                        <div className="space-y-2 text-sm text-text-gray">
+                          {product.region && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4" />
+                              <span>{regionLabels[product.region] || product.region}</span>
+                            </div>
+                          )}
+                          {product.duration && (
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4" />
+                              <span>{product.duration}</span>
+                            </div>
+                          )}
+                          {product.target && (
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4" />
+                              <span>{product.target}</span>
+                            </div>
+                          )}
+                          {product.partner && (
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4" />
+                              <span className="text-xs">{product.partner}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <h3 className="font-bold text-lg text-text-dark mb-3">
-                        {product.title}
-                      </h3>
-                      
-                      <div className="space-y-2 text-sm text-text-gray">
-                        {product.region && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4" />
-                            <span>{regionLabels[product.region] || product.region}</span>
-                          </div>
-                        )}
-                        {product.duration && (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>{product.duration}</span>
-                          </div>
-                        )}
-                        {product.target && (
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4" />
-                            <span>{product.target}</span>
-                          </div>
-                        )}
-                        {product.partner && (
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4" />
-                            <span className="text-xs">{product.partner}</span>
-                          </div>
+
+                        {product.description && (
+                          <p className="text-sm text-text-gray mt-4 line-clamp-3">
+                            {product.description}
+                          </p>
                         )}
                       </div>
-
-                      {product.description && (
-                        <p className="text-sm text-text-gray mt-4 line-clamp-3">
-                          {product.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

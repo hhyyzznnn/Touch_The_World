@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Upload, Link as LinkIcon, X } from "lucide-react";
+import { Link as LinkIcon, X } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
-import type { Product } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 interface ProductFormProps {
-  product?: Product;
+  product?: Prisma.ProductGetPayload<{
+    include: {
+      images: true;
+    };
+  }>;
 }
 
 export function ProductForm({ product }: ProductFormProps) {
@@ -21,14 +25,19 @@ export function ProductForm({ product }: ProductFormProps) {
   const [partner, setPartner] = useState(product?.partner || "");
   const [target, setTarget] = useState(product?.target || "");
   const [description, setDescription] = useState(product?.description || "");
-  const [imageUrl, setImageUrl] = useState(product?.imageUrl || "");
+  const [imageUrls, setImageUrls] = useState<string[]>(
+    product?.images?.map((image) => image.url) ||
+      (product?.imageUrl ? [product.imageUrl] : [])
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const finalImageUrl = imageUrl.trim() || null;
+      const normalizedImageUrls = Array.from(
+        new Set(imageUrls.map((url) => url.trim()).filter(Boolean))
+      );
 
       const url = product
         ? `/api/admin/products/${product.id}`
@@ -46,7 +55,7 @@ export function ProductForm({ product }: ProductFormProps) {
           partner: partner || null,
           target: target || null,
           description: description || null,
-          imageUrl: finalImageUrl,
+          imageUrls: normalizedImageUrls,
         }),
       });
 
@@ -63,6 +72,17 @@ export function ProductForm({ product }: ProductFormProps) {
     }
   };
 
+  const addImageUrl = () => {
+    setImageUrls((prev) => [...prev, ""]);
+  };
+
+  const updateImageUrl = (index: number, value: string) => {
+    setImageUrls((prev) => prev.map((url, i) => (i === index ? value : url)));
+  };
+
+  const removeImageUrl = (index: number) => {
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
@@ -170,54 +190,66 @@ export function ProductForm({ product }: ProductFormProps) {
         <label className="block text-sm font-medium mb-2">이미지</label>
         <div className="space-y-3">
           <div className="flex gap-2 items-center">
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-              placeholder="https://example.com/image.jpg"
+            <Button
+              type="button"
+              onClick={addImageUrl}
+              variant="outline"
+              className="h-10 min-h-10 px-4 inline-flex items-center gap-2 shrink-0"
+            >
+              <LinkIcon className="w-4 h-4" />
+              URL 추가
+            </Button>
+            <UploadButton
+              endpoint="imageUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res.length > 0) {
+                  const newUrls = res.map((file) => file.url);
+                  setImageUrls((prev) => [...prev, ...newUrls]);
+                }
+              }}
+              onUploadError={(error: Error) => {
+                alert(`업로드 실패: ${error.message}`);
+              }}
+              appearance={{
+                button: "h-10 min-h-10 px-4 shrink-0 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                allowedContent: "hidden",
+              }}
+              content={{
+                button({ ready }) {
+                  return ready ? "파일 선택" : "파일 선택";
+                },
+              }}
             />
-            <div className="w-[140px] shrink-0">
-              <UploadButton
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                  if (res && res[0]) {
-                    setImageUrl(res[0].url);
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  alert(`업로드 실패: ${error.message}`);
-                }}
-                appearance={{
-                  button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                  allowedContent: "text-gray-500 text-[11px]",
-                }}
-                content={{
-                  button({ ready }) {
-                    return ready ? "파일 선택" : "파일 선택";
-                  },
-                  allowedContent({ ready }) {
-                    return ready ? "이미지(jpg/png/webp) · 최대 4MB" : "";
-                  },
-                }}
-              />
-            </div>
           </div>
-          {imageUrl && (
-            <div className="flex items-center gap-3 p-3 border rounded-md bg-gray-50">
-              <span className="flex-1 text-sm text-gray-700 truncate">
-                {imageUrl}
-              </span>
-              <Button
-                type="button"
-                onClick={() => setImageUrl("")}
-                variant="destructive"
-                size="sm"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+
+          {imageUrls.length > 0 && (
+            <div className="space-y-2">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => updateImageUrl(index, e.target.value)}
+                    className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => removeImageUrl(index)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
+
+          <p className="text-xs text-gray-500">
+            여러 이미지를 한 번에 선택할 수 있습니다. 첫 번째 이미지가 대표 이미지로 표시됩니다.
+          </p>
         </div>
       </div>
 
@@ -232,4 +264,3 @@ export function ProductForm({ product }: ProductFormProps) {
     </form>
   );
 }
-

@@ -6,6 +6,11 @@ import { notFound } from "next/navigation";
 async function getProduct(id: string) {
   return await prisma.product.findUnique({
     where: { id },
+    include: {
+      images: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
 }
 
@@ -31,4 +36,3 @@ export default async function EditProductPage({
     </div>
   );
 }
-

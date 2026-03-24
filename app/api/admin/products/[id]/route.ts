@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 
+function normalizeImageUrls(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned = value
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
+    .filter(Boolean);
+  return Array.from(new Set(cleaned));
+}
+
+function normalizeLegacyImageUrl(value: unknown): string[] {
+  if (typeof value !== "string") return [];
+  const normalized = value.trim();
+  return normalized ? [normalized] : [];
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -14,6 +28,11 @@ export async function GET(
     const { id } = await params;
     const product = await prisma.product.findUnique({
       where: { id },
+      include: {
+        images: {
+          orderBy: { createdAt: "asc" },
+        },
+      },
     });
 
     if (!product) {
@@ -44,7 +63,11 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, category, region, duration, partner, target, description, imageUrl } = body;
+    const { title, category, region, duration, partner, target, description } = body;
+    const imageUrls = normalizeImageUrls(body.imageUrls);
+    const finalImageUrls =
+      imageUrls.length > 0 ? imageUrls : normalizeLegacyImageUrl(body.imageUrl);
+    const primaryImageUrl = finalImageUrls[0] || null;
 
     const product = await prisma.product.update({
       where: { id },
@@ -56,7 +79,11 @@ export async function PUT(
         partner,
         target,
         description,
-        imageUrl,
+        imageUrl: primaryImageUrl,
+        images: {
+          deleteMany: {},
+          create: finalImageUrls.map((url) => ({ url })),
+        },
       },
     });
 
@@ -93,4 +120,3 @@ export async function DELETE(
     );
   }
 }
-

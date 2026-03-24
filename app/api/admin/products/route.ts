@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 
+function normalizeImageUrls(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned = value
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
+    .filter(Boolean);
+  return Array.from(new Set(cleaned));
+}
+
+function normalizeLegacyImageUrl(value: unknown): string[] {
+  if (typeof value !== "string") return [];
+  const normalized = value.trim();
+  return normalized ? [normalized] : [];
+}
+
 export async function POST(request: NextRequest) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -9,7 +23,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, category, region, duration, partner, target, description, imageUrl } = body;
+    const { title, category, region, duration, partner, target, description } = body;
+    const imageUrls = normalizeImageUrls(body.imageUrls);
+    const finalImageUrls =
+      imageUrls.length > 0 ? imageUrls : normalizeLegacyImageUrl(body.imageUrl);
+    const primaryImageUrl = finalImageUrls[0] || null;
 
     const product = await prisma.product.create({
       data: {
@@ -20,7 +38,10 @@ export async function POST(request: NextRequest) {
         partner,
         target,
         description,
-        imageUrl,
+        imageUrl: primaryImageUrl,
+        images: {
+          create: finalImageUrls.map((url) => ({ url })),
+        },
       },
     });
 
@@ -33,4 +54,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
