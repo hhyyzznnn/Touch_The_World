@@ -3,45 +3,16 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
-
-const inquirySchema = z.object({
-  schoolName: z.string().min(1, "학교명을 입력해주세요"),
-  contact: z.string().min(1, "담당자명을 입력해주세요"),
-  phone: z.string().optional(),
-  email: z
-    .string()
-    .optional()
-    .refine((val) => !val || z.string().email().safeParse(val).success, {
-      message: "올바른 이메일을 입력해주세요",
-    }),
-  expectedDate: z.string().optional(),
-  participantCount: z.string().optional().transform((val) => val ? parseInt(val) : undefined),
-  purpose: z.string().optional(),
-  hasInstructor: z.string().optional().transform((val) => val === "true" ? true : val === "false" ? false : undefined),
-  preferredTransport: z.string().optional(),
-  mealPreference: z.string().optional(),
-  specialRequests: z.string().optional(),
-  estimatedBudget: z.string().optional().transform((val) => val ? parseInt(val) : undefined),
-  message: z.string().optional(),
-}).superRefine((value, ctx) => {
-  const hasPhone = typeof value.phone === "string" && value.phone.trim().length > 0;
-  const hasEmail = typeof value.email === "string" && value.email.trim().length > 0;
-  if (!hasPhone && !hasEmail) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "연락처를 입력해주세요.",
-      path: ["phone"],
-    });
-  }
-});
-
-type InquiryFormData = z.infer<typeof inquirySchema>;
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { useToast } from "@/components/ui/toast";
+import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
 
 export default function InquiryPage() {
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitResult, setSubmitResult] = useState<{
     inquiryNumber?: string;
     expectedReply?: string;
@@ -58,6 +29,7 @@ export default function InquiryPage() {
 
   const onSubmit = async (data: InquiryFormData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const response = await fetch("/api/inquiry", {
         method: "POST",
@@ -73,11 +45,20 @@ export default function InquiryPage() {
         });
         setIsSuccess(true);
         reset();
+        toast.success("문의가 접수되었습니다.");
       } else {
-        alert("문의 등록에 실패했습니다. 다시 시도해주세요.");
+        const data = await response.json().catch(() => ({}));
+        const message =
+          typeof data.error === "string" && data.error.trim()
+            ? data.error
+            : "문의 등록에 실패했습니다. 다시 시도해주세요.";
+        setSubmitError(message);
+        toast.error(message);
       }
-    } catch (error) {
-      alert("문의 등록에 실패했습니다. 다시 시도해주세요.");
+    } catch {
+      const message = "문의 등록에 실패했습니다. 다시 시도해주세요.";
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -122,6 +103,13 @@ export default function InquiryPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-medium mb-8">문의하기</h1>
+        {submitError && (
+          <ErrorMessage
+            className="mb-6"
+            message={submitError}
+            onDismiss={() => setSubmitError(null)}
+          />
+        )}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* 기본 정보 */}
           <div className="space-y-6">

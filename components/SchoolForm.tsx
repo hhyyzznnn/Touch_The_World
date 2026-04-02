@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import type { School } from "@prisma/client";
 
 interface SchoolFormProps {
@@ -11,6 +12,7 @@ interface SchoolFormProps {
 
 export function SchoolForm({ school }: SchoolFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState(school?.name || "");
   const [logoUrl, setLogoUrl] = useState(school?.logoUrl || "");
@@ -40,10 +42,10 @@ export function SchoolForm({ school }: SchoolFormProps) {
         router.push("/admin/schools");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        toast.error("저장에 실패했습니다.");
       }
-    } catch (error) {
-      alert("저장에 실패했습니다.");
+    } catch {
+      toast.error("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -97,4 +99,3 @@ export function SchoolForm({ school }: SchoolFormProps) {
     </form>
   );
 }
-

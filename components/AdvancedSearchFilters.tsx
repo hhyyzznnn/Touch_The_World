@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { X, Filter } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { getCategoryKey } from "@/lib/category-utils";
+import { resetSearchPaginationParams } from "@/lib/search-params";
 
 interface AdvancedSearchFiltersProps {
   onClose?: () => void;
@@ -21,6 +22,14 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
   const [priceMax, setPriceMax] = useState(searchParams.get("priceMax") || "");
   const [hashtag, setHashtag] = useState(searchParams.get("hashtag") || "");
 
+  useEffect(() => {
+    setCategory(searchParams.get("category") || "");
+    setRegion(searchParams.get("region") || "");
+    setPriceMin(searchParams.get("priceMin") || "");
+    setPriceMax(searchParams.get("priceMax") || "");
+    setHashtag(searchParams.get("hashtag") || "");
+  }, [searchParams]);
+
   const regions = [
     "서울", "부산", "대구", "인천", "광주", "대전", "울산",
     "경기", "강원", "충북", "충남", "전북", "전남", "경북", "경남", "제주",
@@ -29,6 +38,7 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
 
   const handleApply = () => {
     const params = new URLSearchParams(searchParams.toString());
+    resetSearchPaginationParams(params);
     
     if (category) params.set("category", category);
     else params.delete("category");
@@ -44,10 +54,9 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
     
     if (hashtag) params.set("hashtag", hashtag);
     else params.delete("hashtag");
-    
-    params.set("page", "1"); // Reset to first page
-    
-    router.push(`/search?${params.toString()}`);
+
+    const queryString = params.toString();
+    router.push(queryString ? `/search?${queryString}` : "/search");
     onClose?.();
   };
 
@@ -59,13 +68,15 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
     setHashtag("");
     
     const params = new URLSearchParams(searchParams.toString());
+    resetSearchPaginationParams(params);
     params.delete("category");
     params.delete("region");
     params.delete("priceMin");
     params.delete("priceMax");
     params.delete("hashtag");
     
-    router.push(`/search?${params.toString()}`);
+    const queryString = params.toString();
+    router.push(queryString ? `/search?${queryString}` : "/search");
   };
 
   return (

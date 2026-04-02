@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import type { Achievement } from "@prisma/client";
 
 interface AchievementFormProps {
@@ -11,6 +12,7 @@ interface AchievementFormProps {
 
 export function AchievementForm({ achievement }: AchievementFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [institution, setInstitution] = useState(achievement?.institution || "");
   const [year, setYear] = useState(achievement?.year?.toString() || "");
@@ -40,10 +42,10 @@ export function AchievementForm({ achievement }: AchievementFormProps) {
         router.push("/admin/achievements");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        toast.error("저장에 실패했습니다.");
       }
-    } catch (error) {
-      alert("저장에 실패했습니다.");
+    } catch {
+      toast.error("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -103,4 +105,3 @@ export function AchievementForm({ achievement }: AchievementFormProps) {
     </form>
   );
 }
-

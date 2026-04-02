@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import type { Document } from "@prisma/client";
 
 interface DocumentFormProps {
@@ -11,6 +12,7 @@ interface DocumentFormProps {
 
 export function DocumentForm({ document }: DocumentFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState(document?.title || "");
   const [fileUrl, setFileUrl] = useState(document?.fileUrl || "");
@@ -40,10 +42,10 @@ export function DocumentForm({ document }: DocumentFormProps) {
         router.push("/admin/documents");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        toast.error("저장에 실패했습니다.");
       }
-    } catch (error) {
-      alert("저장에 실패했습니다.");
+    } catch {
+      toast.error("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -103,4 +105,3 @@ export function DocumentForm({ document }: DocumentFormProps) {
     </form>
   );
 }
-

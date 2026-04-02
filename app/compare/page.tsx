@@ -1,8 +1,4 @@
-import { prisma } from "@/lib/prisma";
-import { getCategoryDisplayName } from "@/lib/category-utils";
 import { ProgramCompareTable } from "@/components/ProgramCompareTable";
-import { EmptyState } from "@/components/EmptyState";
-import { Scale } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

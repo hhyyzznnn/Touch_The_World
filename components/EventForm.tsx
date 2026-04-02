@@ -7,6 +7,7 @@ import { Calendar, X, Upload, Link as LinkIcon } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useToast } from "@/components/ui/toast";
 import type { Event, EventImage, Program } from "@prisma/client";
 
 type EventWithRelations = Event & {
@@ -21,6 +22,7 @@ interface EventFormProps {
 
 export function EventForm({ event }: EventFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -410,7 +412,7 @@ export function EventForm({ event }: EventFormProps) {
                   }
                 }}
                 onUploadError={(error: Error) => {
-                  alert(`업로드 실패: ${error.message}`);
+                  toast.error(`업로드 실패: ${error.message}`);
                 }}
                 appearance={{
                   button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",

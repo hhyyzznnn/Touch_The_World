@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { UploadButton } from "@/lib/uploadthing";
 import { X } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 import type { CompanyNews } from "@prisma/client";
 
 interface CompanyNewsFormProps {
@@ -14,6 +15,7 @@ interface CompanyNewsFormProps {
 
 export function CompanyNewsForm({ news }: CompanyNewsFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState(news?.title ?? "");
   const [summary, setSummary] = useState(news?.summary ?? "");
@@ -47,10 +49,10 @@ export function CompanyNewsForm({ news }: CompanyNewsFormProps) {
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "저장에 실패했습니다.");
+        toast.error(data.error || "저장에 실패했습니다.");
       }
     } catch {
-      alert("저장에 실패했습니다.");
+      toast.error("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -115,7 +117,7 @@ export function CompanyNewsForm({ news }: CompanyNewsFormProps) {
                   }
                 }}
                 onUploadError={(error: Error) => {
-                  alert(`업로드 실패: ${error.message}`);
+                  toast.error(`업로드 실패: ${error.message}`);
                 }}
                 appearance={{
                   button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",

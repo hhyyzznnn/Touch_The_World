@@ -4,6 +4,7 @@ import { Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { resetSearchPaginationParams } from "@/lib/search-params";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -22,6 +23,7 @@ export function SearchBar({ placeholder = "검색...", className = "" }: SearchB
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams.toString());
+    resetSearchPaginationParams(params);
     
     if (searchQuery.trim()) {
       params.set("q", searchQuery.trim());
@@ -29,14 +31,15 @@ export function SearchBar({ placeholder = "검색...", className = "" }: SearchB
       params.delete("q");
     }
     
-    router.push(`?${params.toString()}`);
+    router.push(`/search${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const handleClear = () => {
     setSearchQuery("");
     const params = new URLSearchParams(searchParams.toString());
+    resetSearchPaginationParams(params);
     params.delete("q");
-    router.push(`?${params.toString()}`);
+    router.push(`/search${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   return (
@@ -70,4 +73,3 @@ export function SearchBar({ placeholder = "검색...", className = "" }: SearchB
     </form>
   );
 }
-

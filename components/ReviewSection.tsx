@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Star, Edit2, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 
 interface Review {
   id: string;
@@ -39,6 +40,7 @@ export function ReviewSection({
   programRating = 0,
   reviewCount = 0,
 }: ReviewSectionProps) {
+  const toast = useToast();
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isWriting, setIsWriting] = useState(false);
@@ -47,6 +49,7 @@ export function ReviewSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchReviews = useCallback(async () => {
@@ -110,8 +113,10 @@ export function ReviewSection({
         setRating(0);
         setContent("");
         setEditingId(null);
+        setConfirmingDeleteId(null);
         await fetchReviews();
         router.refresh(); // 프로그램 평점 업데이트를 위해 새로고침
+        toast.success(editingId ? "후기를 수정했습니다." : "후기를 등록했습니다.");
       } else {
         setError(data.error || "후기 작성에 실패했습니다.");
       }
@@ -130,10 +135,6 @@ export function ReviewSection({
   };
 
   const handleDelete = async (reviewId: string) => {
-    if (!confirm("정말 이 후기를 삭제하시겠습니까?")) {
-      return;
-    }
-
     try {
       const response = await fetch(`/api/reviews/${reviewId}`, {
         method: "DELETE",
@@ -142,12 +143,14 @@ export function ReviewSection({
       if (response.ok) {
         await fetchReviews();
         router.refresh();
+        setConfirmingDeleteId(null);
+        toast.success("후기를 삭제했습니다.");
       } else {
         const data = await response.json();
-        alert(data.error || "후기 삭제에 실패했습니다.");
+        toast.error(data.error || "후기 삭제에 실패했습니다.");
       }
-    } catch (error) {
-      alert("후기 삭제 중 오류가 발생했습니다.");
+    } catch {
+      toast.error("후기 삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -312,13 +315,34 @@ export function ReviewSection({
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(review.id)}
-                        className="p-1 text-gray-500 hover:text-red-500"
-                        aria-label="삭제"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {confirmingDeleteId === review.id ? (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDelete(review.id)}
+                          >
+                            삭제
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setConfirmingDeleteId(null)}
+                          >
+                            취소
+                          </Button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmingDeleteId(review.id)}
+                          className="p-1 text-gray-500 hover:text-red-500"
+                          aria-label="삭제"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

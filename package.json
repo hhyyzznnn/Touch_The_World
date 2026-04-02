@@ -7,6 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "tsx --test tests/**/*.test.ts",
     "validate-env": "node scripts/validate-env.mjs",
     "prebuild": "npm run validate-env",
     "db:push": "prisma db push",

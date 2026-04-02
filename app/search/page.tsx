@@ -8,6 +8,7 @@ import { AdvancedSearchFilters } from "@/components/AdvancedSearchFilters";
 import { SearchBar } from "@/components/SearchBar";
 import { Pagination } from "@/components/Pagination";
 import type { ProgramWhereInput, EventWhereInput, SchoolWhereInput, AchievementWhereInput } from "@/types";
+import { parsePositivePageParam } from "@/lib/search-params";
 
 interface SearchFilters {
   category?: string;
@@ -262,10 +263,10 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const query = params.q || "";
-  const programPage = params.programPage ? parseInt(params.programPage, 10) : 1;
-  const eventPage = params.eventPage ? parseInt(params.eventPage, 10) : 1;
-  const schoolPage = params.schoolPage ? parseInt(params.schoolPage, 10) : 1;
-  const achievementPage = params.achievementPage ? parseInt(params.achievementPage, 10) : 1;
+  const programPage = parsePositivePageParam(params.programPage);
+  const eventPage = parsePositivePageParam(params.eventPage);
+  const schoolPage = parsePositivePageParam(params.schoolPage);
+  const achievementPage = parsePositivePageParam(params.achievementPage);
   
   const filters: SearchFilters = {
     category: params.category,

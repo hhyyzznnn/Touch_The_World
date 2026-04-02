@@ -8,6 +8,7 @@ import { UploadButton } from "@/lib/uploadthing";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ProgramWithRelations } from "@/types";
+import { useToast } from "@/components/ui/toast";
 
 interface ProgramFormProps {
   program?: ProgramWithRelations;
@@ -111,6 +112,13 @@ function preprocessMarkdown(text: string): string {
 
 export function ProgramForm({ program }: ProgramFormProps) {
   const router = useRouter();
+  const toast = useToast();
+  const uploadActionButtonClass =
+    "h-11 min-h-11 w-full px-4 inline-flex items-center justify-center gap-2";
+  const uploadPrimaryButtonClass =
+    `${uploadActionButtonClass} ut-ready:bg-brand-green-primary ` +
+    "ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80";
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState(program?.title || "");
   const [category, setCategory] = useState(program?.category || "");
@@ -161,10 +169,10 @@ export function ProgramForm({ program }: ProgramFormProps) {
         router.push("/admin/programs");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        toast.error("저장에 실패했습니다.");
       }
-    } catch (error) {
-      alert("저장에 실패했습니다.");
+    } catch {
+      toast.error("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -207,7 +215,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
 
   const insertDescriptionTemplate = () => {
     if (description.includes("## 프로그램 개요")) {
-      alert("이미 양식이 삽입되어 있습니다.");
+      toast.info("이미 양식이 삽입되어 있습니다.");
       return;
     }
 
@@ -295,9 +303,6 @@ export function ProgramForm({ program }: ProgramFormProps) {
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
           placeholder="프로그램 소개 문구를 입력하세요. 오른쪽 버튼으로 기본 양식을 자동 삽입할 수 있습니다."
         />
-        <p className="mt-2 text-xs text-gray-500">
-          대표님이 항목별로 작성하기 쉽도록 기본 양식을 제공합니다.
-        </p>
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-5">
@@ -327,37 +332,39 @@ export function ProgramForm({ program }: ProgramFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">썸네일</label>
         <div className="space-y-3">
-          <div className="flex gap-2 items-center">
+          <div className="grid grid-cols-2 gap-2 items-center">
             <Button
               type="button"
               onClick={addThumbnailUrl}
               variant="outline"
-              className="h-10 min-h-10 px-4 inline-flex items-center gap-2 shrink-0"
+              className={uploadActionButtonClass}
             >
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <UploadButton
-              endpoint="thumbnailUploader"
-              onClientUploadComplete={(res) => {
-                if (res && res[0]) {
-                  setThumbnailUrl(res[0].url);
-                  setShowThumbnailInput(true);
-                }
-              }}
-              onUploadError={(error: Error) => {
-                alert(`업로드 실패: ${error.message}`);
-              }}
-              appearance={{
-                button: "h-10 min-h-10 px-4 shrink-0 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                allowedContent: "hidden",
-              }}
-              content={{
-                button({ ready }) {
-                  return ready ? "파일 선택" : "파일 선택";
-                },
-              }}
-            />
+            <div className="w-full">
+              <UploadButton
+                endpoint="thumbnailUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res[0]) {
+                    setThumbnailUrl(res[0].url);
+                    setShowThumbnailInput(true);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  toast.error(`업로드 실패: ${error.message}`);
+                }}
+                appearance={{
+                  button: uploadPrimaryButtonClass,
+                  allowedContent: "hidden",
+                }}
+                content={{
+                  button({ ready }) {
+                    return ready ? "파일 선택" : "파일 선택";
+                  },
+                }}
+              />
+            </div>
           </div>
 
           {/* 썸네일 URL 입력 */}
@@ -406,7 +413,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
           )}
 
           <p className="text-xs text-gray-500">
-            권장 사이즈: 1200×800px (16:9 비율), 파일 크기: 4MB 이하
+            권장 사이즈: 1200×675px (16:9 비율), 파일 크기: 4MB 이하
           </p>
         </div>
       </div>
@@ -414,37 +421,39 @@ export function ProgramForm({ program }: ProgramFormProps) {
       <div>
         <label className="block text-sm font-medium mb-2">이미지</label>
         <div className="space-y-3">
-          <div className="flex gap-2 items-center">
+          <div className="grid grid-cols-2 gap-2 items-center">
             <Button
               type="button"
               onClick={addImageUrl}
               variant="outline"
-              className="h-10 min-h-10 px-4 inline-flex items-center gap-2 shrink-0"
+              className={uploadActionButtonClass}
             >
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <UploadButton
-              endpoint="imageUploader"
-              onClientUploadComplete={(res) => {
-                if (res && res.length > 0) {
-                  const newUrls = res.map((file) => file.url);
-                  setImageUrls([...imageUrls, ...newUrls]);
-                }
-              }}
-              onUploadError={(error: Error) => {
-                alert(`업로드 실패: ${error.message}`);
-              }}
-              appearance={{
-                button: "h-10 min-h-10 px-4 shrink-0 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
-                allowedContent: "hidden",
-              }}
-              content={{
-                button({ ready }) {
-                  return ready ? "파일 선택" : "파일 선택";
-                },
-              }}
-            />
+            <div className="w-full">
+              <UploadButton
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res.length > 0) {
+                    const newUrls = res.map((file) => file.url);
+                    setImageUrls([...imageUrls, ...newUrls]);
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  toast.error(`업로드 실패: ${error.message}`);
+                }}
+                appearance={{
+                  button: uploadPrimaryButtonClass,
+                  allowedContent: "hidden",
+                }}
+                content={{
+                  button({ ready }) {
+                    return ready ? "파일 선택" : "파일 선택";
+                  },
+                }}
+              />
+            </div>
           </div>
 
           {/* 이미지 URL 목록 */}

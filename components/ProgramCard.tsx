@@ -7,7 +7,12 @@ import { useState, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
-import { ShareButton } from "@/components/ShareButton";
+import { useToast } from "@/components/ui/toast";
+import {
+  getFavoriteStatus,
+  primeFavoriteStatus,
+  setFavoriteStatus,
+} from "@/lib/favorite-status-client";
 
 interface ProgramCardProps {
   id: string;
@@ -22,6 +27,7 @@ interface ProgramCardProps {
   rating?: number | null;
   reviewCount?: number;
   imageUrl?: string | null;
+  initialIsLiked?: boolean;
 }
 
 export function ProgramCard({
@@ -37,38 +43,56 @@ export function ProgramCard({
   rating,
   reviewCount = 0,
   imageUrl,
+  initialIsLiked,
 }: ProgramCardProps) {
+  const toast = useToast();
   const [isLiked, setIsLiked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLikeStateReady, setIsLikeStateReady] = useState(false);
 
   // 초기 좋아요 상태 확인
   useEffect(() => {
-    const checkLikeStatus = async () => {
-      try {
-        const response = await fetch(`/api/programs/${id}/favorite`);
-        if (response.ok) {
-          const data = await response.json();
-          setIsLiked(data.liked);
+    let mounted = true;
+
+    if (typeof initialIsLiked === "boolean") {
+      setIsLiked(initialIsLiked);
+      primeFavoriteStatus(id, initialIsLiked);
+      setIsLikeStateReady(true);
+    }
+
+    getFavoriteStatus(id)
+      .then((liked) => {
+        if (!mounted) {
+          return;
         }
-      } catch (error) {
-        // 로그인하지 않은 경우 무시
-        console.error("좋아요 상태 확인 실패:", error);
-      }
+        setIsLiked(liked);
+        setIsLikeStateReady(true);
+      })
+      .catch(() => {
+        if (mounted) {
+          setIsLikeStateReady(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
     };
-    checkLikeStatus();
-  }, [id]);
+  }, [id, initialIsLiked]);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (isLoading) return;
+    if (isLoading || !isLikeStateReady) {
+      return;
+    }
 
     setIsLoading(true);
     const previousLiked = isLiked;
+    const nextLiked = !previousLiked;
 
-    // 낙관적 업데이트
-    setIsLiked(!isLiked);
+    setIsLiked(nextLiked);
+    setFavoriteStatus(id, nextLiked);
 
     try {
       const method = previousLiked ? "DELETE" : "POST";
@@ -77,20 +101,23 @@ export function ProgramCard({
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        // 실패 시 원래 상태로 복구
+        const data = await response.json().catch(() => ({}));
         setIsLiked(previousLiked);
+        setFavoriteStatus(id, previousLiked);
         if (response.status === 401) {
-          alert("로그인이 필요합니다.");
+          toast.info("로그인이 필요합니다.");
         } else {
-          alert(data.error || "좋아요 처리에 실패했습니다.");
+          toast.error(
+            typeof data.error === "string" && data.error.trim()
+              ? data.error
+              : "즐겨찾기 처리에 실패했습니다."
+          );
         }
       }
-    } catch (error) {
-      // 실패 시 원래 상태로 복구
+    } catch {
       setIsLiked(previousLiked);
-      console.error("좋아요 처리 오류:", error);
-      alert("좋아요 처리에 실패했습니다.");
+      setFavoriteStatus(id, previousLiked);
+      toast.error("즐겨찾기 처리에 실패했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -147,11 +174,12 @@ export function ProgramCard({
           className={cn(
             "absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all",
             "hover:bg-white hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:ring-offset-2",
+            !isLikeStateReady && "opacity-70 cursor-not-allowed",
             isLiked && "bg-red-50"
           )}
           aria-label={isLiked ? `${title} 즐겨찾기 해제` : `${title} 즐겨찾기 추가`}
           aria-pressed={isLiked}
-          disabled={isLoading}
+          disabled={isLoading || !isLikeStateReady}
         >
           <Heart
             className={cn(

@@ -12,6 +12,7 @@ import { KakaoScript } from "@/components/KakaoScript";
 import { getSiteUrl } from "@/lib/site-url";
 import { COMPANY_INFO } from "@/lib/constants";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { ToastProvider } from "@/components/ui/toast";
 
 const notoSerif = Noto_Serif_KR({ 
   subsets: ["latin"],
@@ -156,15 +157,17 @@ export default function RootLayout({
         />
       </head>
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`} suppressHydrationWarning>
-        <KakaoScript />
-        <NextSSRPlugin
-          routerConfig={extractRouterConfig(ourFileRouter)}
-        />
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <ConditionalFooter />
-        <FloatingChatButton />
-        <ProgramCompare />
+        <ToastProvider>
+          <KakaoScript />
+          <NextSSRPlugin
+            routerConfig={extractRouterConfig(ourFileRouter)}
+          />
+          <Header />
+          <main className="min-h-screen">{children}</main>
+          <ConditionalFooter />
+          <FloatingChatButton />
+          <ProgramCompare />
+        </ToastProvider>
       </body>
     </html>
   );

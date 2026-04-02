@@ -5,6 +5,7 @@ import { X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProgramCard } from "@/components/ProgramCard";
 import Link from "next/link";
+import { useToast } from "@/components/ui/toast";
 import {
   addProgramToCompare,
   CompareProgram,
@@ -18,8 +19,10 @@ interface ProgramCompareProps {
 }
 
 export function ProgramCompare({ maxCompare = 3 }: ProgramCompareProps) {
+  const toast = useToast();
   const [compareList, setCompareList] = useState<CompareProgram[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     // localStorage에서 비교 목록 불러오기
@@ -34,23 +37,15 @@ export function ProgramCompare({ maxCompare = 3 }: ProgramCompareProps) {
     writeCompareList(compareList);
   }, [compareList, initialized]);
 
-  const addToCompare = (program: CompareProgram) => {
-    const result = addProgramToCompare(program, maxCompare);
-    if (!result.success) {
-      alert(result.message);
-      return;
-    }
-    setCompareList(result.list);
-  };
-
   const removeFromCompare = (id: string) => {
     setCompareList(compareList.filter((p) => p.id !== id));
+    setShowClearConfirm(false);
   };
 
   const clearCompare = () => {
-    if (confirm("비교 목록을 모두 삭제하시겠습니까?")) {
-      setCompareList([]);
-    }
+    setCompareList([]);
+    setShowClearConfirm(false);
+    toast.info("비교 목록을 비웠습니다.");
   };
 
   if (compareList.length === 0) {
@@ -68,15 +63,30 @@ export function ProgramCompare({ maxCompare = 3 }: ProgramCompareProps) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearCompare}
-              aria-label="비교 목록 모두 삭제"
-            >
-              <Trash2 className="w-4 h-4 mr-1" />
-              모두 삭제
-            </Button>
+            {!showClearConfirm ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowClearConfirm(true)}
+                aria-label="비교 목록 모두 삭제"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                모두 삭제
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button variant="destructive" size="sm" onClick={clearCompare}>
+                  삭제 확인
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowClearConfirm(false)}
+                >
+                  취소
+                </Button>
+              </div>
+            )}
             <Link href="/compare">
               <Button size="sm" aria-label="비교하기">
                 비교하기

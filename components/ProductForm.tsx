@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link as LinkIcon, X } from "lucide-react";
 import { UploadButton } from "@/lib/uploadthing";
 import { Prisma } from "@prisma/client";
+import { useToast } from "@/components/ui/toast";
 
 interface ProductFormProps {
   product?: Prisma.ProductGetPayload<{
@@ -17,6 +18,7 @@ interface ProductFormProps {
 
 export function ProductForm({ product }: ProductFormProps) {
   const router = useRouter();
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState(product?.title || "");
   const [category, setCategory] = useState(product?.category || "camp");
@@ -63,10 +65,10 @@ export function ProductForm({ product }: ProductFormProps) {
         router.push("/admin/products");
         router.refresh();
       } else {
-        alert("저장에 실패했습니다.");
+        toast.error("저장에 실패했습니다.");
       }
-    } catch (error) {
-      alert("저장에 실패했습니다.");
+    } catch {
+      toast.error("저장에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -208,7 +210,7 @@ export function ProductForm({ product }: ProductFormProps) {
                 }
               }}
               onUploadError={(error: Error) => {
-                alert(`업로드 실패: ${error.message}`);
+                toast.error(`업로드 실패: ${error.message}`);
               }}
               appearance={{
                 button: "h-10 min-h-10 px-4 shrink-0 ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",

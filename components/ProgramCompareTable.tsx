@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProgramCard } from "@/components/ProgramCard";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { EmptyState } from "@/components/EmptyState";
 import Link from "next/link";
@@ -64,10 +63,81 @@ export function ProgramCompareTable() {
     { label: "요약", key: "summary" },
   ];
 
+  const getFieldValue = (program: CompareProgram, fieldKey: string) => {
+    if (fieldKey === "category") {
+      return getCategoryDisplayName(program.category);
+    }
+    if (fieldKey === "region") {
+      return program.region || "전국";
+    }
+    if (fieldKey === "price") {
+      return formatPrice(program.priceFrom, program.priceTo);
+    }
+    if (fieldKey === "rating") {
+      return program.rating ? program.rating.toFixed(1) : "-";
+    }
+    if (fieldKey === "reviewCount") {
+      return `${program.reviewCount || 0}개`;
+    }
+    if (fieldKey === "summary") {
+      return program.summary || "-";
+    }
+    return "-";
+  };
+
   return (
     <div className="space-y-6">
+      <div className="space-y-4 md:hidden">
+        {compareList.map((program) => (
+          <article key={program.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="relative mb-4">
+              <button
+                onClick={() => removeFromCompare(program.id)}
+                className="absolute right-2 top-2 z-10 rounded-full bg-white/90 p-1 text-gray-400 shadow transition-colors hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                aria-label={`${program.title} 비교 목록에서 제거`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <Link href={`/programs/${program.id}`} className="block">
+                <div className="relative h-40 w-full overflow-hidden rounded-lg bg-gray-100">
+                  {program.thumbnailUrl || program.imageUrl ? (
+                    <Image
+                      src={program.thumbnailUrl || program.imageUrl || ""}
+                      alt={program.title}
+                      fill
+                      className="object-cover"
+                      sizes="100vw"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm text-gray-400">
+                      이미지 없음
+                    </div>
+                  )}
+                </div>
+                <h3 className="mt-3 line-clamp-2 text-base font-semibold text-text-dark">{program.title}</h3>
+              </Link>
+            </div>
+
+            <dl className="space-y-2">
+              {comparisonFields.map((field) => (
+                <div key={`${program.id}-${field.key}`} className="flex items-start justify-between gap-3 border-b border-gray-100 pb-2 text-sm last:border-0 last:pb-0">
+                  <dt className="text-gray-500">{field.label}</dt>
+                  <dd className="max-w-[65%] text-right text-text-dark">
+                    {getFieldValue(program, field.key)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <Button asChild variant="outline" className="mt-4 w-full">
+              <Link href={`/programs/${program.id}`}>상세 보기</Link>
+            </Button>
+          </article>
+        ))}
+      </div>
+
       {/* 비교 테이블 */}
-      <div className="overflow-x-auto">
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full border-collapse bg-white rounded-lg shadow-md">
           <thead>
             <tr className="border-b-2 border-gray-200">
@@ -155,7 +225,7 @@ export function ProgramCompareTable() {
       </div>
 
       {/* 상세 비교 버튼 */}
-      <div className="flex justify-center gap-4">
+      <div className="hidden justify-center gap-4 md:flex">
         {compareList.map((program) => (
           <Button key={program.id} asChild variant="outline">
             <Link href={`/programs/${program.id}`}>

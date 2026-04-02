@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Inquiry, InquiryStatus } from "@/types";
 import { INQUIRY_STATUS_VALUES, getInquiryStatusMeta, isValidInquiryStatus } from "@/lib/inquiry-status";
+import { useToast } from "@/components/ui/toast";
 
 interface InquiryDetailModalProps {
   inquiry: (Omit<Inquiry, "status"> & { status: string }) | null;
@@ -20,6 +21,7 @@ export function InquiryDetailModal({
   onClose,
   onStatusUpdate,
 }: InquiryDetailModalProps) {
+  const toast = useToast();
   const [status, setStatus] = useState<InquiryStatus>(
     inquiry?.status && isValidInquiryStatus(inquiry.status) ? inquiry.status : "pending"
   );
@@ -49,12 +51,13 @@ export function InquiryDetailModal({
         if (onStatusUpdate) {
           onStatusUpdate({ ...inquiry, status: newStatus });
         }
+        toast.success("상태가 변경되었습니다.");
       } else {
-        alert("상태 변경에 실패했습니다.");
+        toast.error("상태 변경에 실패했습니다.");
       }
     } catch (error) {
       console.error("Status update error:", error);
-      alert("상태 변경에 실패했습니다.");
+      toast.error("상태 변경에 실패했습니다.");
     } finally {
       setIsUpdating(false);
     }

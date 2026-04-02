@@ -79,6 +79,7 @@ export default async function FavoritesPage() {
                   rating={program.rating}
                   reviewCount={program.reviewCount}
                   imageUrl={program.images[0]?.url}
+                  initialIsLiked
                 />
               );
             })}
