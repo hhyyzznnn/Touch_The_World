@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, apiError, parseRequestBody } from "@/lib/api-helpers";
+import { requireStaff, apiError, parseRequestBody } from "@/lib/api-helpers";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await requireAdmin();
+  const authError = await requireStaff();
   if (authError) return authError;
 
   try {
@@ -47,7 +47,7 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await requireAdmin();
+  const authError = await requireStaff();
   if (authError) return authError;
 
   try {

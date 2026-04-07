@@ -4,6 +4,11 @@ import { auth } from "@/lib/auth-config";
 import { prisma } from "@/lib/prisma";
 import { setAuthSession } from "@/lib/session-auth";
 
+function normalizeSessionRole(role: string): "user" | "admin" | "editor" {
+  if (role === "admin" || role === "editor") return role;
+  return "user";
+}
+
 // 소셜 로그인 콜백 후 우리 시스템 쿠키 설정
 export async function GET(request: NextRequest) {
   // 검색 엔진 봇 차단 (robots.txt에서 이미 차단되지만 추가 보안)
@@ -30,8 +35,11 @@ export async function GET(request: NextRequest) {
 
     // 애플리케이션 세션 쿠키 설정
     const cookieStore = await cookies();
-    setAuthSession(cookieStore, { userId: user.id, role: user.role === "admin" ? "admin" : "user" });
+    setAuthSession(cookieStore, { userId: user.id, role: normalizeSessionRole(user.role) });
 
+    if (user.role === "admin" || user.role === "editor") {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
     return NextResponse.redirect(new URL("/", request.url));
   } catch (error) {
     console.error("Social login callback error:", error);

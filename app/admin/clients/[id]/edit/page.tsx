@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { AdminNav } from "@/components/AdminNav";
 import { ClientForm } from "@/components/ClientForm";
 import { notFound } from "next/navigation";
 
@@ -22,13 +21,9 @@ export default async function EditClientPage({
   }
 
   return (
-    <div>
-      <AdminNav />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">고객사 수정</h1>
-        <ClientForm client={client} />
-      </div>
+    <div className="py-2">
+      <h1 className="text-3xl font-bold mb-8">고객사 수정</h1>
+      <ClientForm client={client} />
     </div>
   );
 }
-

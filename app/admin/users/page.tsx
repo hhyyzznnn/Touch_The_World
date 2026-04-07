@@ -139,10 +139,12 @@ export default async function AdminUsersPage() {
                             className={
                               user.role === "admin"
                                 ? "bg-brand-green-primary text-white"
-                                : ""
+                                : user.role === "editor"
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : ""
                             }
                           >
-                            {user.role === "admin" ? "관리자" : "일반"}
+                            {user.role === "admin" ? "관리자" : user.role === "editor" ? "에디터" : "일반"}
                           </Badge>
                           <div className="flex flex-col gap-1">
                             {user.emailVerified && (

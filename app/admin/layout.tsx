@@ -26,13 +26,23 @@ export default async function AdminLayout({
   }
 
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "editor")) {
     redirect("/admin/login");
+  }
+
+  const adminOnlyPrefixes = ["/admin/users", "/admin/inquiries"];
+  if (
+    user.role === "editor" &&
+    adminOnlyPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    )
+  ) {
+    redirect("/admin");
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNav />
+      <AdminNav isAdmin={user.role === "admin"} />
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">{children}</div>
     </div>
   );

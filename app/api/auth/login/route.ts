@@ -11,6 +11,11 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+function normalizeSessionRole(role: string): "user" | "admin" | "editor" {
+  if (role === "admin" || role === "editor") return role;
+  return "user";
+}
+
 export async function POST(request: NextRequest) {
   // Rate Limiting: IP당 1분에 5회 제한
   const clientIP = getClientIP(request);
@@ -83,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     // 쿠키 설정
     const cookieStore = await cookies();
-    setAuthSession(cookieStore, { userId: user.id, role: user.role === "admin" ? "admin" : "user" });
+    setAuthSession(cookieStore, { userId: user.id, role: normalizeSessionRole(user.role) });
 
     return NextResponse.json(
       {
@@ -94,7 +99,7 @@ export async function POST(request: NextRequest) {
           name: user.name,
           role: user.role,
         },
-        ...(user.role === "admin" && { redirect: "/admin" }),
+        ...((user.role === "admin" || user.role === "editor") && { redirect: "/admin" }),
       },
       {
         headers: {

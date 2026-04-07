@@ -5,7 +5,7 @@ export const AUTH_SESSION_COOKIE = "ttw_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 const SESSION_VERSION = 1;
 
-type SessionRole = "user" | "admin";
+type SessionRole = "user" | "admin" | "editor";
 
 interface SessionPayload {
   v: number;
@@ -49,7 +49,7 @@ function decodePayload(encoded: string): SessionPayload | null {
     if (
       parsed?.v !== SESSION_VERSION ||
       typeof parsed.sub !== "string" ||
-      (parsed.role !== "user" && parsed.role !== "admin") ||
+      (parsed.role !== "user" && parsed.role !== "admin" && parsed.role !== "editor") ||
       typeof parsed.exp !== "number"
     ) {
       return null;
@@ -120,4 +120,3 @@ export async function getSessionPayloadFromCookies(): Promise<SessionPayload | n
   if (!token) return null;
   return verifySessionToken(token);
 }
-

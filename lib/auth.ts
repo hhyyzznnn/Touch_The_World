@@ -1,8 +1,15 @@
 import { getCurrentUser } from "@/lib/auth-user";
 
+const STAFF_ROLES = new Set(["admin", "editor"] as const);
+
 export async function isAdmin() {
   const user = await getCurrentUser();
   return user?.role === "admin";
+}
+
+export async function isStaff() {
+  const user = await getCurrentUser();
+  return Boolean(user?.role && STAFF_ROLES.has(user.role as "admin" | "editor"));
 }
 
 /**

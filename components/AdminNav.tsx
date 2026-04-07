@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { AdminNotification } from "@/components/AdminNotification";
 
-export function AdminNav() {
+export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
@@ -57,12 +57,14 @@ export function AdminNav() {
             >
               진행 내역
             </Link>
-            <Link
-              href="/admin/inquiries"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
-            >
-              문의
-            </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/inquiries"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              >
+                문의
+              </Link>
+            )}
             <Link
               href="/admin/documents"
               className="text-gray-700 hover:text-brand-green-primary transition text-base"
@@ -87,13 +89,15 @@ export function AdminNav() {
             >
               고객사
             </Link>
-            <Link
-              href="/admin/users"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
-            >
-              사용자
-            </Link>
-            <AdminNotification />
+            {isAdmin && (
+              <Link
+                href="/admin/users"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              >
+                사용자
+              </Link>
+            )}
+            {isAdmin && <AdminNotification />}
             <Button type="button" variant="outline" size="default" onClick={handleLogout}>
               로그아웃
             </Button>
@@ -127,13 +131,15 @@ export function AdminNav() {
               >
                 진행 내역
               </Link>
-              <Link
-                href="/admin/inquiries"
-                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                문의
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/inquiries"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  문의
+                </Link>
+              )}
               <Link
                 href="/admin/documents"
                 className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
@@ -162,13 +168,15 @@ export function AdminNav() {
               >
                 고객사
               </Link>
-              <Link
-                href="/admin/users"
-                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                사용자
-              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/users"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  사용자
+                </Link>
+              )}
               <div className="pt-2">
                 <Button
                   type="button"
@@ -190,4 +198,3 @@ export function AdminNav() {
     </nav>
   );
 }
-

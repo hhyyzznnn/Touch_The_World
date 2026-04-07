@@ -40,7 +40,7 @@ function LoginForm() {
       const data = await response.json();
 
       if (response.ok) {
-        if (data?.user?.role === "admin" || data?.redirect === "/admin") {
+        if (data?.user?.role === "admin" || data?.user?.role === "editor" || data?.redirect === "/admin") {
           window.location.href = "/admin";
         } else {
           window.location.href = "/";

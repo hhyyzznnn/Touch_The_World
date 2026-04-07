@@ -15,6 +15,7 @@ import { GlobalSearchBar } from "@/components/GlobalSearchBar";
 import { AdminStatsChartWrapper } from "@/components/AdminStatsChartWrapper";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { getCurrentUser } from "@/lib/auth-user";
 
 async function getStats() {
   try {
@@ -210,6 +211,8 @@ async function getRecentActivity() {
 }
 
 export default async function AdminDashboard() {
+  const currentUser = await getCurrentUser();
+  const isAdmin = currentUser?.role === "admin";
   const stats = await getStats();
   const recent = await getRecentActivity();
   const ongoingPrograms = await getOngoingPrograms();
@@ -255,19 +258,21 @@ export default async function AdminDashboard() {
           </div>
         </Link>
 
-        <Link
-          href="/admin/inquiries"
-          className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">대기 문의</span>
-            <Mail className="w-5 h-5 text-brand-green-primary" />
-          </div>
-          <div className="text-3xl font-medium">{stats.inquiries}</div>
-          <div className="text-xs text-amber-700 bg-amber-50 inline-flex items-center px-2 py-1 rounded-full">
-            처리 필요
-          </div>
-        </Link>
+        {isAdmin && (
+          <Link
+            href="/admin/inquiries"
+            className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">대기 문의</span>
+              <Mail className="w-5 h-5 text-brand-green-primary" />
+            </div>
+            <div className="text-3xl font-medium">{stats.inquiries}</div>
+            <div className="text-xs text-amber-700 bg-amber-50 inline-flex items-center px-2 py-1 rounded-full">
+              처리 필요
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* 진행 중인 프로그램 */}
@@ -394,22 +399,23 @@ export default async function AdminDashboard() {
               ))}
             </ul>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">문의</h3>
-            <ul className="space-y-2 text-sm text-gray-700">
-              {recent.inquiries.length === 0 && <li className="text-text-gray">기록 없음</li>}
-              {recent.inquiries.map((i) => (
-                <li key={i.id} className="flex justify-between">
-                  <Link href={`/admin/inquiries`} className="text-brand-green-primary hover:underline">
-                    {i.schoolName} ({i.contact})
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {isAdmin && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">문의</h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                {recent.inquiries.length === 0 && <li className="text-text-gray">기록 없음</li>}
+                {recent.inquiries.map((i) => (
+                  <li key={i.id} className="flex justify-between">
+                    <Link href={`/admin/inquiries`} className="text-brand-green-primary hover:underline">
+                      {i.schoolName} ({i.contact})
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

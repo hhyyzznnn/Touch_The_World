@@ -8,6 +8,7 @@ import { z } from "zod";
 import crypto from "crypto";
 
 const adminLoginSchema = z.object({
+  identifier: z.string().trim().min(1),
   password: z.string().min(1),
 });
 
@@ -41,50 +42,58 @@ export async function POST(request: NextRequest) {
     const parsed = adminLoginSchema.safeParse(payload);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "비밀번호를 입력해주세요." },
+        { error: "아이디(또는 이메일)와 비밀번호를 입력해주세요." },
         { status: 400 }
       );
     }
-    const { password } = parsed.data;
+    const { identifier, password } = parsed.data;
+    const normalizedIdentifier = identifier.trim().toLowerCase();
 
-    const adminUser = await prisma.user.findFirst({
-      where: { role: "admin" },
-      select: { id: true, role: true, password: true },
+    const staffUser = await prisma.user.findFirst({
+      where: {
+        role: { in: ["admin", "editor"] },
+        OR: [
+          { username: { equals: normalizedIdentifier, mode: "insensitive" } },
+          { email: { equals: normalizedIdentifier, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true, role: true, password: true, username: true },
     });
 
-    if (!adminUser) {
+    if (!staffUser) {
       return NextResponse.json(
-        { error: "관리자 계정이 설정되지 않았습니다." },
-        { status: 503 }
+        { error: "계정 정보가 올바르지 않습니다." },
+        { status: 401 }
       );
     }
 
     let isValidPassword = false;
 
-    if (adminUser.password) {
-      isValidPassword = await bcrypt.compare(password, adminUser.password);
+    if (staffUser.password) {
+      isValidPassword = await bcrypt.compare(password, staffUser.password);
     }
 
     const fallbackAdminPassword = process.env.ADMIN_PASSWORD;
     if (
       !isValidPassword &&
       fallbackAdminPassword &&
-      process.env.NODE_ENV !== "production"
+      process.env.NODE_ENV !== "production" &&
+      staffUser.role === "admin"
     ) {
       isValidPassword = safeEqual(password, fallbackAdminPassword);
     }
 
     if (!isValidPassword) {
       return NextResponse.json(
-        { error: "비밀번호가 올바르지 않습니다." },
+        { error: "계정 정보가 올바르지 않습니다." },
         { status: 401 }
       );
     }
 
     const cookieStore = await cookies();
-    setAuthSession(cookieStore, { userId: adminUser.id, role: "admin" });
+    setAuthSession(cookieStore, { userId: staffUser.id, role: staffUser.role as "admin" | "editor" });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, role: staffUser.role, username: staffUser.username });
   } catch (error) {
     return NextResponse.json(
       { error: "로그인에 실패했습니다." },

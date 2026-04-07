@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAdmin } from "@/lib/auth";
+import { isAdmin, isStaff } from "@/lib/auth";
 
 /**
  * API 라우트에서 관리자 인증을 체크하는 헬퍼 함수
@@ -7,6 +7,17 @@ import { isAdmin } from "@/lib/auth";
 export async function requireAdmin() {
   const admin = await isAdmin();
   if (!admin) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
+/**
+ * API 라우트에서 운영자(admin/editor) 인증을 체크하는 헬퍼 함수
+ */
+export async function requireStaff() {
+  const staff = await isStaff();
+  if (!staff) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;
@@ -39,4 +50,3 @@ export async function parseRequestBody<T>(request: NextRequest): Promise<T> {
     throw new Error("Invalid JSON in request body");
   }
 }
-

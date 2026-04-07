@@ -1,6 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { isAdmin } from "@/lib/auth";
+import { isStaff } from "@/lib/auth";
 
 const f = createUploadthing();
 
@@ -13,11 +13,11 @@ export const ourFileRouter = {
   })
     .middleware(async ({ req }) => {
       // 관리자 인증 확인
-      const admin = await isAdmin();
-      if (!admin) {
+      const staff = await isStaff();
+      if (!staff) {
         throw new UploadThingError("Unauthorized");
       }
-      return { userId: "admin" };
+      return { userId: "staff" };
     })
     .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
@@ -30,11 +30,11 @@ export const ourFileRouter = {
     },
   })
     .middleware(async ({ req }) => {
-      const admin = await isAdmin();
-      if (!admin) {
+      const staff = await isStaff();
+      if (!staff) {
         throw new UploadThingError("Unauthorized");
       }
-      return { userId: "admin" };
+      return { userId: "staff" };
     })
     .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
@@ -51,11 +51,11 @@ export const ourFileRouter = {
     },
   })
     .middleware(async ({ req }) => {
-      const admin = await isAdmin();
-      if (!admin) {
+      const staff = await isStaff();
+      if (!staff) {
         throw new UploadThingError("Unauthorized");
       }
-      return { userId: "admin" };
+      return { userId: "staff" };
     })
     .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };
@@ -63,5 +63,4 @@ export const ourFileRouter = {
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
-
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 export default function AdminLoginPage() {
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
@@ -16,22 +17,35 @@ export default function AdminLoginPage() {
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ identifier, password }),
     });
 
     if (response.ok) {
       router.push("/admin");
       router.refresh();
     } else {
-      setError("비밀번호가 올바르지 않습니다.");
+      setError("아이디(또는 이메일) 또는 비밀번호가 올바르지 않습니다.");
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-md mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">관리자 로그인</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">운영자 로그인</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="identifier" className="block text-sm font-medium mb-2">
+              아이디 또는 이메일
+            </label>
+            <input
+              id="identifier"
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              required
+            />
+          </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium mb-2">
               비밀번호
@@ -54,4 +68,3 @@ export default function AdminLoginPage() {
     </div>
   );
 }
-

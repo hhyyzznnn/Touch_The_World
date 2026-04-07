@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin, apiError, apiSuccess, parseRequestBody } from "@/lib/api-helpers";
+import { requireStaff, apiError, apiSuccess, parseRequestBody } from "@/lib/api-helpers";
 
 export async function GET() {
-  const authError = await requireAdmin();
+  const authError = await requireStaff();
   if (authError) return authError;
 
   const list = await prisma.companyNews.findMany({
@@ -13,7 +13,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const authError = await requireAdmin();
+  const authError = await requireStaff();
   if (authError) return authError;
 
   try {

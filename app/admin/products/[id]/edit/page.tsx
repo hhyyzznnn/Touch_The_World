@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { AdminNav } from "@/components/AdminNav";
 import { ProductForm } from "@/components/ProductForm";
 import { notFound } from "next/navigation";
 
@@ -27,12 +26,9 @@ export default async function EditProductPage({
   }
 
   return (
-    <div>
-      <AdminNav />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">상품 수정</h1>
-        <ProductForm product={product} />
-      </div>
+    <div className="py-2">
+      <h1 className="text-3xl font-bold mb-8">상품 수정</h1>
+      <ProductForm product={product} />
     </div>
   );
 }

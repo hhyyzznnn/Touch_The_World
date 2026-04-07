@@ -235,7 +235,7 @@ model User {
   phone         String?
   phoneVerified Boolean  @default(false)
   school        String?  // 소속 학교
-  role          String   @default("user") // user, admin
+  role          String   @default("user") // user, editor, admin
   emailVerified Boolean  @default(false)
   marketingEmailOptIn Boolean  @default(false)
   marketingEmailOptInAt DateTime?
