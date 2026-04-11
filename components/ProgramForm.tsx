@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Eye, Link as LinkIcon, Sparkles, X } from "lucide-react";
-import { UploadButton, uploadFiles } from "@/lib/uploadthing";
+import { uploadFiles } from "@/lib/uploadthing";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ProgramWithRelations } from "@/types";
@@ -169,13 +169,14 @@ export function ProgramForm({ program }: ProgramFormProps) {
   const router = useRouter();
   const toast = useToast();
   const thumbnailFileInputRef = useRef<HTMLInputElement | null>(null);
+  const imageFileInputRef = useRef<HTMLInputElement | null>(null);
   const cropViewportRef = useRef<HTMLDivElement | null>(null);
   const cropImageRef = useRef<HTMLImageElement | null>(null);
   const uploadActionButtonClass =
     "h-11 min-h-11 w-full px-4 inline-flex items-center justify-center gap-2";
   const uploadPrimaryButtonClass =
-    `${uploadActionButtonClass} ut-ready:bg-brand-green-primary ` +
-    "ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80";
+    `${uploadActionButtonClass} bg-brand-green-primary rounded-md text-white ` +
+    "hover:bg-brand-green-primary/90 disabled:cursor-not-allowed disabled:opacity-70";
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState(program?.title || "");
@@ -196,6 +197,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
   const [thumbnailUrl, setThumbnailUrl] = useState(program?.thumbnailUrl || "");
   const [showThumbnailInput, setShowThumbnailInput] = useState(!!program?.thumbnailUrl);
   const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropSourceUrl, setCropSourceUrl] = useState("");
   const [cropSourceType, setCropSourceType] = useState("image/jpeg");
@@ -373,6 +375,49 @@ export function ProgramForm({ program }: ProgramFormProps) {
     const file = event.target.files?.[0];
     if (!file) return;
     openCropModalFromFile(file);
+  };
+
+  const handleImageFilesChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const selectedFiles = event.target.files ? Array.from(event.target.files) : [];
+    if (selectedFiles.length === 0) return;
+
+    const availableSlots = Math.max(0, 10 - imageUrls.length);
+    if (availableSlots === 0) {
+      toast.error("이미지는 최대 10개까지 업로드할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
+    const imageFiles = selectedFiles.filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      toast.error("이미지 파일만 업로드할 수 있습니다.");
+      event.target.value = "";
+      return;
+    }
+
+    const filesToUpload = imageFiles.slice(0, availableSlots);
+    if (filesToUpload.length < imageFiles.length) {
+      toast.info(`최대 10개 제한으로 ${filesToUpload.length}개만 업로드합니다.`);
+    }
+
+    setIsUploadingImages(true);
+    try {
+      const uploaded = await uploadFiles("imageUploader", {
+        files: filesToUpload,
+      });
+      const newUrls = uploaded.map((file) => file.url).filter(Boolean);
+      setImageUrls((prev) => [...prev, ...newUrls]);
+      toast.success(`${newUrls.length}개 이미지 업로드 완료`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "업로드 중 오류가 발생했습니다.";
+      toast.error(`업로드 실패: ${message}`);
+    } finally {
+      setIsUploadingImages(false);
+      event.target.value = "";
+    }
   };
 
   const updateCropZoom = (nextZoom: number) => {
@@ -793,30 +838,23 @@ export function ProgramForm({ program }: ProgramFormProps) {
               <LinkIcon className="w-4 h-4" />
               URL 추가
             </Button>
-            <div className="w-full">
-              <UploadButton
-                endpoint="imageUploader"
-                onClientUploadComplete={(res) => {
-                  if (res && res.length > 0) {
-                    const newUrls = res.map((file) => file.url);
-                    setImageUrls([...imageUrls, ...newUrls]);
-                  }
-                }}
-                onUploadError={(error: Error) => {
-                  toast.error(`업로드 실패: ${error.message}`);
-                }}
-                appearance={{
-                  button: uploadPrimaryButtonClass,
-                  allowedContent: "hidden",
-                }}
-                content={{
-                  button({ ready }) {
-                    return ready ? "파일 선택" : "파일 선택";
-                  },
-                }}
-              />
-            </div>
+            <Button
+              type="button"
+              className={uploadPrimaryButtonClass}
+              disabled={isUploadingImages}
+              onClick={() => imageFileInputRef.current?.click()}
+            >
+              {isUploadingImages ? "업로드 중..." : "파일 선택"}
+            </Button>
           </div>
+          <input
+            ref={imageFileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            multiple
+            className="hidden"
+            onChange={handleImageFilesChange}
+          />
 
           {/* 이미지 URL 목록 */}
           {imageUrls.length > 0 && (
@@ -845,7 +883,7 @@ export function ProgramForm({ program }: ProgramFormProps) {
           )}
 
           <p className="text-xs text-gray-500">
-            권장 사이즈: 1920×1080px (Full HD), 파일 크기: 4MB 이하
+            여러 파일을 한 번에 선택할 수 있습니다. 파일 크기: 8MB 이하, 최대 10개
           </p>
         </div>
       </div>
