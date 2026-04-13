@@ -77,7 +77,9 @@ async function handleQuickCreate(request: NextRequest) {
     }
 
     const utapi = new UTApi({ token });
-    const result = await utapi.uploadFiles(uploadedFile);
+    const result = await utapi.uploadFiles(uploadedFile, {
+      acl: "public-read",
+    });
     if (!result.data) {
       const message = result.error?.message || "UploadThing 업로드에 실패했습니다.";
       return NextResponse.json({ error: message }, { status: 500 });
