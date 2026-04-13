@@ -1,20 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { ProgramForm } from "@/components/ProgramForm";
-
-async function getProgram(id: string) {
-  return await prisma.program.findUnique({
-    where: { id },
-    include: {
-      images: {
-        orderBy: { createdAt: "asc" },
-      },
-      schedules: {
-        orderBy: { day: "asc" },
-      },
-    },
-  });
-}
+import { CompanyNewsForm } from "@/components/CompanyNewsForm";
 
 export default async function EditProgramPage({
   params,
@@ -22,17 +8,16 @@ export default async function EditProgramPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const program = await getProgram(id);
+  const news = await prisma.companyNews.findUnique({ where: { id } });
 
-  if (!program) {
+  if (!news) {
     notFound();
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">프로그램 수정</h1>
-      <ProgramForm program={program} />
+      <h1 className="text-3xl font-bold mb-8">프로그램 카드뉴스 수정</h1>
+      <CompanyNewsForm news={news} redirectPath="/admin/programs" />
     </div>
   );
 }
-

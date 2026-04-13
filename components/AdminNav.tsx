@@ -49,7 +49,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
               href="/admin/programs"
               className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
-              상품
+              카드뉴스
             </Link>
             <Link
               href="/admin/events"
@@ -122,7 +122,7 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                 className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                상품
+                카드뉴스
               </Link>
               <Link
                 href="/admin/events"

@@ -35,7 +35,13 @@ async function getStats() {
       overseasEvents,
       domesticEvents,
     ] = await Promise.all([
-      prisma.program.count().catch(() => 0),
+      prisma.companyNews.count({
+        where: {
+          imageUrl: {
+            not: null,
+          },
+        },
+      }).catch(() => 0),
       prisma.event.count().catch(() => 0),
       prisma.inquiry.count({ where: { status: "pending" } }).catch(() => 0),
       prisma.document.count().catch(() => 0),
@@ -187,7 +193,7 @@ async function getOngoingPrograms() {
 async function getRecentActivity() {
   try {
     const [programs, inquiries] = await Promise.all([
-      prisma.program
+      prisma.companyNews
         .findMany({
           orderBy: { updatedAt: "desc" },
           take: 3,
@@ -238,7 +244,7 @@ export default async function AdminDashboard() {
           className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
         >
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">상품</span>
+            <span className="text-sm text-gray-600">카드뉴스</span>
             <BookOpen className="w-5 h-5 text-brand-green-primary" />
           </div>
           <div className="text-3xl font-medium">{stats.programs}</div>
@@ -353,7 +359,7 @@ export default async function AdminDashboard() {
           <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
             <Link href="/admin/programs/new" className="flex flex-col items-center gap-3">
               <BookOpen className="w-5 h-5" />
-              새 상품
+              새 카드뉴스
             </Link>
           </Button>
           <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
@@ -387,7 +393,7 @@ export default async function AdminDashboard() {
         </div>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">상품</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">카드뉴스</h3>
             <ul className="space-y-2 text-sm text-gray-700">
               {recent.programs.length === 0 && <li className="text-text-gray">기록 없음</li>}
               {recent.programs.map((p) => (

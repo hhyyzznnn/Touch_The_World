@@ -128,20 +128,6 @@ export default async function NewsDetailPage({
             </div>
           )}
 
-          {news.link?.trim() && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <Button asChild>
-                <a
-                  href={news.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  관련 링크 보기 →
-                </a>
-              </Button>
-            </div>
-          )}
-
           <div className="mt-8 pt-6 border-t border-gray-200">
             <Button asChild variant="outline">
               <Link href="/news">목록으로</Link>

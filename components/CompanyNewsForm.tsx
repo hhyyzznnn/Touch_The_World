@@ -11,9 +11,10 @@ import type { CompanyNews } from "@prisma/client";
 
 interface CompanyNewsFormProps {
   news?: CompanyNews | null;
+  redirectPath?: string;
 }
 
-export function CompanyNewsForm({ news }: CompanyNewsFormProps) {
+export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyNewsFormProps) {
   const router = useRouter();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +46,7 @@ export function CompanyNewsForm({ news }: CompanyNewsFormProps) {
         }),
       });
       if (res.ok) {
-        router.push("/admin/news");
+        router.push(redirectPath);
         router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));

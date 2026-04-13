@@ -48,8 +48,6 @@ export default async function NewsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {list.map((item) => {
-                    const href = item.link?.trim() || `/news/${item.id}`;
-                    const isExternal = !!item.link?.trim()?.startsWith("http");
                     return (
                       <tr
                         key={item.id}
@@ -64,9 +62,7 @@ export default async function NewsPage() {
                         </td>
                         <td className="px-4 py-3">
                           <Link
-                            href={href}
-                            target={isExternal ? "_blank" : undefined}
-                            rel={isExternal ? "noopener noreferrer" : undefined}
+                            href={`/news/${item.id}`}
                             className="text-text-dark hover:text-brand-green-primary hover:underline underline-offset-2"
                           >
                             {item.title}

@@ -1,21 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { ProgramCard } from "@/components/ProgramCard";
-import { getCategoryDisplayName, getCategoryDetailKey } from "@/lib/category-utils";
-import { CATEGORY_DETAILS } from "@/lib/category-details";
-import { CategoryCardNews } from "@/components/CategoryCardNews";
+import Image from "next/image";
 import { Pagination } from "@/components/Pagination";
-import { ProgramSort } from "@/components/ProgramSort";
-import { Suspense } from "react";
+import { ChevronRight } from "lucide-react";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "교육여행·수학여행 프로그램 | 터치더월드",
+  title: "프로그램 카드뉴스 | 터치더월드",
   description:
-    "터치더월드의 교육여행, 수학여행, 체험학습, 교사연수, 해외연수 프로그램을 카테고리별로 확인하세요.",
-  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["프로그램", "여행 코스"]),
+    "터치더월드의 프로그램 가치와 인사이트를 카드뉴스 형태로 확인하세요. 세부 일정과 견적은 상담 후 맞춤 제안합니다.",
+  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]),
   alternates: {
     canonical: "/programs",
   },
@@ -23,73 +18,41 @@ export const metadata: Metadata = {
 
 const ITEMS_PER_PAGE = 12;
 
-type SortOption = "latest" | "popular" | "rating" | "price_asc" | "price_desc" | "name";
-
-function getOrderBy(sort: SortOption) {
-  switch (sort) {
-    case "popular":
-      // 인기순: 후기 수 내림차순, 동일 시 최신순
-      return [{ reviewCount: "desc" as const }, { createdAt: "desc" as const }];
-    case "rating":
-      // 평점순: 평점 내림차순, 동일 시 후기 수 내림차순, 최신순
-      return [
-        { rating: "desc" as const },
-        { reviewCount: "desc" as const },
-        { createdAt: "desc" as const }
-      ];
-    case "price_asc":
-      // 가격 낮은순: 가격 오름차순, 동일 시 최신순
-      // null 값은 데이터베이스에서 자동으로 뒤로 정렬됨
-      return [{ priceFrom: "asc" as const }, { createdAt: "desc" as const }];
-    case "price_desc":
-      // 가격 높은순: 가격 내림차순, 동일 시 최신순
-      // null 값은 데이터베이스에서 자동으로 뒤로 정렬됨
-      return [{ priceFrom: "desc" as const }, { createdAt: "desc" as const }];
-    case "name":
-      // 이름순: 제목 오름차순
-      return [{ title: "asc" as const }];
-    case "latest":
-    default:
-      // 최신순: 생성일 내림차순
-      return [{ createdAt: "desc" as const }];
-  }
-}
-
-async function getPrograms(category?: string, page: number = 1, sort: SortOption = "latest") {
-  const where = category ? { category } : {};
+async function getProgramCardNews(page: number) {
   const skip = (page - 1) * ITEMS_PER_PAGE;
-  const orderBy = getOrderBy(sort);
-  
-  const [programs, total] = await Promise.all([
-    prisma.program.findMany({
-      where,
-      include: {
-        images: {
-          take: 1,
-          orderBy: { createdAt: "asc" },
+
+  const [items, total] = await Promise.all([
+    prisma.companyNews.findMany({
+      where: {
+        imageUrl: {
+          not: null,
         },
       },
-      orderBy,
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       skip,
       take: ITEMS_PER_PAGE,
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        imageUrl: true,
+        createdAt: true,
+        isPinned: true,
+      },
     }),
-    prisma.program.count({ where }),
+    prisma.companyNews.count({
+      where: {
+        imageUrl: {
+          not: null,
+        },
+      },
+    }),
   ]);
-  
-  return {
-    programs,
-    total,
-    totalPages: Math.ceil(total / ITEMS_PER_PAGE),
-  };
-}
 
-async function getCategories() {
-  // distinct 쿼리로 최적화 (데이터베이스에서 직접 중복 제거)
-  const categories = await prisma.program.findMany({
-    select: { category: true },
-    distinct: ["category"],
-  });
-  return categories.map((p) => p.category);
+  return {
+    items,
+    totalPages: Math.max(1, Math.ceil(total / ITEMS_PER_PAGE)),
+  };
 }
 
 // 페이지 재검증 시간 설정 (10분)
@@ -98,98 +61,67 @@ export const revalidate = 600;
 export default async function ProgramsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; page?: string; sort?: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
-  const sort = (params.sort || "latest") as SortOption;
-  const { programs, totalPages } = await getPrograms(params.category, currentPage, sort);
-  const categories = await getCategories();
-
-  const createCategoryHref = (category?: string) => {
-    const query = new URLSearchParams();
-    if (category) query.set("category", category);
-    if (sort !== "latest") query.set("sort", sort);
-    return query.toString() ? `/programs?${query.toString()}` : "/programs";
-  };
-  
-  // 카테고리별 상세 정보 가져오기
-  const categoryDetailKey = params.category ? getCategoryDetailKey(params.category) : null;
-  const categoryDetail = categoryDetailKey ? CATEGORY_DETAILS[categoryDetailKey] : null;
+  const { items, totalPages } = await getProgramCardNews(currentPage);
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">프로그램 목록</h1>
-        <div className="rounded-xl border border-gray-200 bg-white p-3 sm:p-4 mb-3">
-          <p className="mb-2 text-xs font-medium text-text-gray">카테고리 필터</p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              asChild
-              variant={!params.category ? "default" : "outline"}
-              size="sm"
-              className={
-                !params.category
-                  ? "rounded-full bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
-                  : "rounded-full bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
-              }
-            >
-              <Link href={createCategoryHref()}>전체</Link>
-            </Button>
-            {categories.map((category) => (
-              <Button
-                key={category}
-                asChild
-                variant={params.category === category ? "default" : "outline"}
-                size="sm"
-                className={
-                  params.category === category
-                    ? "rounded-full bg-brand-green-primary hover:bg-brand-green-primary/90 text-white"
-                    : "rounded-full bg-white border-gray-300 text-text-dark hover:border-brand-green-primary hover:bg-brand-green-primary/5"
-                }
-              >
-                <Link href={createCategoryHref(category)}>
-                  {getCategoryDisplayName(category)}
-                </Link>
-              </Button>
-            ))}
-          </div>
-        </div>
-        <Suspense fallback={<div className="h-10" />}>
-          <ProgramSort />
-        </Suspense>
+        <h1 className="text-3xl font-bold mb-3">프로그램 카드뉴스</h1>
+        <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl">
+          가격표형 상품 대신, 교육 목표와 운영 철학을 담은 카드뉴스를 먼저 소개합니다.
+          구체적인 일정·견적은 상담 후 기관별 맞춤형으로 안내드립니다.
+        </p>
       </div>
 
-      {/* 카테고리별 카드뉴스 */}
-      {categoryDetail && (
-        <CategoryCardNews categoryDetail={categoryDetail} />
-      )}
-
-      {programs.length === 0 ? (
-        <div className="text-center py-12 text-text-gray">
-          등록된 프로그램이 없습니다.
+      {items.length === 0 ? (
+        <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
+          등록된 카드뉴스가 없습니다.
         </div>
       ) : (
         <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {programs.map((program) => (
-              <ProgramCard
-                key={program.id}
-                id={program.id}
-                title={program.title}
-                category={getCategoryDisplayName(program.category)}
-                summary={program.summary}
-                thumbnailUrl={program.thumbnailUrl}
-                region={program.region}
-                hashtags={program.hashtags}
-                priceFrom={program.priceFrom}
-                priceTo={program.priceTo}
-                rating={program.rating}
-                reviewCount={program.reviewCount}
-                imageUrl={program.images[0]?.url}
-              />
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+            {items.map((item) => {
+              return (
+                <Link
+                  key={item.id}
+                  href={`/news/${item.id}`}
+                  className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                >
+                  <div className="relative aspect-[4/5] bg-gray-100">
+                    {item.imageUrl ? (
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                        className="object-cover group-hover:scale-[1.02] transition-transform duration-200"
+                      />
+                    ) : null}
+                    {item.isPinned && (
+                      <span className="absolute top-2 left-2 inline-flex items-center rounded bg-brand-green-primary px-2 py-0.5 text-xs font-bold text-white">
+                        NEW
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3 sm:p-4">
+                    <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
+                    {item.summary && (
+                      <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
+                    )}
+                    <div className="mt-2 inline-flex items-center text-xs text-brand-green font-medium">
+                      자세히 보기
+                      <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
+
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
