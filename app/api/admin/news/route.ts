@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireStaff, apiError, apiSuccess, parseRequestBody } from "@/lib/api-helpers";
+import { requireStaff, apiError, apiSuccess } from "@/lib/api-helpers";
+import { parseAdminNewsRequest } from "@/lib/admin-news-request";
+
+export const runtime = "nodejs";
 
 export async function GET() {
   const authError = await requireStaff();
@@ -17,15 +20,7 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const body = await parseRequestBody<{
-      title: string;
-      summary?: string;
-      content?: string;
-      imageUrl?: string | null;
-      link?: string;
-      isPinned?: boolean;
-    }>(request);
-    const { title, summary, content, imageUrl, link, isPinned } = body;
+    const { title, summary, content, imageUrl, link, isPinned } = await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력하세요." }, { status: 400 });
@@ -44,6 +39,7 @@ export async function POST(request: NextRequest) {
 
     return apiSuccess({ success: true, id: news.id });
   } catch (error) {
-    return apiError("회사 소식 등록에 실패했습니다.", 500, error);
+    const message = error instanceof Error ? error.message : "알 수 없는 오류";
+    return apiError(`회사 소식 등록에 실패했습니다: ${message}`, 500, error);
   }
 }

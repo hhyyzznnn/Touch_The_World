@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "utfs.io", pathname: "/**" },
       { protocol: "https", hostname: "**.utfs.io", pathname: "/**" },
+      { protocol: "https", hostname: "ufs.sh", pathname: "/**" },
+      { protocol: "https", hostname: "**.ufs.sh", pathname: "/**" },
       { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
       { protocol: "https", hostname: "mblogthumb-phinf.pstatic.net", pathname: "/**" },
       { protocol: "https", hostname: "**.pstatic.net", pathname: "/**" },
