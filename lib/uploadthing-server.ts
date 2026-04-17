@@ -1,6 +1,10 @@
 import { UTApi } from "uploadthing/server";
+import sharp from "sharp";
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_COMPRESSED_IMAGE_BYTES = 2 * 1024 * 1024;
+const MAX_IMAGE_DIMENSION = 1600;
+const WEBP_QUALITY = 80;
 
 export function getUploadThingToken(): string {
   const token = process.env.UPLOADTHING_TOKEN || process.env.UPLOADTHING_SECRET;
@@ -20,11 +24,59 @@ export function validateImageFile(file: File) {
   }
 }
 
-export async function uploadPublicImage(file: File): Promise<string> {
+function getCompressedFileName(fileName: string): string {
+  const safeBaseName = fileName
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^a-zA-Z0-9가-힣._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return `${safeBaseName || "card-news"}.webp`;
+}
+
+async function compressImageFile(file: File): Promise<File> {
   validateImageFile(file);
 
+  const input = Buffer.from(await file.arrayBuffer());
+  const output = await sharp(input, {
+    failOn: "none",
+    limitInputPixels: 40_000_000,
+  })
+    .rotate()
+    .resize({
+      width: MAX_IMAGE_DIMENSION,
+      height: MAX_IMAGE_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({
+      quality: WEBP_QUALITY,
+      effort: 4,
+    })
+    .toBuffer();
+
+  if (output.byteLength > MAX_COMPRESSED_IMAGE_BYTES) {
+    throw new Error(
+      `압축 후에도 이미지가 너무 큽니다. ${file.name} (${Math.ceil(output.byteLength / 1024 / 1024)}MB)`
+    );
+  }
+
+  const arrayBuffer = output.buffer.slice(
+    output.byteOffset,
+    output.byteOffset + output.byteLength
+  ) as ArrayBuffer;
+
+  return new File([arrayBuffer], getCompressedFileName(file.name), {
+    type: "image/webp",
+    lastModified: Date.now(),
+  });
+}
+
+export async function uploadPublicImage(file: File): Promise<string> {
+  const uploadFile = await compressImageFile(file);
+
   const utapi = new UTApi({ token: getUploadThingToken() });
-  const result = await utapi.uploadFiles(file, {
+  const result = await utapi.uploadFiles(uploadFile, {
     acl: "public-read",
   });
 
