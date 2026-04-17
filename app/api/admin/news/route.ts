@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { title, summary, content, imageUrl, link, isPinned } = await parseAdminNewsRequest(request);
+    const { title, summary, content, imageUrl, imageUrls, link, isPinned } = await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력하세요." }, { status: 400 });
@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
         summary: summary?.trim() || null,
         content: content?.trim() || null,
         imageUrl: imageUrl?.trim() || null,
+        imageUrls,
         link: link?.trim() || null,
         isPinned: !!isPinned,
       },

@@ -78,6 +78,12 @@ export default async function NewsDetailPage({
   if (!news) {
     notFound();
   }
+  const cardNewsImages =
+    news.imageUrls.length > 0
+      ? news.imageUrls
+      : news.imageUrl
+        ? [news.imageUrl]
+        : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -114,9 +120,23 @@ export default async function NewsDetailPage({
             </p>
           )}
 
-          {news.imageUrl && (
-            <div className="relative w-full max-w-2xl aspect-[4/5] rounded-lg overflow-hidden border mb-6">
-              <Image src={news.imageUrl} alt={news.title} fill className="object-cover" />
+          {cardNewsImages.length > 0 && (
+            <div className="mb-8 space-y-4">
+              {cardNewsImages.map((url, index) => (
+                <div
+                  key={`${url}-${index}`}
+                  className="relative mx-auto w-full max-w-2xl aspect-[4/5] rounded-lg overflow-hidden border bg-gray-100"
+                >
+                  <Image
+                    src={url}
+                    alt={`${news.title} 카드뉴스 ${index + 1}`}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 672px"
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
             </div>
           )}
 

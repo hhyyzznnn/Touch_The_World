@@ -34,3 +34,13 @@ export async function uploadPublicImage(file: File): Promise<string> {
 
   return result.data.ufsUrl || result.data.url || result.data.appUrl;
 }
+
+export async function uploadPublicImages(files: File[]): Promise<string[]> {
+  const urls: string[] = [];
+
+  for (const file of files) {
+    urls.push(await uploadPublicImage(file));
+  }
+
+  return urls;
+}

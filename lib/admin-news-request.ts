@@ -1,14 +1,15 @@
 import type { NextRequest } from "next/server";
-import { uploadPublicImage } from "@/lib/uploadthing-server";
+import { uploadPublicImages } from "@/lib/uploadthing-server";
 import { parseRequestBody } from "@/lib/api-helpers";
 
-const IMAGE_FIELD_NAMES = ["image", "file", "thumbnail", "cardNewsImage"];
+const IMAGE_FIELD_NAMES = ["images", "image", "file", "thumbnail", "cardNewsImage"];
 
 export interface AdminNewsRequestData {
   title: string;
   summary: string;
   content: string;
   imageUrl: string;
+  imageUrls: string[];
   link: string;
   isPinned: boolean;
 }
@@ -20,15 +21,35 @@ function parseBoolean(value: unknown): boolean {
   return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
 }
 
-function getUploadedImage(formData: FormData): File | null {
+function normalizeStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function getUploadedImages(formData: FormData): File[] {
+  const files: File[] = [];
+
   for (const fieldName of IMAGE_FIELD_NAMES) {
-    const value = formData.get(fieldName);
-    if (value instanceof File && value.size > 0) {
-      return value;
+    for (const value of formData.getAll(fieldName)) {
+      if (value instanceof File && value.size > 0) {
+        files.push(value);
+      }
     }
   }
 
-  return null;
+  return files;
 }
 
 export async function parseAdminNewsRequest(request: NextRequest): Promise<AdminNewsRequestData> {
@@ -37,10 +58,22 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
     let imageUrl = String(formData.get("imageUrl") || "").trim();
-    const uploadedImage = getUploadedImage(formData);
+    const imageUrls = [
+      ...formData
+        .getAll("imageUrls")
+        .flatMap((value) => normalizeStringList(value)),
+      ...formData
+        .getAll("imageUrls[]")
+        .flatMap((value) => normalizeStringList(value)),
+    ];
+    const uploadedImages = getUploadedImages(formData);
 
-    if (uploadedImage) {
-      imageUrl = await uploadPublicImage(uploadedImage);
+    if (uploadedImages.length > 0) {
+      imageUrls.push(...await uploadPublicImages(uploadedImages));
+    }
+
+    if (!imageUrl && imageUrls.length > 0) {
+      imageUrl = imageUrls[0];
     }
 
     return {
@@ -48,6 +81,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
       summary: String(formData.get("summary") || "").trim(),
       content: String(formData.get("content") || "").trim(),
       imageUrl,
+      imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
       link: String(formData.get("link") || "").trim(),
       isPinned: parseBoolean(formData.get("isPinned")),
     };
@@ -58,15 +92,19 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     summary?: string;
     content?: string;
     imageUrl?: string | null;
+    imageUrls?: string[];
     link?: string;
     isPinned?: boolean;
   }>(request);
+  const imageUrls = normalizeStringList(body.imageUrls);
+  const imageUrl = body.imageUrl?.trim() || imageUrls[0] || "";
 
   return {
     title: body.title?.trim() || "",
     summary: body.summary?.trim() || "",
     content: body.content?.trim() || "",
-    imageUrl: body.imageUrl?.trim() || "",
+    imageUrl,
+    imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
     link: body.link?.trim() || "",
     isPinned: Boolean(body.isPinned),
   };
