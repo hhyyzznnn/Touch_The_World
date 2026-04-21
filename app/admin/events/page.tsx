@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Pagination } from "@/components/Pagination";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -95,14 +96,10 @@ export default async function AdminEventsPage({
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/admin/events/${event.id}/edit`}>수정</Link>
                         </Button>
-                        <form
-                          action={`/api/admin/events/${event.id}`}
-                          method="DELETE"
-                        >
-                          <Button type="submit" variant="destructive" size="sm">
-                            삭제
-                          </Button>
-                        </form>
+                        <AdminDeleteButton
+                          endpoint={`/api/admin/events/${event.id}`}
+                          confirmMessage="이 진행 내역을 삭제할까요?"
+                        />
                       </div>
                     </td>
                   </tr>
@@ -122,4 +119,3 @@ export default async function AdminEventsPage({
     </div>
   );
 }
-

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 async function getDocuments() {
   return await prisma.document.findMany({
@@ -74,14 +75,10 @@ export default async function AdminDocumentsPage() {
                           다운로드
                         </a>
                       </Button>
-                      <form
-                        action={`/api/admin/documents/${document.id}`}
-                        method="DELETE"
-                      >
-                        <Button type="submit" variant="destructive" size="sm">
-                          삭제
-                        </Button>
-                      </form>
+                      <AdminDeleteButton
+                        endpoint={`/api/admin/documents/${document.id}`}
+                        confirmMessage="이 자료를 삭제할까요?"
+                      />
                     </div>
                   </td>
                 </tr>
@@ -94,4 +91,3 @@ export default async function AdminDocumentsPage() {
     </div>
   );
 }
-

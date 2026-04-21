@@ -98,7 +98,7 @@ export default async function ProgramsPage({
                         alt={item.title}
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        className="object-cover group-hover:scale-[1.02] transition-transform duration-200"
+                        className="object-cover scale-[1.035] group-hover:scale-[1.06] transition-transform duration-200"
                       />
                     ) : null}
                     {item.isPinned && (

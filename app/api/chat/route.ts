@@ -17,9 +17,6 @@ const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const DEFAULT_SERVICE_CTA =
   "원하시면 지금 바로 상담 접수를 도와드릴게요. 인원, 희망 지역, 이동수단(전세버스/KTX/항공) 중 가능한 항목부터 알려주세요.";
 
-const NO_PROGRAM_CTA =
-  "조건 변경이 어렵다면 바로 상담 접수로 전환해 드릴 수 있습니다. 연락받으실 휴대폰 또는 이메일, 희망 연락 시간을 남겨주시면 담당자가 이어서 도와드립니다.";
-
 const LOGIN_HISTORY_NOTICE =
   "로그인하면 대화 내용이 저장되어 상담을 이어볼 수 있고, 비로그인 한도(일 5회)도 해제됩니다.";
 
@@ -33,6 +30,8 @@ const EMAIL_MATCH_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 const PHONE_MATCH_REGEX = /(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}/g;
 const EMAIL_TEST_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const PHONE_TEST_REGEX = /(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}/;
+const CATEGORY_REDISPLAY_REGEX =
+  /(?:카테고리|유형|프로그램).*(?:다시|재|보여|목록|선택)|(?:다시|재).*(?:카테고리|유형|목록)|카테고리\s*보여/i;
 
 type ChatRequestMessage = {
   role: "system" | "user" | "assistant";
@@ -131,6 +130,18 @@ function buildChatContext(
   };
 }
 
+function wantsCategoryRedisplay(messages: ChatRequestMessage[]): boolean {
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((msg) => msg.role === "user")
+    ?.content?.trim();
+
+  if (!lastUserMessage) return false;
+  if (/(필요없|괜찮|아니야|말고)/.test(lastUserMessage)) return false;
+
+  return CATEGORY_REDISPLAY_REGEX.test(lastUserMessage);
+}
+
 const withServiceGuidance = (
   content: string,
   opts?: {
@@ -144,18 +155,44 @@ const withServiceGuidance = (
   const context = opts?.context;
 
   if (opts?.noProgramFound) {
-    if (!next.includes("추천 가능한 프로그램이 없습니다")) {
-      next = `${next}\n\n현재 조건으로는 추천 가능한 프로그램이 없습니다.`;
+    const lines = next
+      .split(/\n+/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const dedupedLines: string[] = [];
+    for (const line of lines) {
+      if (!dedupedLines.includes(line)) {
+        dedupedLines.push(line);
+      }
     }
-    if (!/상담|문의|연락/.test(next)) {
-      next = `${next}\n\n${NO_PROGRAM_CTA}`;
+
+    const hasNoProgramLine = dedupedLines.some(
+      (line) =>
+        /(찾지 못|일치하는 프로그램|추천 가능한 프로그램|추천 가능한 .*없습니다|조건으로는.*없습니다)/.test(line) &&
+        /(프로그램|조건)/.test(line)
+    );
+    if (!hasNoProgramLine) {
+      dedupedLines.unshift("요청하신 조건 기준으로는 현재 추천 가능한 프로그램을 찾지 못했습니다.");
     }
-    if (!hasQuestionEnding(next)) {
-      next = context?.hasContact
-        ? `${next}\n\n남겨주신 연락처로 담당자가 이어서 도와드릴까요?`
-        : `${next}\n\n조건 변경 없이 바로 상담 접수로 진행할까요? 연락받으실 휴대폰 또는 이메일을 알려주세요.`;
+
+    const hasFollowUpLine = dedupedLines.some((line) =>
+      /(상담 접수|연락받|휴대폰|이메일|재검색|조건.*조정)/.test(line)
+    );
+    if (!hasFollowUpLine) {
+      dedupedLines.push(
+        context?.hasContact
+          ? "남겨주신 연락처로 바로 상담 접수를 이어드릴까요?"
+          : "조건을 조금 조정해 재검색하거나, 바로 상담 접수(휴대폰/이메일)로 도와드릴까요?"
+      );
+    } else if (!hasQuestionEnding(dedupedLines[dedupedLines.length - 1] || "")) {
+      dedupedLines.push(
+        context?.hasContact
+          ? "남겨주신 연락처로 바로 이어서 도와드릴까요?"
+          : "휴대폰 또는 이메일을 남겨주시면 바로 이어서 도와드릴까요?"
+      );
     }
-    return next;
+
+    return dedupedLines.join("\n\n");
   }
 
   if (opts?.savedConsulting) {
@@ -546,6 +583,18 @@ export async function POST(request: NextRequest) {
     const effectiveMessages = isAuthenticated ? messages : messages.slice(-16);
     const chatContext = buildChatContext(effectiveMessages, landingCategory);
     const inferredContact = extractContactInfo(effectiveMessages);
+    const shouldRedisplayCategories = wantsCategoryRedisplay(effectiveMessages);
+
+    if (shouldRedisplayCategories) {
+      return NextResponse.json({
+        message: {
+          role: "assistant",
+          content: "네, 카테고리를 다시 보여드릴게요. 아래 버튼에서 원하시는 프로그램 유형을 선택해주세요.",
+          showCategoryButtons: true,
+        },
+        meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
+      });
+    }
 
     // OpenAI 메시지 형식으로 변환
     const openaiMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -760,6 +809,7 @@ export async function POST(request: NextRequest) {
             message: {
               role: "assistant",
               content: responseContent,
+              showCategoryButtons: false,
             },
             functionCall: {
               name: functionName,
@@ -788,6 +838,7 @@ export async function POST(request: NextRequest) {
             message: {
               role: "assistant",
               content: responseContent,
+              showCategoryButtons: false,
             },
             functionCall: {
               name: functionName,
@@ -899,6 +950,7 @@ export async function POST(request: NextRequest) {
                 contactProvided: Boolean(contactPhone || contactEmail),
               }
             ),
+            showCategoryButtons: false,
           },
           functionCall: {
             name: functionName,
@@ -933,6 +985,7 @@ export async function POST(request: NextRequest) {
       message: {
         role: "assistant",
         content: responseContent,
+        showCategoryButtons: false,
       },
       meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
     });

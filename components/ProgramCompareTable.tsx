@@ -8,6 +8,7 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import { EmptyState } from "@/components/EmptyState";
 import Link from "next/link";
 import Image from "next/image";
+import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
 import {
   CompareProgram,
   readCompareList,
@@ -85,10 +86,15 @@ export function ProgramCompareTable() {
     return "-";
   };
 
+  const getThumbnailData = (program: CompareProgram) =>
+    parseThumbnailFocus(program.thumbnailUrl || program.imageUrl || null);
+
   return (
     <div className="space-y-6">
       <div className="space-y-4 md:hidden">
-        {compareList.map((program) => (
+        {compareList.map((program) => {
+          const thumbnail = getThumbnailData(program);
+          return (
           <article key={program.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="relative mb-4">
               <button
@@ -100,12 +106,15 @@ export function ProgramCompareTable() {
               </button>
               <Link href={`/programs/${program.id}`} className="block">
                 <div className="relative h-40 w-full overflow-hidden rounded-lg bg-gray-100">
-                  {program.thumbnailUrl || program.imageUrl ? (
+                  {thumbnail.imageUrl ? (
                     <Image
-                      src={program.thumbnailUrl || program.imageUrl || ""}
+                      src={thumbnail.imageUrl}
                       alt={program.title}
                       fill
                       className="object-cover"
+                      style={{
+                        objectPosition: `${thumbnail.focusX}% ${thumbnail.focusY}%`,
+                      }}
                       sizes="100vw"
                     />
                   ) : (
@@ -133,7 +142,8 @@ export function ProgramCompareTable() {
               <Link href={`/programs/${program.id}`}>상세 보기</Link>
             </Button>
           </article>
-        ))}
+          );
+        })}
       </div>
 
       {/* 비교 테이블 */}
@@ -144,7 +154,9 @@ export function ProgramCompareTable() {
               <th className="px-4 py-3 text-left text-sm font-semibold text-text-dark">
                 항목
               </th>
-              {compareList.map((program) => (
+              {compareList.map((program) => {
+                const thumbnail = getThumbnailData(program);
+                return (
                 <th
                   key={program.id}
                   className="px-4 py-3 text-center text-sm font-semibold text-text-dark min-w-[250px] relative"
@@ -161,12 +173,15 @@ export function ProgramCompareTable() {
                     className="block hover:text-brand-green-primary transition-colors"
                   >
                     <div className="relative w-full h-32 mb-2 bg-gray-100 rounded-lg overflow-hidden">
-                      {program.thumbnailUrl || program.imageUrl ? (
+                      {thumbnail.imageUrl ? (
                         <Image
-                          src={program.thumbnailUrl || program.imageUrl || ""}
+                          src={thumbnail.imageUrl}
                           alt={program.title}
                           fill
                           className="object-cover"
+                          style={{
+                            objectPosition: `${thumbnail.focusX}% ${thumbnail.focusY}%`,
+                          }}
                           loading="lazy"
                           sizes="250px"
                         />
@@ -179,7 +194,8 @@ export function ProgramCompareTable() {
                     <div className="font-medium line-clamp-2">{program.title}</div>
                   </Link>
                 </th>
-              ))}
+                );
+              })}
             </tr>
           </thead>
           <tbody>

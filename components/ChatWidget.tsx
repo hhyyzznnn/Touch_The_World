@@ -259,7 +259,7 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
         role: "assistant",
         content: data.message.content,
         timestamp: new Date(),
-        showCategoryButtons: false,
+        showCategoryButtons: Boolean(data?.message?.showCategoryButtons),
       };
 
       setMessages((prev) => {

@@ -202,7 +202,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         role: "assistant",
         content: data.message.content,
         timestamp: new Date(),
-        showCategoryButtons: false,
+        showCategoryButtons: Boolean(data?.message?.showCategoryButtons),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -269,7 +269,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         role: "assistant",
         content: data.message.content,
         timestamp: new Date(),
-        showCategoryButtons: false,
+        showCategoryButtons: Boolean(data?.message?.showCategoryButtons),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);

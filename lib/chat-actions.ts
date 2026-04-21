@@ -4,6 +4,7 @@ import { prisma } from "./prisma";
 import { Resend } from "resend";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
 import { sendPersonalizedRecommendationsIfOptedIn } from "./personalized-recommendations";
+import { getCategoryDetailKey, getCategoryKey } from "./category-utils";
 import type { Prisma } from "@prisma/client";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -43,6 +44,60 @@ function escapeHtmlWithLineBreaks(value: unknown): string {
 function formatBudget(value?: number): string {
   if (typeof value !== "number") return "미입력";
   return `${value.toLocaleString("ko-KR")}원`;
+}
+
+function normalizeCategoryForSearch(rawCategory?: string): string | undefined {
+  if (!rawCategory) return undefined;
+
+  const normalized = rawCategory.replace(/\s+/g, " ").trim();
+  if (!normalized) return undefined;
+
+  const compact = normalized.replace(/\s+/g, "");
+
+  const exactKey = getCategoryDetailKey(normalized);
+  if (exactKey) return exactKey;
+
+  const compactKey = getCategoryDetailKey(compact);
+  if (compactKey) return compactKey;
+
+  const displayKey = getCategoryKey(normalized);
+  if (displayKey) return displayKey;
+
+  if (compact.includes("체험학습")) return "체험학습";
+  if (compact.includes("국내외교육여행") || compact.includes("해외수학여행")) return "국내외교육여행";
+  if (compact.includes("수련활동")) return "수련활동";
+  if (compact.includes("교사연수")) return "교사연수";
+  if (compact.includes("해외취업") || compact.includes("유학")) return "해외취업및유학";
+  if (compact.includes("rise") || compact.includes("지자체") || compact.includes("대학")) {
+    return "지자체및대학RISE사업";
+  }
+  if (compact.includes("특성화고")) return "특성화고교프로그램";
+  if (compact.includes("기타")) return "기타프로그램";
+
+  return undefined;
+}
+
+function extractRegionTokens(rawRegion: string): string[] {
+  const normalized = rawRegion.replace(/\s+/g, " ").trim();
+  if (!normalized) return [];
+
+  const stopwords = new Set([
+    "한국",
+    "국내",
+    "해외",
+    "지역",
+    "희망",
+    "인근",
+    "근교",
+  ]);
+
+  const tokens = normalized
+    .split(/[\/,|>]/)
+    .flatMap((part) => part.split(/\s+/))
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2 && !stopwords.has(token));
+
+  return Array.from(new Set(tokens));
 }
 
 /**
@@ -324,16 +379,20 @@ export async function searchPrograms(criteria: {
     const where: Prisma.ProgramWhereInput = {};
 
     // 카테고리 필터
-    if (criteria.category) {
-      where.category = criteria.category;
+    const normalizedCategory = normalizeCategoryForSearch(criteria.category);
+    if (normalizedCategory) {
+      where.category = normalizedCategory;
     }
 
     // 지역 필터 (부분 일치)
     if (criteria.region) {
-      where.OR = [
-        { region: { contains: criteria.region, mode: "insensitive" as const } },
-        { hashtags: { hasSome: [criteria.region] } },
-      ];
+      const regionTokens = extractRegionTokens(criteria.region);
+      const regionCandidates = regionTokens.length > 0 ? regionTokens : [criteria.region];
+
+      where.OR = regionCandidates.flatMap((candidate) => [
+        { region: { contains: candidate, mode: "insensitive" as const } },
+        { hashtags: { hasSome: [candidate] } },
+      ]);
     }
 
     // 목적/성격 필터 (제목, 요약, 설명에서 검색)

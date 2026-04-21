@@ -214,7 +214,7 @@ export default async function HomePage({
                           alt={item.title}
                           fill
                           sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover group-hover:scale-[1.02] transition-transform duration-200"
+                          className="object-cover scale-[1.035] group-hover:scale-[1.06] transition-transform duration-200"
                         />
                       ) : (
                         <ImagePlaceholder text="카드뉴스" className="text-xs" />

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 async function getClients() {
   return await prisma.client.findMany({
@@ -72,14 +73,10 @@ export default async function AdminClientsPage() {
                             수정
                           </Link>
                         </Button>
-                        <form
-                          action={`/api/admin/clients/${client.id}`}
-                          method="DELETE"
-                        >
-                          <Button type="submit" variant="destructive" size="sm">
-                            삭제
-                          </Button>
-                        </form>
+                        <AdminDeleteButton
+                          endpoint={`/api/admin/clients/${client.id}`}
+                          confirmMessage="이 고객사를 삭제할까요?"
+                        />
                       </div>
                     </td>
                   </tr>
@@ -92,4 +89,3 @@ export default async function AdminClientsPage() {
     </div>
   );
 }
-

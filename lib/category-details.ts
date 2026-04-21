@@ -168,6 +168,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetail> = {
         id: "non-accommodation",
         title: "비숙박형 체험학습",
         description: "당일 체험으로 시간 효율적인 학습 경험을 제공합니다",
+        image: "/image1/experience-card-1.png",
         icon: "BookOpen",
         details: ["당일 체험 프로그램", "안전한 일정 관리", "교육적 가치"]
       },
@@ -175,6 +176,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetail> = {
         id: "accommodation",
         title: "숙박형 체험학습",
         description: "1박2일 숙박을 통한 심화 체험 학습과 협동심 함양",
+        image: "/image1/experience-card-2.png",
         icon: "BookOpen",
         details: ["1박2일 프로그램", "심화 체험 학습", "협동심 함양"]
       },
@@ -182,6 +184,7 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetail> = {
         id: "special-events",
         title: "특별 행사",
         description: "학교 행사를 위한 맞춤형 프로그램으로 기억에 남는 경험 제공",
+        image: "/image1/experience-card-3.png",
         icon: "Sparkles",
         details: ["학교 행사 지원", "맞춤형 프로그램", "기억에 남는 경험"]
       }
@@ -384,4 +387,3 @@ export const CATEGORY_DETAILS: Record<string, CategoryDetail> = {
     buttonText: "맞춤형 프로그램 설계"
   }
 };
-

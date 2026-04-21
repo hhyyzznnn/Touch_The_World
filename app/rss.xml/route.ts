@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
+import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +98,10 @@ export async function GET() {
       const contentParts: string[] = [];
       
       // 썸네일 이미지 추가
-      const thumbnailUrl = ensureSameDomain(program.thumbnailUrl, baseUrl);
+      const thumbnailUrl = ensureSameDomain(
+        parseThumbnailFocus(program.thumbnailUrl).imageUrl,
+        baseUrl
+      );
       if (thumbnailUrl) {
         contentParts.push(`<p><img src="${thumbnailUrl}" alt="${title}" /></p>`);
       }

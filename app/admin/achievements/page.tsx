@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 async function getAchievements() {
   return await prisma.achievement.findMany({
@@ -63,14 +64,10 @@ export default async function AdminAchievementsPage() {
                           수정
                         </Link>
                       </Button>
-                      <form
-                        action={`/api/admin/achievements/${achievement.id}`}
-                        method="DELETE"
-                      >
-                        <Button type="submit" variant="destructive" size="sm">
-                          삭제
-                        </Button>
-                      </form>
+                      <AdminDeleteButton
+                        endpoint={`/api/admin/achievements/${achievement.id}`}
+                        confirmMessage="이 실적을 삭제할까요?"
+                      />
                     </div>
                   </td>
                 </tr>
@@ -83,4 +80,3 @@ export default async function AdminAchievementsPage() {
     </div>
   );
 }
-

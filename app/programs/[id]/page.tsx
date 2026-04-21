@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown";
 import { ProgramImage } from "@/components/ProgramImage";
 import remarkGfm from "remark-gfm";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
 
 async function getProgram(id: string) {
   return await prisma.program.findUnique({
@@ -73,6 +74,7 @@ export async function generateMetadata({
   }
 
   const categoryName = getCategoryDisplayName(program.category);
+  const parsedThumbnail = parseThumbnailFocus(program.thumbnailUrl);
   const description =
     program.summary ||
     `터치더월드의 ${categoryName} 프로그램 상세 정보를 확인하세요.`;
@@ -89,7 +91,7 @@ export async function generateMetadata({
       description,
       url: `/programs/${program.id}`,
       type: "article",
-      images: program.thumbnailUrl ? [program.thumbnailUrl] : undefined,
+      images: parsedThumbnail.imageUrl ? [parsedThumbnail.imageUrl] : undefined,
     },
   };
 }
@@ -188,6 +190,7 @@ export default async function ProgramDetailPage({
   if (!program) {
     notFound();
   }
+  const parsedThumbnail = parseThumbnailFocus(program.thumbnailUrl);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -212,7 +215,7 @@ export default async function ProgramDetailPage({
               url={`/programs/${program.id}`}
               title={program.title}
               description={program.summary || undefined}
-              imageUrl={program.thumbnailUrl || undefined}
+              imageUrl={parsedThumbnail.imageUrl || undefined}
             />
           </div>
         </div>

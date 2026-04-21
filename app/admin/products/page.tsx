@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/Pagination";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -97,14 +98,10 @@ export default async function AdminProductsPage({
                               수정
                             </Link>
                           </Button>
-                          <form
-                            action={`/api/admin/products/${product.id}`}
-                            method="DELETE"
-                          >
-                            <Button type="submit" variant="destructive" size="sm">
-                              삭제
-                            </Button>
-                          </form>
+                          <AdminDeleteButton
+                            endpoint={`/api/admin/products/${product.id}`}
+                            confirmMessage="이 상품을 삭제할까요?"
+                          />
                         </div>
                       </td>
                     </tr>
@@ -123,4 +120,3 @@ export default async function AdminProductsPage({
     </div>
   );
 }
-

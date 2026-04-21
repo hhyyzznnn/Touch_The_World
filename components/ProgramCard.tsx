@@ -13,6 +13,7 @@ import {
   primeFavoriteStatus,
   setFavoriteStatus,
 } from "@/lib/favorite-status-client";
+import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
 
 interface ProgramCardProps {
   id: string;
@@ -131,7 +132,8 @@ export function ProgramCard({
     return `${priceFrom.toLocaleString()}원~`;
   };
 
-  const displayImage = thumbnailUrl || imageUrl;
+  const parsedThumbnail = parseThumbnailFocus(thumbnailUrl || imageUrl || null);
+  const displayImage = parsedThumbnail.imageUrl;
 
   return (
     <Link
@@ -148,6 +150,9 @@ export function ProgramCard({
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            style={{
+              objectPosition: `${parsedThumbnail.focusX}% ${parsedThumbnail.focusY}%`,
+            }}
             loading="lazy"
             decoding="async"
             placeholder="blur"
