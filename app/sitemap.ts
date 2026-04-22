@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
+import { seoLandingPageList } from "@/lib/seo-landing-pages";
 
 export const dynamic = "force-static";
 
@@ -71,6 +72,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.8,
     },
+    ...seoLandingPageList.map((page) => ({
+      url: `${baseUrl}${page.path}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    })),
   ];
 
   // 동적 페이지: 프로그램

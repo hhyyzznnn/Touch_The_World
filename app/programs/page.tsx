@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Pagination } from "@/components/Pagination";
 import { ChevronRight } from "lucide-react";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { seoLandingPageList } from "@/lib/seo-landing-pages";
 
 export const metadata: Metadata = {
   title: "프로그램 카드뉴스 | 터치더월드",
@@ -75,6 +76,18 @@ export default async function ProgramsPage({
           가격표형 상품 대신, 교육 목표와 운영 철학을 담은 카드뉴스를 먼저 소개합니다.
           구체적인 일정·견적은 상담 후 기관별 맞춤형으로 안내드립니다.
         </p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {seoLandingPageList.map((page) => (
+            <Link
+              key={page.path}
+              href={page.path}
+              className="inline-flex items-center rounded-lg border border-brand-green/20 bg-brand-green/5 px-3 py-2 text-sm font-medium text-brand-green transition-colors hover:border-brand-green/40 hover:bg-brand-green/10"
+            >
+              {page.title}
+              <ChevronRight className="ml-1 h-3.5 w-3.5" />
+            </Link>
+          ))}
+        </div>
       </div>
 
       {items.length === 0 ? (
@@ -98,7 +111,7 @@ export default async function ProgramsPage({
                         alt={item.title}
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        className="object-cover scale-[1.035] group-hover:scale-[1.06] transition-transform duration-200"
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
                       />
                     ) : null}
                     {item.isPinned && (
