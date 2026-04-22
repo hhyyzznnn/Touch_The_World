@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 const DEFAULT_FROM_EMAIL = "no-reply@touchtheworld.co.kr";
+const DEFAULT_ADMIN_EMAIL = "pjjttw@naver.com";
 
 type VerificationEmailResult = {
   success: boolean;
@@ -112,7 +113,7 @@ export async function sendInquiryNotificationEmail(
     estimatedBudget?: number | null;
   }
 ) {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || "syh2123@naver.com";
+  const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
   try {

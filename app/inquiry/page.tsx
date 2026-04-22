@@ -8,6 +8,24 @@ import { ErrorMessage } from "@/components/ErrorMessage";
 import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
 
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function formatPhoneNumber(value: string) {
+  const digits = onlyDigits(value).slice(0, 11);
+
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
+function formatCurrency(value: string) {
+  const digits = onlyDigits(value);
+  if (!digits) return "";
+  return Number(digits).toLocaleString("ko-KR");
+}
+
 export default function InquiryPage() {
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +41,7 @@ export default function InquiryPage() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<InquiryFormData>({
     resolver: zodResolver(inquirySchema),
   });
@@ -31,10 +50,16 @@ export default function InquiryPage() {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
+      const payload = {
+        ...data,
+        phone: typeof data.phone === "string" ? formatPhoneNumber(data.phone) : data.phone,
+        estimatedBudget:
+          typeof data.estimatedBudget === "number" ? data.estimatedBudget : undefined,
+      };
       const response = await fetch("/api/inquiry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
@@ -158,7 +183,16 @@ export default function InquiryPage() {
                 </label>
                 <input
                   id="phone"
-                  {...register("phone")}
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  {...register("phone", {
+                    onChange: (event) => {
+                      setValue("phone", formatPhoneNumber(event.target.value), {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                    },
+                  })}
                   className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
                   placeholder="예: 010-1234-5678"
                 />
@@ -328,9 +362,20 @@ export default function InquiryPage() {
               </label>
               <input
                 id="estimatedBudget"
-                type="number"
-                min="0"
-                {...register("estimatedBudget")}
+                type="text"
+                inputMode="numeric"
+                {...register("estimatedBudget", {
+                  setValueAs: (value) =>
+                    typeof value === "string" && value
+                      ? parseInt(onlyDigits(value), 10)
+                      : undefined,
+                  onChange: (event) => {
+                    setValue("estimatedBudget", formatCurrency(event.target.value) as unknown as number, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  },
+                })}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
                 placeholder="예: 5,000,000"
               />
