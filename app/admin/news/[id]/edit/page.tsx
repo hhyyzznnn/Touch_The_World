@@ -13,7 +13,7 @@ export default async function EditNewsPage({
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-8">회사 소식 수정</h1>
+      <h1 className="text-3xl font-bold mb-8">게시물 수정</h1>
       <CompanyNewsForm news={news} />
     </div>
   );

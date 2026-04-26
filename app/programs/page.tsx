@@ -6,6 +6,8 @@ import { Pagination } from "@/components/Pagination";
 import { ChevronRight } from "lucide-react";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { seoLandingPageList } from "@/lib/seo-landing-pages";
+import { CompanyNewsType } from "@prisma/client";
+import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
 
 export const metadata: Metadata = {
   title: "프로그램 카드뉴스 | 터치더월드",
@@ -19,16 +21,17 @@ export const metadata: Metadata = {
 
 const ITEMS_PER_PAGE = 12;
 
-async function getProgramCardNews(page: number) {
+async function getProgramCardNews(page: number, category?: string) {
   const skip = (page - 1) * ITEMS_PER_PAGE;
+
+  const where = {
+    type: CompanyNewsType.PROGRAM_CARD_NEWS,
+    ...(category ? { category } : {}),
+  };
 
   const [items, total] = await Promise.all([
     prisma.companyNews.findMany({
-      where: {
-        imageUrl: {
-          not: null,
-        },
-      },
+      where,
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       skip,
       take: ITEMS_PER_PAGE,
@@ -36,18 +39,13 @@ async function getProgramCardNews(page: number) {
         id: true,
         title: true,
         summary: true,
+        category: true,
         imageUrl: true,
         createdAt: true,
         isPinned: true,
       },
     }),
-    prisma.companyNews.count({
-      where: {
-        imageUrl: {
-          not: null,
-        },
-      },
-    }),
+    prisma.companyNews.count({ where }),
   ]);
 
   return {
@@ -56,17 +54,17 @@ async function getProgramCardNews(page: number) {
   };
 }
 
-// 페이지 재검증 시간 설정 (10분)
 export const revalidate = 600;
 
 export default async function ProgramsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; category?: string }>;
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
-  const { items, totalPages } = await getProgramCardNews(currentPage);
+  const currentCategory = params.category || "";
+  const { items, totalPages } = await getProgramCardNews(currentPage, currentCategory || undefined);
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -76,15 +74,44 @@ export default async function ProgramsPage({
           가격표형 상품 대신, 교육 목표와 운영 철학을 담은 카드뉴스를 먼저 소개합니다.
           구체적인 일정·견적은 상담 후 기관별 맞춤형으로 안내드립니다.
         </p>
+
+        {/* 카테고리 필터 */}
         <div className="mt-5 flex flex-wrap gap-2">
+          <Link
+            href="/programs"
+            className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              !currentCategory
+                ? "border-brand-green bg-brand-green text-white"
+                : "border-brand-green/20 bg-brand-green/5 text-brand-green hover:border-brand-green/40 hover:bg-brand-green/10"
+            }`}
+          >
+            전체
+          </Link>
+          {PROGRAM_CATEGORIES.map((cat) => (
+            <Link
+              key={cat}
+              href={`/programs?category=${encodeURIComponent(cat)}`}
+              className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                currentCategory === cat
+                  ? "border-brand-green bg-brand-green text-white"
+                  : "border-brand-green/20 bg-brand-green/5 text-brand-green hover:border-brand-green/40 hover:bg-brand-green/10"
+              }`}
+            >
+              {cat}
+            </Link>
+          ))}
+        </div>
+
+        {/* SEO 랜딩 페이지 링크 */}
+        <div className="mt-4 flex flex-wrap gap-2">
           {seoLandingPageList.map((page) => (
             <Link
               key={page.path}
               href={page.path}
-              className="inline-flex items-center rounded-lg border border-brand-green/20 bg-brand-green/5 px-3 py-2 text-sm font-medium text-brand-green transition-colors hover:border-brand-green/40 hover:bg-brand-green/10"
+              className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-text-gray transition-colors hover:border-gray-300 hover:bg-gray-100"
             >
               {page.title}
-              <ChevronRight className="ml-1 h-3.5 w-3.5" />
+              <ChevronRight className="ml-1 h-3 w-3" />
             </Link>
           ))}
         </div>
@@ -92,7 +119,9 @@ export default async function ProgramsPage({
 
       {items.length === 0 ? (
         <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
-          등록된 카드뉴스가 없습니다.
+          {currentCategory
+            ? `'${currentCategory}' 카테고리에 등록된 카드뉴스가 없습니다.`
+            : "등록된 카드뉴스가 없습니다."}
         </div>
       ) : (
         <>
@@ -119,6 +148,11 @@ export default async function ProgramsPage({
                         NEW
                       </span>
                     )}
+                    {item.category && (
+                      <span className="absolute bottom-2 left-2 inline-flex items-center rounded bg-black/50 px-2 py-0.5 text-xs text-white">
+                        {item.category}
+                      </span>
+                    )}
                   </div>
                   <div className="p-3 sm:p-4">
                     <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
@@ -139,7 +173,7 @@ export default async function ProgramsPage({
             currentPage={currentPage}
             totalPages={totalPages}
             baseUrl="/programs"
-            searchParams={params}
+            searchParams={{ ...params, page: undefined }}
           />
         </>
       )}

@@ -44,6 +44,7 @@ const EVENT_IMAGE_BLUR_DATA_URL =
 async function getNewsForTicker() {
   try {
     const list = await prisma.companyNews.findMany({
+      where: { type: "COMPANY_NEWS" },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       take: 1,
       select: { id: true, title: true, summary: true, link: true, isPinned: true, createdAt: true },
@@ -58,9 +59,8 @@ async function getCardNewsForHome() {
   try {
     return await prisma.companyNews.findMany({
       where: {
-        imageUrl: {
-          not: null,
-        },
+        type: "PROGRAM_CARD_NEWS",
+        imageUrl: { not: null },
       },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       take: 4,

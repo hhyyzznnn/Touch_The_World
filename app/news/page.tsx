@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { format } from "date-fns";
 import type { Metadata } from "next";
+import { CompanyNewsType } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "회사 소식 - Touch The World",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 
 async function getNews() {
   return await prisma.companyNews.findMany({
+    where: { type: CompanyNewsType.COMPANY_NEWS },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
   });
 }

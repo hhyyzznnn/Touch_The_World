@@ -4,28 +4,75 @@ import { Button } from "@/components/ui/button";
 import { NewsDeleteButton } from "./NewsDeleteButton";
 import { format } from "date-fns";
 import Image from "next/image";
+import { CompanyNewsType } from "@prisma/client";
 
-async function getNews() {
+async function getNews(type?: CompanyNewsType) {
   return await prisma.companyNews.findMany({
+    where: type ? { type } : undefined,
     orderBy: { createdAt: "desc" },
   });
 }
 
-export default async function AdminNewsPage() {
-  const list = await getNews();
+const TYPE_LABEL: Record<CompanyNewsType, string> = {
+  COMPANY_NEWS: "회사 소식",
+  PROGRAM_CARD_NEWS: "카드뉴스",
+};
+
+const TYPE_COLOR: Record<CompanyNewsType, string> = {
+  COMPANY_NEWS: "bg-blue-100 text-blue-700",
+  PROGRAM_CARD_NEWS: "bg-green-100 text-green-700",
+};
+
+export default async function AdminNewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const params = await searchParams;
+  const typeFilter = params.type === "PROGRAM_CARD_NEWS"
+    ? CompanyNewsType.PROGRAM_CARD_NEWS
+    : params.type === "COMPANY_NEWS"
+      ? CompanyNewsType.COMPANY_NEWS
+      : undefined;
+
+  const list = await getNews(typeFilter);
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">회사 소식</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">콘텐츠 관리</h1>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/admin/news/new">새 소식 추가</Link>
+          <Link href="/admin/news/new">새 게시물 추가</Link>
         </Button>
+      </div>
+
+      {/* 타입 필터 탭 */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200">
+        {[
+          { label: "전체", value: "" },
+          { label: "회사 소식", value: "COMPANY_NEWS" },
+          { label: "프로그램 카드뉴스", value: "PROGRAM_CARD_NEWS" },
+        ].map(({ label, value }) => {
+          const isActive = (params.type ?? "") === value;
+          return (
+            <Link
+              key={value}
+              href={value ? `/admin/news?type=${value}` : "/admin/news"}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                isActive
+                  ? "border-brand-green-primary text-brand-green-primary"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {label}
+            </Link>
+          );
+        })}
       </div>
 
       {list.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          등록된 소식이 없습니다.
+          등록된 게시물이 없습니다.
         </div>
       ) : (
         <div className="bg-white rounded-lg border overflow-hidden">
@@ -37,7 +84,10 @@ export default async function AdminNewsPage() {
                     이미지
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                    제목
+                    유형
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    제목 / 카테고리
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     메인 노출
@@ -55,7 +105,7 @@ export default async function AdminNewsPage() {
                   <tr key={item.id}>
                     <td className="px-6 py-4">
                       {item.imageUrl ? (
-                        <div className="relative w-16 h-20 rounded-md overflow-hidden border">
+                        <div className="relative w-12 h-16 rounded-md overflow-hidden border">
                           <Image src={item.imageUrl} alt={item.title} fill className="object-cover" />
                         </div>
                       ) : (
@@ -63,7 +113,15 @@ export default async function AdminNewsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-medium">{item.title}</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${TYPE_COLOR[item.type]}`}>
+                        {TYPE_LABEL[item.type]}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-medium block">{item.title}</span>
+                      {item.category && (
+                        <span className="text-xs text-text-gray mt-0.5 block">{item.category}</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {item.isPinned ? (

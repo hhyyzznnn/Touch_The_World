@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { title, summary, content, imageUrl, imageUrls, link, isPinned } = await parseAdminNewsRequest(request);
+    const { type, category, title, summary, content, imageUrl, imageUrls, link, isPinned } = await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력하세요." }, { status: 400 });
@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
 
     const news = await prisma.companyNews.create({
       data: {
+        type,
+        category: category || null,
         title: title.trim(),
         summary: summary?.trim() || null,
         content: content?.trim() || null,

@@ -8,6 +8,7 @@ import { UploadButton } from "@/lib/uploadthing";
 import { X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import type { CompanyNews } from "@prisma/client";
+import { CompanyNewsType, PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
 
 type CompanyNewsWithImages = CompanyNews & {
   imageUrls?: string[];
@@ -35,6 +36,10 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
         ? [news.imageUrl]
         : [];
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [type, setType] = useState<CompanyNewsType>(
+    (news?.type as CompanyNewsType) ?? CompanyNewsType.COMPANY_NEWS
+  );
+  const [category, setCategory] = useState(news?.category ?? "");
   const [title, setTitle] = useState(news?.title ?? "");
   const [summary, setSummary] = useState(news?.summary ?? "");
   const [content, setContent] = useState(news?.content ?? "");
@@ -42,6 +47,8 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
   const [imageUrl, setImageUrl] = useState(news?.imageUrl ?? "");
   const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
   const [isPinned, setIsPinned] = useState(news?.isPinned ?? false);
+
+  const isCardNews = type === CompanyNewsType.PROGRAM_CARD_NEWS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +64,8 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          type,
+          category: isCardNews ? (category || null) : null,
           title,
           summary: summary || undefined,
           content: content || undefined,
@@ -82,6 +91,62 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto">
+      {/* 게시물 유형 */}
+      <div>
+        <label className="block text-sm font-medium mb-2">
+          게시물 유형 <span className="text-red-500">*</span>
+        </label>
+        <div className="flex gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="type"
+              value={CompanyNewsType.COMPANY_NEWS}
+              checked={type === CompanyNewsType.COMPANY_NEWS}
+              onChange={() => setType(CompanyNewsType.COMPANY_NEWS)}
+              className="text-brand-green-primary focus:ring-brand-green-primary"
+            />
+            <span className="text-sm">회사 소식</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="type"
+              value={CompanyNewsType.PROGRAM_CARD_NEWS}
+              checked={type === CompanyNewsType.PROGRAM_CARD_NEWS}
+              onChange={() => setType(CompanyNewsType.PROGRAM_CARD_NEWS)}
+              className="text-brand-green-primary focus:ring-brand-green-primary"
+            />
+            <span className="text-sm">프로그램 카드뉴스</span>
+          </label>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {isCardNews
+            ? "프로그램 카드뉴스는 /programs 페이지에 노출됩니다."
+            : "회사 소식은 /news 페이지에 노출됩니다."}
+        </p>
+      </div>
+
+      {/* 카테고리 (카드뉴스 전용) */}
+      {isCardNews && (
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            카테고리
+          </label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary bg-white"
+          >
+            <option value="">카테고리 없음</option>
+            {PROGRAM_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">/programs?category=... 필터에 사용됩니다.</p>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium mb-2">
           제목 <span className="text-red-500">*</span>
@@ -120,7 +185,9 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-2">카드뉴스 썸네일</label>
+        <label className="block text-sm font-medium mb-2">
+          {isCardNews ? "카드뉴스 썸네일" : "대표 이미지 (선택)"}
+        </label>
         <div className="space-y-3">
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
             <input
@@ -161,7 +228,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
           {imageUrl && (
             <div className="rounded-md border bg-gray-50 p-3">
               <div className="relative w-full max-w-[360px] aspect-[4/5] overflow-hidden rounded-md border">
-                <Image src={imageUrl} alt="카드뉴스 미리보기" fill className="object-cover" />
+                <Image src={imageUrl} alt="미리보기" fill className="object-cover" />
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <span className="flex-1 truncate text-xs text-gray-600">{imageUrl}</span>
@@ -176,45 +243,51 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-500">메인 카드뉴스 영역과 목록에는 이 대표 이미지가 노출됩니다. 비워두면 상세 이미지 첫 장이 썸네일로 사용됩니다.</p>
+          <p className="text-xs text-gray-500">
+            {isCardNews
+              ? "메인 카드뉴스 영역과 목록에 노출됩니다. 비워두면 상세 이미지 첫 장이 썸네일로 사용됩니다."
+              : "목록과 상세 페이지 상단에 노출됩니다."}
+          </p>
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-2">상세 카드뉴스 이미지 전체</label>
-        <div className="space-y-3">
-          <textarea
-            value={imageUrls.join("\n")}
-            onChange={(e) => setImageUrls(normalizeImageUrls(e.target.value))}
-            rows={5}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary"
-            placeholder="상세 페이지에 순서대로 보여줄 이미지 URL을 한 줄에 하나씩 입력하세요."
-          />
-          {imageUrls.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {imageUrls.map((url, index) => (
-                <div key={`${url}-${index}`} className="rounded-md border bg-gray-50 p-2">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded border bg-white">
-                    <Image src={url} alt={`상세 카드뉴스 ${index + 1}`} fill className="object-cover" />
+      {isCardNews && (
+        <div>
+          <label className="block text-sm font-medium mb-2">상세 카드뉴스 이미지 전체</label>
+          <div className="space-y-3">
+            <textarea
+              value={imageUrls.join("\n")}
+              onChange={(e) => setImageUrls(normalizeImageUrls(e.target.value))}
+              rows={5}
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary"
+              placeholder="상세 페이지에 순서대로 보여줄 이미지 URL을 한 줄에 하나씩 입력하세요."
+            />
+            {imageUrls.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {imageUrls.map((url, index) => (
+                  <div key={`${url}-${index}`} className="rounded-md border bg-gray-50 p-2">
+                    <div className="relative aspect-[4/5] overflow-hidden rounded border bg-white">
+                      <Image src={url} alt={`상세 카드뉴스 ${index + 1}`} fill className="object-cover" />
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="flex-1 truncate text-xs text-gray-600">{index + 1}번</span>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setImageUrls((current) => current.filter((_, i) => i !== index))}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="flex-1 truncate text-xs text-gray-600">{index + 1}번</span>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setImageUrls((current) => current.filter((_, i) => i !== index))}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          <p className="text-xs text-gray-500">게시물 상세 페이지에는 이 이미지들이 순서대로 모두 노출됩니다.</p>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500">게시물 상세 페이지에는 이 이미지들이 순서대로 모두 노출됩니다.</p>
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium mb-2">링크 (선택, 카카오채널 게시글 URL 권장)</label>
@@ -226,7 +299,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
           placeholder="https://pf.kakao.com/... 또는 https://..."
         />
         <p className="text-xs text-gray-500 mt-1">
-          카카오채널 게시글 URL을 넣으면 홈페이지 카드뉴스 클릭 시 해당 게시글로 이동합니다.
+          카카오채널 게시글 URL을 넣으면 카드뉴스 클릭 시 해당 게시글로 이동합니다.
         </p>
       </div>
 
