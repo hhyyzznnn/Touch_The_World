@@ -8,7 +8,8 @@ import { UploadButton } from "@/lib/uploadthing";
 import { X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import type { CompanyNews } from "@prisma/client";
-import { CompanyNewsType, PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
+import { CompanyNewsType } from "@prisma/client";
+import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
 
 type CompanyNewsWithImages = CompanyNews & {
   imageUrls?: string[];
