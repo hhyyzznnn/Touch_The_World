@@ -18,7 +18,7 @@ function getImageFile(formData: FormData): File | null {
 }
 
 export async function POST(request: NextRequest) {
-  const authError = await requireStaff();
+  const authError = await requireStaff(request);
   if (authError) return authError;
 
   try {

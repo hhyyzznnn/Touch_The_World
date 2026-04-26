@@ -5,8 +5,8 @@ import { parseAdminNewsRequest } from "@/lib/admin-news-request";
 
 export const runtime = "nodejs";
 
-export async function GET() {
-  const authError = await requireStaff();
+export async function GET(request: NextRequest) {
+  const authError = await requireStaff(request);
   if (authError) return authError;
 
   const list = await prisma.companyNews.findMany({
@@ -16,7 +16,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const authError = await requireStaff();
+  const authError = await requireStaff(request);
   if (authError) return authError;
 
   try {

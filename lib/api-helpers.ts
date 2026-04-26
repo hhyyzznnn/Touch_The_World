@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdmin, isStaff } from "@/lib/auth";
 
-/**
- * API 라우트에서 관리자 인증을 체크하는 헬퍼 함수
- */
-export async function requireAdmin() {
+function checkApiKey(request: NextRequest): boolean {
+  const configuredKey = process.env.ADMIN_API_KEY;
+  if (!configuredKey) return false;
+
+  const headerKey =
+    request.headers.get("x-admin-api-key") ||
+    request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+
+  return headerKey === configuredKey;
+}
+
+export async function requireAdmin(request?: NextRequest) {
+  if (request && checkApiKey(request)) return null;
+
   const admin = await isAdmin();
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -12,10 +22,9 @@ export async function requireAdmin() {
   return null;
 }
 
-/**
- * API 라우트에서 운영자(admin/editor) 인증을 체크하는 헬퍼 함수
- */
-export async function requireStaff() {
+export async function requireStaff(request?: NextRequest) {
+  if (request && checkApiKey(request)) return null;
+
   const staff = await isStaff();
   if (!staff) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,9 +32,6 @@ export async function requireStaff() {
   return null;
 }
 
-/**
- * API 에러 응답을 생성하는 헬퍼 함수
- */
 export function apiError(message: string, status: number = 500, error?: unknown) {
   if (error) {
     console.error(`${message}:`, error);
@@ -33,20 +39,14 @@ export function apiError(message: string, status: number = 500, error?: unknown)
   return NextResponse.json({ error: message }, { status });
 }
 
-/**
- * API 성공 응답을 생성하는 헬퍼 함수
- */
 export function apiSuccess<T>(data: T, status: number = 200) {
   return NextResponse.json(data, { status });
 }
 
-/**
- * 요청 본문을 파싱하고 검증하는 헬퍼 함수
- */
 export async function parseRequestBody<T>(request: NextRequest): Promise<T> {
   try {
     return await request.json();
-  } catch (error) {
+  } catch {
     throw new Error("Invalid JSON in request body");
   }
 }

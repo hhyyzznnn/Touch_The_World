@@ -9,7 +9,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await requireStaff();
+  const authError = await requireStaff(request);
   if (authError) return authError;
 
   try {
@@ -43,10 +43,10 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authError = await requireStaff();
+  const authError = await requireStaff(request);
   if (authError) return authError;
 
   try {
