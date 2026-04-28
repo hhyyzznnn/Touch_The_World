@@ -71,7 +71,7 @@ export default async function ProgramsPage({
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-3">프로그램 카드뉴스</h1>
         <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl">
-          가격표형 상품 대신, 교육 목표와 운영 철학을 담은 카드뉴스를 먼저 소개합니다.
+          가격표보다 교육 목표와 운영 철학을 먼저 확인하세요.
           구체적인 일정·견적은 상담 후 기관별 맞춤형으로 안내드립니다.
         </p>
 
