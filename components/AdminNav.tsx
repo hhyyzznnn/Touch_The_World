@@ -91,6 +91,14 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
             </Link>
             {isAdmin && (
               <Link
+                href="/admin/g2b"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              >
+                나라장터
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
                 href="/admin/users"
                 className="text-gray-700 hover:text-brand-green-primary transition text-base"
               >
@@ -168,6 +176,15 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
               >
                 고객사
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/g2b"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  나라장터
+                </Link>
+              )}
               {isAdmin && (
                 <Link
                   href="/admin/users"
