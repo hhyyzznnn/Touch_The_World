@@ -134,7 +134,7 @@ export default async function G2BAdminPage({
                     ? format(new Date(notice.deadline), "MM/dd", { locale: ko })
                     : "—"}
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 whitespace-nowrap">
                   {notice.status === "notified" ? (
                     <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
                       발송완료
