@@ -91,7 +91,7 @@ export function Header() {
               href="/inquiry"
               className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
             >
-              견적 문의
+              문의하기
             </Link>
           </nav>
 
@@ -239,7 +239,7 @@ export function Header() {
                 onClick={closeMenu}
                 className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
               >
-                견적 문의
+                문의하기
               </Link>
             </div>
             
