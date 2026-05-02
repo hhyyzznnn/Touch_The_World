@@ -38,7 +38,7 @@ export function InquiryDropdownButton() {
 
       {open && (
         <div
-          className="absolute top-full left-0 mt-1 w-52 rounded-xl border border-gray-200 bg-white shadow-lg z-50 overflow-hidden"
+          className="absolute top-full left-0 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg z-50 overflow-hidden"
           onMouseEnter={openDropdown}
           onMouseLeave={scheduleClose}
         >
