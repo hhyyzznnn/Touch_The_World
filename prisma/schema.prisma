@@ -181,6 +181,7 @@ model CompanyNews {
   content   String?
   imageUrl  String?
   imageUrls String[]        @default([])
+  hashtags  String[]        @default([]) // #태그 목록 (카테고리·지역·테마 등)
   link      String?
   isPinned  Boolean         @default(false)
   createdAt DateTime        @default(now())

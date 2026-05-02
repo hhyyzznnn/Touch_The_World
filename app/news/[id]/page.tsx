@@ -142,6 +142,19 @@ export default async function NewsDetailPage({
             </div>
           )}
 
+          {news.hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {news.hashtags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-sm text-brand-green-primary/80 hover:text-brand-green-primary transition-colors"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="mt-8 pt-6 border-t border-gray-200">
             <Button asChild variant="outline">
               <Link href="/news">목록으로</Link>

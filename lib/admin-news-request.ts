@@ -17,6 +17,7 @@ export interface AdminNewsRequestData {
   content: string;
   imageUrl: string;
   imageUrls: string[];
+  hashtags: string[];
   link: string;
   isPinned: boolean;
 }
@@ -93,6 +94,11 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
       ? String(formData.get("category") || "").trim() || null
       : null;
 
+    const hashtags = [
+      ...formData.getAll("hashtags").flatMap((v) => normalizeStringList(v)),
+      ...formData.getAll("hashtags[]").flatMap((v) => normalizeStringList(v)),
+    ].map((t) => t.startsWith("#") ? t : `#${t}`);
+
     return {
       type,
       category,
@@ -101,6 +107,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
       content: String(formData.get("content") || "").trim(),
       imageUrl,
       imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
+      hashtags,
       link: String(formData.get("link") || "").trim(),
       isPinned: parseBoolean(formData.get("isPinned")),
     };
@@ -114,6 +121,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     content?: string;
     imageUrl?: string | null;
     imageUrls?: string[];
+    hashtags?: string[];
     link?: string;
     isPinned?: boolean;
   }>(request);
@@ -123,6 +131,8 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
   const category = type === CompanyNewsType.PROGRAM_CARD_NEWS
     ? body.category?.trim() || null
     : null;
+  const hashtags = normalizeStringList(body.hashtags)
+    .map((t) => t.startsWith("#") ? t : `#${t}`);
 
   return {
     type,
@@ -132,6 +142,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     content: body.content?.trim() || "",
     imageUrl,
     imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
+    hashtags,
     link: body.link?.trim() || "",
     isPinned: Boolean(body.isPinned),
   };

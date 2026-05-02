@@ -41,6 +41,7 @@ async function getProgramCardNews(page: number, category?: string) {
         summary: true,
         category: true,
         imageUrl: true,
+        hashtags: true,
         createdAt: true,
         isPinned: true,
       },
@@ -158,6 +159,15 @@ export default async function ProgramsPage({
                     <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
                     {item.summary && (
                       <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
+                    )}
+                    {item.hashtags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {item.hashtags.slice(0, 3).map((tag) => (
+                          <span key={tag} className="text-xs text-brand-green-primary/80">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     )}
                     <div className="mt-2 inline-flex items-center text-xs text-brand-green font-medium">
                       자세히 보기

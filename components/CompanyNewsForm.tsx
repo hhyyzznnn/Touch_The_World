@@ -47,6 +47,8 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
   const [link, setLink] = useState(news?.link ?? "");
   const [imageUrl, setImageUrl] = useState(news?.imageUrl ?? "");
   const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
+  const [hashtags, setHashtags] = useState<string[]>((news as any)?.hashtags ?? []);
+  const [hashtagInput, setHashtagInput] = useState("");
   const [isPinned, setIsPinned] = useState(news?.isPinned ?? false);
 
   const isCardNews = type === CompanyNewsType.PROGRAM_CARD_NEWS;
@@ -73,6 +75,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
           link: link || undefined,
           imageUrl: thumbnailUrl || null,
           imageUrls: normalizedImageUrls.length > 0 ? normalizedImageUrls : thumbnailUrl ? [thumbnailUrl] : [],
+          hashtags,
           isPinned,
         }),
       });
@@ -289,6 +292,97 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
           </div>
         </div>
       )}
+
+      {/* 해시태그 */}
+      <div>
+        <label className="block text-sm font-medium mb-2">해시태그</label>
+        {/* 카테고리 빠른 선택 */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {[
+            "국내 수학여행", "국내외 교육여행", "체험학습", "수련활동",
+            "교사 연수", "해외 취업 및 유학", "지자체 및 대학 RISE 사업",
+            "특성화고 프로그램", "기타 프로그램",
+            "서울", "인천", "포천", "가평", "충남", "일본", "해외",
+            "초등", "중등", "고등", "특성화고",
+          ].map((tag) => {
+            const val = `#${tag}`;
+            const active = hashtags.includes(val);
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() =>
+                  setHashtags((prev) =>
+                    active ? prev.filter((t) => t !== val) : [...prev, val]
+                  )
+                }
+                className={`text-xs px-2.5 py-1 rounded-full border transition ${
+                  active
+                    ? "bg-brand-green-primary text-white border-brand-green-primary"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-brand-green-primary"
+                }`}
+              >
+                {val}
+              </button>
+            );
+          })}
+        </div>
+        {/* 직접 입력 */}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={hashtagInput}
+            onChange={(e) => setHashtagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " " || e.key === ",") {
+                e.preventDefault();
+                const tag = hashtagInput.trim().replace(/^#/, "");
+                if (tag && !hashtags.includes(`#${tag}`)) {
+                  setHashtags((prev) => [...prev, `#${tag}`]);
+                }
+                setHashtagInput("");
+              }
+            }}
+            className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary text-sm"
+            placeholder="태그 입력 후 Enter (예: 진로체험)"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const tag = hashtagInput.trim().replace(/^#/, "");
+              if (tag && !hashtags.includes(`#${tag}`)) {
+                setHashtags((prev) => [...prev, `#${tag}`]);
+              }
+              setHashtagInput("");
+            }}
+          >
+            추가
+          </Button>
+        </div>
+        {/* 선택된 태그 */}
+        {hashtags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {hashtags.map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-1 text-xs px-2.5 py-1 bg-brand-green-primary/10 text-brand-green-primary rounded-full"
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => setHashtags((prev) => prev.filter((t) => t !== tag))}
+                  className="hover:text-red-500 transition"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <p className="text-xs text-gray-500 mt-1">카드뉴스 하단에 표시됩니다.</p>
+      </div>
 
       <div>
         <label className="block text-sm font-medium mb-2">링크 (선택, 카카오채널 게시글 URL 권장)</label>

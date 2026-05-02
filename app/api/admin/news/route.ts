@@ -20,14 +20,13 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { type, category, title, summary, content, imageUrl, imageUrls, link, isPinned } =
+    const { type, category, title, summary, content, imageUrl, imageUrls, hashtags, link, isPinned } =
       await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "title 필드는 필수입니다." }, { status: 400 });
     }
 
-    // imageUrl이 없으면 imageUrls[0]을 썸네일로 자동 사용
     const resolvedImageUrl = imageUrl?.trim() || imageUrls[0] || null;
 
     const news = await prisma.companyNews.create({
@@ -39,6 +38,7 @@ export async function POST(request: NextRequest) {
         content: content?.trim() || null,
         imageUrl: resolvedImageUrl,
         imageUrls,
+        hashtags,
         link: link?.trim() || null,
         isPinned: !!isPinned,
       },
