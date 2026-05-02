@@ -228,7 +228,7 @@ export default async function HomePage({
                         return tags.length > 0 ? (
                           <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
                             {tags.map(tag => (
-                              <span key={tag} className="rounded bg-brand-green-primary/80 px-1.5 py-0.5 text-[10px] text-white backdrop-blur-sm leading-tight">
+                              <span key={tag} className="rounded bg-brand-green-primary/80 px-2 py-1 text-xs text-white backdrop-blur-sm leading-tight">
                                 {tag}
                               </span>
                             ))}
