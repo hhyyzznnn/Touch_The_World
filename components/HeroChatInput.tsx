@@ -466,6 +466,11 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
           )}
         </div>
       </form>
+      {!userId && authLoaded && (
+        <p className="mt-2 text-center text-xs text-white/50">
+          로그인하면 대화 기록이 저장돼요
+        </p>
+      )}
     </div>
   );
 }
