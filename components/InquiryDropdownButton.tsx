@@ -48,7 +48,7 @@ export function InquiryDropdownButton() {
             onClick={() => setOpen(false)}
           >
             <span className="text-sm font-medium text-text-dark">빠른 문의</span>
-            <span className="text-xs text-text-gray mt-0.5">이름·연락처만으로 간단하게</span>
+            <span className="text-xs text-text-gray mt-0.5">연락처만으로<br />간단하게</span>
           </Link>
           <Link
             href="/inquiry?type=detailed"
@@ -56,7 +56,7 @@ export function InquiryDropdownButton() {
             onClick={() => setOpen(false)}
           >
             <span className="text-sm font-medium text-text-dark">구체적인 문의</span>
-            <span className="text-xs text-text-gray mt-0.5">일정·인원·예산까지 상세 입력</span>
+            <span className="text-xs text-text-gray mt-0.5">예산까지<br />상세 입력</span>
           </Link>
         </div>
       )}
