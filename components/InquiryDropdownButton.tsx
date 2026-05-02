@@ -25,15 +25,18 @@ export function InquiryDropdownButton() {
       onMouseLeave={scheduleClose}
     >
       <Button
+        asChild
         size="lg"
         variant="outline"
-        className="bg-white border-2 border-gray-250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11 flex items-center gap-2 sm:gap-3"
+        className="bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <Send className="w-4 h-4" />
-        문의하기
+        <span className="flex items-center justify-center gap-2 sm:gap-3">
+          <Send className="w-4 h-4" />
+          문의하기
+        </span>
       </Button>
 
       {open && (
@@ -48,7 +51,7 @@ export function InquiryDropdownButton() {
             onClick={() => setOpen(false)}
           >
             <span className="text-sm font-medium text-text-dark">빠른 문의</span>
-            <span className="text-xs text-text-gray mt-0.5">연락처만으로<br />간단하게</span>
+            <span className="text-xs text-text-gray mt-0.5">이름·연락처만으로 간단하게</span>
           </Link>
           <Link
             href="/inquiry?type=detailed"
@@ -56,7 +59,7 @@ export function InquiryDropdownButton() {
             onClick={() => setOpen(false)}
           >
             <span className="text-sm font-medium text-text-dark">구체적인 문의</span>
-            <span className="text-xs text-text-gray mt-0.5">예산까지<br />상세 입력</span>
+            <span className="text-xs text-text-gray mt-0.5">일정·인원·예산까지 상세 입력</span>
           </Link>
         </div>
       )}
