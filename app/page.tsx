@@ -72,6 +72,8 @@ async function getCardNewsForHome() {
         link: true,
         isPinned: true,
         createdAt: true,
+        category: true,
+        hashtags: true,
       },
     });
   } catch {
@@ -219,6 +221,20 @@ export default async function HomePage({
                           NEW
                         </span>
                       )}
+                      {(() => {
+                        const categoryTag = item.category ? `#${item.category}` : item.hashtags.find(t => !["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#초등","#중등","#고등","#특성화고"].includes(t));
+                        const regionTag = item.hashtags.find(t => ["#서울","#인천","#포천","#가평","#충남","#일본","#해외"].includes(t));
+                        const tags = [categoryTag, regionTag].filter(Boolean).slice(0, 2) as string[];
+                        return tags.length > 0 ? (
+                          <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+                            {tags.map(tag => (
+                              <span key={tag} className="rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-white backdrop-blur-sm leading-tight">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                     <div className="p-3 sm:p-4">
                       <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
