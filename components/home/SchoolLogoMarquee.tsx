@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
 
 const SCHOOLS = [
   { src: "/logos/schools/hanyang-foreign-high.png", name: "한영외고" },
@@ -15,7 +14,7 @@ const SCHOOLS = [
 ];
 
 export function SchoolLogoMarquee() {
-  const track = [...SCHOOLS, ...SCHOOLS];
+  const track = [...SCHOOLS, ...SCHOOLS, ...SCHOOLS, ...SCHOOLS];
 
   return (
     <div className="relative overflow-hidden">
@@ -24,7 +23,7 @@ export function SchoolLogoMarquee() {
       <div
         className="flex items-center w-max"
         style={{
-          animation: "marquee 30s linear infinite",
+          animation: "marquee-quarter 30s linear infinite",
           willChange: "transform",
         }}
       >
