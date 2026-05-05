@@ -14,16 +14,16 @@ const SCHOOLS = [
 ];
 
 export function SchoolLogoMarquee() {
-  const track = [...SCHOOLS, ...SCHOOLS];
+  const track = [...SCHOOLS, ...SCHOOLS, ...SCHOOLS, ...SCHOOLS];
 
   return (
     <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-gray-50 to-transparent z-10" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-gray-50 to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-white to-transparent z-10" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-white to-transparent z-10" />
       <div
         className="flex items-center w-max"
         style={{
-          animation: "marquee 30s linear infinite",
+          animation: "marquee-quarter 30s linear infinite",
           willChange: "transform",
         }}
       >
@@ -32,7 +32,7 @@ export function SchoolLogoMarquee() {
             key={i}
             className="flex flex-col items-center gap-2 flex-shrink-0 px-8 sm:px-12"
           >
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
               <Image
                 src={school.src}
                 alt={school.name}
