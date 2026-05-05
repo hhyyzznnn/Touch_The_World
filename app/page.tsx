@@ -3,31 +3,33 @@ import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import {
   List,
+  ChevronRight,
   Shield,
   Lightbulb,
   Settings,
-  ChevronRight
+  ArrowRight,
 } from "lucide-react";
 import { InquiryDropdownButton } from "@/components/InquiryDropdownButton";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
-import { PROGRAM_CATEGORIES } from "@/lib/constants";
+import { PROGRAM_CATEGORIES, COMPANY_INFO } from "@/lib/constants";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
 import { NewsTicker } from "@/components/NewsTicker";
 import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { StatsSection } from "@/components/home/StatsSection";
+import { FloatingCTA } from "@/components/home/FloatingCTA";
+import { ScrollReveal } from "@/components/home/ScrollReveal";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
   description:
     "터치더월드는 교육여행, 수학여행, 교사연수, 해외연수를 전문으로 기획·운영하는 교육여행 전문 여행사입니다.",
   keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS),
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
     description:
@@ -44,13 +46,12 @@ const EVENT_IMAGE_BLUR_DATA_URL =
 
 async function getNewsForTicker() {
   try {
-    const list = await prisma.companyNews.findMany({
+    return await prisma.companyNews.findMany({
       where: { type: "COMPANY_NEWS" },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       take: 1,
       select: { id: true, title: true, summary: true, link: true, isPinned: true, createdAt: true },
     });
-    return list;
   } catch {
     return [];
   }
@@ -59,22 +60,12 @@ async function getNewsForTicker() {
 async function getCardNewsForHome() {
   try {
     return await prisma.companyNews.findMany({
-      where: {
-        type: "PROGRAM_CARD_NEWS",
-        imageUrl: { not: null },
-      },
+      where: { type: "PROGRAM_CARD_NEWS", imageUrl: { not: null } },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       take: 4,
       select: {
-        id: true,
-        title: true,
-        summary: true,
-        imageUrl: true,
-        link: true,
-        isPinned: true,
-        createdAt: true,
-        category: true,
-        hashtags: true,
+        id: true, title: true, summary: true, imageUrl: true,
+        link: true, isPinned: true, createdAt: true, category: true, hashtags: true,
       },
     });
   } catch {
@@ -87,23 +78,9 @@ async function getRecentEvents() {
     return await prisma.event.findMany({
       take: 3,
       include: {
-        school: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        program: {
-          select: {
-            id: true,
-            title: true,
-            category: true,
-          },
-        },
-        images: {
-          take: 1,
-          orderBy: { createdAt: "asc" },
-        },
+        school: { select: { id: true, name: true } },
+        program: { select: { id: true, title: true, category: true } },
+        images: { take: 1, orderBy: { createdAt: "asc" } },
       },
       orderBy: { date: "desc" },
     });
@@ -112,7 +89,6 @@ async function getRecentEvents() {
   }
 }
 
-// 페이지 재검증 시간 설정 (10분)
 export const revalidate = 600;
 
 export default async function HomePage({
@@ -127,122 +103,171 @@ export default async function HomePage({
     getCardNewsForHome(),
     getPersonalizedGreeting(),
   ]);
+
   const copyVariant = resolvedSearchParams?.copy === "b" ? "b" : "a";
-  const heroSubTitle =
+  const heroHeadline =
     copyVariant === "b"
-      ? "안전한 운영과 명확한 교육 설계로\n학교 맞춤형 체험학습을 완성합니다"
-      : "안전과 교육의 가치를 실현하는\n프리미엄 교육여행 파트너";
-  const heroDescription =
+      ? "학교 맞춤형\n교육여행의 완성."
+      : "아이들의 세계를\n더 넓게.";
+  const heroSub =
     copyVariant === "b"
-      ? "계획부터 현장 운영, 사후 정리까지\n교육자가 핵심에만 집중할 수 있게 돕습니다."
-      : "교육자의 시간을 절약하고,\n학습자의 세계를 확장합니다.";
+      ? "계획부터 현장 운영, 사후 정리까지 교육자가 핵심에만 집중할 수 있게 돕습니다."
+      : "수학여행부터 교사연수까지, 1996년부터 교육의 현장을 완성해온 터치더월드입니다.";
 
   return (
-    <div>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center space-y-4 sm:space-y-6 max-w-4xl mx-auto">
-            <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide mb-2 sm:mb-4">
-              <span className="text-brand-green-primary">TOUCH</span>{" "}
-              <span className="text-text-dark">THE WORLD</span>
+    <div className="overflow-x-hidden">
+      <FloatingCTA />
+
+      {/* ── Hero ── */}
+      <section
+        className="relative min-h-[88vh] sm:min-h-[82vh] flex items-center"
+        style={{ background: "linear-gradient(135deg, #071510 0%, #0e2319 55%, #071510 100%)" }}
+      >
+        {/* dot grid */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: "radial-gradient(circle, #2E6D45 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+          }}
+        />
+        {/* center glow */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(46,109,69,0.25),transparent_65%)]" />
+
+        <div className="relative container mx-auto px-4 py-20 sm:py-28">
+          <div className="max-w-3xl mx-auto text-center">
+            {/* badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs sm:text-sm text-white/70 mb-8 backdrop-blur-sm">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-brand-green animate-pulse" />
+              {COMPANY_INFO.founded} 창립 · 교육여행 전문 여행사
+            </div>
+
+            {/* headline */}
+            <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-medium leading-[1.1] tracking-tight text-white mb-6">
+              {heroHeadline.split("\n").map((line, i) => (
+                <span key={i} className={`block ${i === heroHeadline.split("\n").length - 1 ? "text-brand-green" : ""}`}>
+                  {line}
+                </span>
+              ))}
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl font-medium text-text-dark" style={{ lineHeight: "1.4", letterSpacing: "-0.02em" }}>
-              {heroSubTitle.split("\n").map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-            </p>
-            <p className="text-sm sm:text-base md:text-lg text-text-gray leading-relaxed">
-              {heroDescription.split("\n").map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
+
+            <p className="text-base sm:text-lg text-white/60 leading-relaxed mb-10 max-w-xl mx-auto">
+              {heroSub}
             </p>
 
-            {/* AI Chat Input */}
-            <div className="pt-4 sm:pt-6">
+            {/* chatbot */}
+            <div className="mb-4">
               <HeroChatInputWrapper category={resolvedSearchParams?.category} greeting={greeting} />
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
-              <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200 min-h-11">
-                <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
-                  <List className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <Button
+                asChild
+                size="lg"
+                className="bg-white text-text-dark hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-base rounded-xl font-medium transition-all duration-200"
+              >
+                <Link href="/programs" className="flex items-center justify-center gap-2">
+                  <List className="w-4 h-4" />
                   전체 프로그램
                 </Link>
               </Button>
-              <InquiryDropdownButton />
+              <InquiryDropdownButton dark />
             </div>
           </div>
         </div>
+
+        {/* bottom fade */}
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
       </section>
 
-      {/* 회사 소식 한 줄 */}
+      {/* ── Stats ── */}
+      <StatsSection />
+
+      {/* ── News Ticker ── */}
       <NewsTicker items={newsTickerItems} />
 
-      {/* 카드뉴스 */}
+      {/* ── Card News ── */}
       {cardNewsItems.length > 0 && (
-        <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
+        <section className="py-16 sm:py-20 bg-white">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-5 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">카드뉴스</h2>
-              <Link href="/news" className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base">
-                전체 보기
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
+            <ScrollReveal>
+              <div className="flex items-end justify-between mb-8 sm:mb-12">
+                <div>
+                  <p className="text-xs text-text-gray tracking-widest uppercase mb-2">Card News</p>
+                  <h2 className="text-2xl sm:text-3xl font-medium text-text-dark">카드뉴스</h2>
+                </div>
+                <Link
+                  href="/news"
+                  className="flex items-center gap-1 text-sm text-brand-green-primary hover:gap-2 transition-all duration-200 font-medium"
+                >
+                  전체 보기 <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </ScrollReveal>
+
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-              {cardNewsItems.map((item) => {
+              {cardNewsItems.map((item, i) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");
+                const categoryTag = item.category
+                  ? `#${item.category}`
+                  : item.hashtags.find(
+                      (t) =>
+                        !["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#초등","#중등","#고등","#특성화고"].includes(t)
+                    );
+                const regionTag = item.hashtags.find((t) =>
+                  ["#서울","#인천","#포천","#가평","#충남","#일본","#해외"].includes(t)
+                );
+                const tags = [categoryTag, regionTag].filter(Boolean).slice(0, 2) as string[];
+
                 return (
-                  <Link
-                    key={item.id}
-                    href={href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
-                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
-                  >
-                    <div className="relative aspect-[4/5] bg-gray-100">
-                      {item.imageUrl ? (
-                        <Image
-                          src={item.imageUrl}
-                          alt={item.title}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
-                        />
-                      ) : (
-                        <ImagePlaceholder text="카드뉴스" className="text-xs" />
-                      )}
-                      {item.isPinned && (
-                        <span className="absolute top-2 left-2 inline-flex items-center rounded bg-brand-green-primary px-2 py-0.5 text-xs font-bold text-white">
-                          NEW
-                        </span>
-                      )}
-                      {(() => {
-                        const categoryTag = item.category ? `#${item.category}` : item.hashtags.find(t => !["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#초등","#중등","#고등","#특성화고"].includes(t));
-                        const regionTag = item.hashtags.find(t => ["#서울","#인천","#포천","#가평","#충남","#일본","#해외"].includes(t));
-                        const tags = [categoryTag, regionTag].filter(Boolean).slice(0, 2) as string[];
-                        return tags.length > 0 ? (
-                          <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-                            {tags.map(tag => (
-                              <span key={tag} className="rounded bg-brand-green-primary/75 px-2 py-1 text-xs text-white backdrop-blur-sm leading-tight">
+                  <ScrollReveal key={item.id} delay={i * 0.08}>
+                    <Link
+                      href={href}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      className="group block overflow-hidden rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-lg transition-all duration-300"
+                    >
+                      <div className="relative aspect-[4/5] bg-gray-100">
+                        {item.imageUrl ? (
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.title}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                            className="object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                          />
+                        ) : (
+                          <ImagePlaceholder text="카드뉴스" className="text-xs" />
+                        )}
+                        {item.isPinned && (
+                          <span className="absolute top-2.5 left-2.5 inline-flex items-center rounded-full bg-brand-green-primary px-2.5 py-0.5 text-[10px] font-bold text-white tracking-wide">
+                            NEW
+                          </span>
+                        )}
+                        {tags.length > 0 && (
+                          <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1">
+                            {tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full bg-brand-green-primary/75 px-2.5 py-0.5 text-[10px] text-white backdrop-blur-sm"
+                              >
                                 {tag}
                               </span>
                             ))}
                           </div>
-                        ) : null;
-                      })()}
-                    </div>
-                    <div className="p-3 sm:p-4">
-                      <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
-                      {item.summary && <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>}
-                    </div>
-                  </Link>
+                        )}
+                      </div>
+                      <div className="p-3 sm:p-4">
+                        <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2 group-hover:text-brand-green-primary transition-colors duration-200">
+                          {item.title}
+                        </p>
+                        {item.summary && (
+                          <p className="mt-1 text-xs text-text-gray line-clamp-2">{item.summary}</p>
+                        )}
+                      </div>
+                    </Link>
+                  </ScrollReveal>
                 );
               })}
             </div>
@@ -250,114 +275,132 @@ export default async function HomePage({
         </section>
       )}
 
-      {/* 검색 의도형 소개 섹션 */}
-      <section className="py-8 sm:py-10 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto text-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-4">
-              교육여행·수학여행·교사연수·해외연수 전문, 터치더월드
-            </h2>
-            <p className="mx-auto max-w-4xl text-sm sm:text-base text-text-gray leading-relaxed break-keep">
-              터치더월드(Touch The World, touchtheworld)는 학교와 지자체의 교육 목표에 맞춰
-              <br className="hidden sm:block" />
-              체험학습, 수학여행, 교사연수, 해외연수를 설계·운영하는 교육여행 전문 여행사입니다.
-            </p>
-          </div>
+      {/* ── SEO intro ── */}
+      <section className="py-10 sm:py-12 bg-gray-50 border-y border-gray-100">
+        <div className="container mx-auto px-4 text-center">
+          <p className="mx-auto max-w-3xl text-sm sm:text-base text-text-gray leading-relaxed break-keep">
+            <strong className="text-text-dark font-medium">터치더월드(Touch The World)</strong>는 학교와 지자체의 교육 목표에 맞춰
+            체험학습, 수학여행, 교사연수, 해외연수를 설계·운영하는 교육여행 전문 여행사입니다.
+          </p>
         </div>
       </section>
 
-      {/* Program Categories */}
-      <section className="py-10 sm:py-16 bg-gray-50">
+      {/* ── Program Categories ── */}
+      <section className="py-16 sm:py-24 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-6 sm:mb-12 text-center">
-            | 프로그램 유형을 선택하세요
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
-            {PROGRAM_CATEGORIES.map((category) => {
+          <ScrollReveal>
+            <div className="text-center mb-10 sm:mb-14">
+              <p className="text-xs text-text-gray tracking-widest uppercase mb-2">Programs</p>
+              <h2 className="text-2xl sm:text-3xl font-medium text-text-dark">프로그램 유형</h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
+            {PROGRAM_CATEGORIES.map((category, i) => {
               const Icon = category.icon;
               return (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  className="flex flex-col items-center justify-center px-5 sm:px-7 md:px-9 py-5 sm:py-6 md:py-6 rounded-lg bg-white shadow-sm transform transition-all hover:shadow-md hover:-translate-y-0.5 group min-h-[136px] sm:min-h-[140px]"
-                >
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-16 md:h-16 bg-brand-green/10 rounded-full flex items-center justify-center mb-2 sm:mb-3">
-                    <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-8 md:h-8 text-brand-green" />
-                  </div>
-                  <span
-                    className="text-center text-text-dark text-xs sm:text-base md:text-lg leading-snug break-keep whitespace-pre-line"
-                    style={{ fontWeight: 350 }}
+                <ScrollReveal key={category.name} delay={i * 0.06}>
+                  <Link
+                    href={category.href}
+                    className="group flex flex-col items-center justify-center p-5 sm:p-7 rounded-2xl bg-gray-50 hover:bg-brand-green-primary hover:shadow-lg hover:shadow-brand-green-primary/20 hover:-translate-y-1 transition-all duration-300 min-h-[130px] sm:min-h-[148px]"
                   >
-                    {category.name}
-                  </span>
-                </Link>
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white group-hover:bg-white/20 flex items-center justify-center mb-3 transition-colors duration-300 shadow-sm group-hover:shadow-none">
+                      <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-brand-green-primary group-hover:text-white transition-colors duration-300" />
+                    </div>
+                    <span className="text-center text-xs sm:text-sm font-medium text-text-dark group-hover:text-white transition-colors duration-300 leading-snug whitespace-pre-line break-keep">
+                      {category.name}
+                    </span>
+                  </Link>
+                </ScrollReveal>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* Core Values */}
-      <section className="py-10 sm:py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto mb-6 sm:mb-10">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm">
-              <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
-                1996년 설립
-              </span>
-              <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
-                학교·지자체 특화
-              </span>
-              <Link
-                href="/achievements"
-                className="inline-flex items-center rounded-full border border-brand-green/30 bg-white px-3 py-1 text-brand-green hover:bg-brand-green/5 transition-colors"
+      {/* ── Core Values (dark section) ── */}
+      <section
+        className="py-16 sm:py-24 relative"
+        style={{ background: "linear-gradient(135deg, #071510 0%, #0e2319 55%, #071510 100%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: "radial-gradient(circle, #2E6D45 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+          }}
+        />
+        <div className="relative container mx-auto px-4">
+          <ScrollReveal>
+            <div className="text-center mb-10 sm:mb-14">
+              <p className="text-xs text-white/40 tracking-widest uppercase mb-2">Why Touch The World</p>
+              <h2 className="text-2xl sm:text-3xl font-medium text-white">터치더월드를 선택하는 이유</h2>
+            </div>
+          </ScrollReveal>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+            {["1996년 설립", "30년 업력", "학교·지자체 특화", "전국 네트워크"].map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60"
               >
-                실적 보기
-                <ChevronRight className="w-3 h-3 ml-0.5" />
-              </Link>
-            </div>
+                {tag}
+              </span>
+            ))}
+            <Link
+              href="/achievements"
+              className="inline-flex items-center rounded-full border border-brand-green/30 bg-brand-green/10 px-3 py-1 text-xs text-brand-green hover:bg-brand-green/20 transition-colors"
+            >
+              사업 실적 보기 <ChevronRight className="w-3 h-3 ml-0.5" />
+            </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
-            <div className="text-center p-4 sm:p-8">
-              <div className="w-14 h-14 sm:w-20 sm:h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6">
-                <Shield className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
-              </div>
-              <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">안전 최우선</h3>
-              <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
-                사전 답사와 안전 점검을 바탕으로 참가자 전원의 안전을 최우선으로 운영합니다.
-              </p>
-            </div>
-            <div className="text-center p-4 sm:p-8">
-              <div className="w-14 h-14 sm:w-20 sm:h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6">
-                <Lightbulb className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
-              </div>
-              <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">교육 목표 지향</h3>
-              <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
-                학교의 교육 목표에 맞춰 현장 중심의 맞춤형 프로그램을 설계합니다.
-              </p>
-            </div>
-            <div className="text-center p-4 sm:p-8">
-              <div className="w-14 h-14 sm:w-20 sm:h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6">
-                <Settings className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
-              </div>
-              <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">운영 전문성</h3>
-              <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
-                기획부터 인솔, 사후 정리까지 전 과정을 체계적으로 관리합니다.
-              </p>
-            </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
+            {[
+              {
+                icon: Shield,
+                title: "안전 최우선",
+                desc: "사전 답사와 안전 점검을 바탕으로 참가자 전원의 안전을 최우선으로 운영합니다.",
+                delay: 0,
+              },
+              {
+                icon: Lightbulb,
+                title: "교육 목표 지향",
+                desc: "학교의 교육 목표에 맞춰 현장 중심의 맞춤형 프로그램을 설계합니다.",
+                delay: 0.1,
+              },
+              {
+                icon: Settings,
+                title: "운영 전문성",
+                desc: "기획부터 인솔, 사후 정리까지 전 과정을 체계적으로 관리합니다.",
+                delay: 0.2,
+              },
+            ].map(({ icon: Icon, title, desc, delay }) => (
+              <ScrollReveal key={title} delay={delay}>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 sm:p-8 backdrop-blur-sm hover:bg-white/8 transition-colors duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-brand-green-primary/20 flex items-center justify-center mb-4">
+                    <Icon className="w-6 h-6 text-brand-green" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-medium text-white mb-2">{title}</h3>
+                  <p className="text-sm text-white/50 leading-relaxed break-keep">{desc}</p>
+                </div>
+              </ScrollReveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 함께한 학교들 */}
-      <section className="py-10 sm:py-14 bg-gray-50 border-t border-gray-100 overflow-hidden">
-        <div className="container mx-auto px-4 mb-6 sm:mb-8 text-center">
-          <p className="text-xs sm:text-sm text-text-gray tracking-widest uppercase mb-1">Partners</p>
-          <h2 className="text-lg sm:text-xl font-medium text-text-dark">함께한 학교들</h2>
-        </div>
+      {/* ── Partner Schools Marquee ── */}
+      <section className="py-14 sm:py-18 bg-white overflow-hidden">
+        <ScrollReveal>
+          <div className="container mx-auto px-4 mb-8 text-center">
+            <p className="text-xs text-text-gray tracking-widest uppercase mb-2">Partners</p>
+            <h2 className="text-xl sm:text-2xl font-medium text-text-dark">함께한 학교들</h2>
+          </div>
+        </ScrollReveal>
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-gray-50 to-transparent z-10" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-gray-50 to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-white to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-white to-transparent z-10" />
           <div
             className="flex items-center gap-10 sm:gap-16 w-max"
             style={{ animation: "marquee 28s linear infinite" }}
@@ -381,14 +424,8 @@ export default async function HomePage({
               { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
             ].map((school, i) => (
               <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
-                  <Image
-                    src={school.src}
-                    alt={school.name}
-                    fill
-                    sizes="64px"
-                    className="object-contain"
-                  />
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                  <Image src={school.src} alt={school.name} fill sizes="64px" className="object-contain" />
                 </div>
                 <span className="text-[10px] sm:text-xs text-text-gray whitespace-nowrap">{school.name}</span>
               </div>
@@ -397,74 +434,73 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* Recent Events */}
-      <section className="py-10 sm:py-16 bg-white border-t border-gray-200">
+      {/* ── Recent Events ── */}
+      <section className="py-16 sm:py-20 bg-gray-50 border-t border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-6 sm:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
-              | 최근 진행 행사
-            </h2>
-            <Link href="/events" className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base">
-              더보기
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <p className="text-xs sm:text-sm text-text-gray mb-3 sm:mb-4 sm:hidden">
-            좌우로 스와이프해 최근 행사를 확인하세요.
-          </p>
+          <ScrollReveal>
+            <div className="flex items-end justify-between mb-8 sm:mb-12">
+              <div>
+                <p className="text-xs text-text-gray tracking-widest uppercase mb-2">Recent Events</p>
+                <h2 className="text-2xl sm:text-3xl font-medium text-text-dark">최근 진행 행사</h2>
+              </div>
+              <Link
+                href="/events"
+                className="flex items-center gap-1 text-sm text-brand-green-primary hover:gap-2 transition-all duration-200 font-medium"
+              >
+                더보기 <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </ScrollReveal>
+          <p className="text-xs text-text-gray mb-4 sm:hidden">좌우로 스와이프해 확인하세요.</p>
           {recentEvents.length > 0 ? (
             <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white to-transparent sm:w-10" aria-hidden="true" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent sm:w-10" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-gray-50 to-transparent sm:w-10 z-10" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-gray-50 to-transparent sm:w-10 z-10" />
               <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain">
-                <div className="flex snap-x snap-mandatory flex-nowrap gap-4 sm:gap-6 pb-2 sm:pb-3">
-                {recentEvents.map((event) => (
-                  <Link
-                    key={event.id}
-                    href={`/events/${event.id}`}
-                    className="snap-start border-2 border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white min-w-[82vw] sm:min-w-[360px] md:min-w-[400px] max-w-[400px] flex-shrink-0"
-                    aria-label={`${event.school.name} 최근 행사 보기`}
-                  >
-                    {event.images[0] ? (
-                      <div className="relative w-full h-36 sm:h-48 bg-gray-100">
-                        <Image
-                          src={event.images[0].url}
-                          alt={`${event.school.name} 행사`}
-                          fill
-                          sizes="(max-width: 768px) 80vw, (max-width: 1200px) 40vw, 400px"
-                          className="object-cover"
-                          loading="lazy"
-                          decoding="async"
-                          placeholder="blur"
-                          blurDataURL={EVENT_IMAGE_BLUR_DATA_URL}
-                        />
+                <div className="flex snap-x snap-mandatory flex-nowrap gap-4 sm:gap-5 pb-2">
+                  {recentEvents.map((event) => (
+                    <Link
+                      key={event.id}
+                      href={`/events/${event.id}`}
+                      className="snap-start group rounded-2xl overflow-hidden bg-white border border-gray-200 hover:shadow-xl transition-all duration-300 min-w-[82vw] sm:min-w-[340px] md:min-w-[380px] max-w-[380px] flex-shrink-0"
+                      aria-label={`${event.school.name} 최근 행사 보기`}
+                    >
+                      {event.images[0] ? (
+                        <div className="relative w-full h-44 sm:h-52 bg-gray-100 overflow-hidden">
+                          <Image
+                            src={event.images[0].url}
+                            alt={`${event.school.name} 행사`}
+                            fill
+                            sizes="(max-width: 768px) 80vw, 380px"
+                            className="object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                            loading="lazy"
+                            decoding="async"
+                            placeholder="blur"
+                            blurDataURL={EVENT_IMAGE_BLUR_DATA_URL}
+                          />
+                        </div>
+                      ) : (
+                        <ImagePlaceholder className="h-44 sm:h-52 text-sm" text="현장 사진" />
+                      )}
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-medium text-brand-green-primary bg-brand-green-primary/8 px-2.5 py-0.5 rounded-full">
+                            {getCategoryDisplayName(event.program.category)}
+                          </span>
+                          <span className="text-xs text-text-gray">
+                            {format(new Date(event.date), "yyyy.MM.dd")}
+                          </span>
+                        </div>
+                        <div className="text-base font-medium text-text-dark">{event.school.name}</div>
+                        <div className="text-sm text-text-gray mt-0.5 line-clamp-1">{event.program.title}</div>
                       </div>
-                    ) : (
-                      <ImagePlaceholder className="h-36 sm:h-48 text-sm" text="현장 사진" />
-                    )}
-                    <div className="p-4 sm:p-6">
-                      <div className="text-xs sm:text-sm text-brand-green font-medium mb-1 sm:mb-2">
-                        {getCategoryDisplayName(event.program.category)}
-                      </div>
-                      <div className="text-xs sm:text-sm text-text-gray mb-1 sm:mb-2">
-                        {format(new Date(event.date), "yyyy.MM.dd")}
-                      </div>
-                      <div className="text-sm sm:text-base font-medium text-text-dark mb-1 sm:mb-2">
-                        {event.school.name}
-                      </div>
-                      <div className="text-xs sm:text-sm text-text-gray line-clamp-1">
-                        {event.program.title}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-center py-8 sm:py-12 text-text-gray text-sm sm:text-base">
-              등록된 행사가 없습니다.
-            </div>
+            <div className="text-center py-16 text-text-gray text-sm">등록된 행사가 없습니다.</div>
           )}
         </div>
       </section>
