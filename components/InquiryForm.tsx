@@ -1,12 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
+
+type SchoolSuggestion = { name: string; level: string; region: string | null };
+
+function useSchoolAutocomplete() {
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<SchoolSuggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const search = useCallback((q: string) => {
+    setQuery(q);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (q.length < 2) { setSuggestions([]); setOpen(false); return; }
+    timerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/schools?q=${encodeURIComponent(q)}`);
+        const data: SchoolSuggestion[] = await res.json();
+        setSuggestions(data);
+        setOpen(data.length > 0);
+      } catch { setSuggestions([]); }
+    }, 300);
+  }, []);
+
+  return { query, suggestions, open, setOpen, search };
+}
 
 type InquiryMode = "quick" | "detailed";
 
@@ -40,6 +65,8 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
     inquiryNumber?: string;
     expectedReply?: string;
   } | null>(null);
+
+  const autocomplete = useSchoolAutocomplete();
 
   const {
     register,
@@ -188,7 +215,7 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
               기본 정보
             </h2>
 
-            <div>
+            <div className="relative">
               <label htmlFor="schoolName" className="block text-sm font-medium mb-2">
                 학교명 <span className="text-red-500">*</span>
               </label>
@@ -196,8 +223,34 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                 id="schoolName"
                 {...register("schoolName")}
                 className={inputClass}
-                placeholder="예: 서울초등학교"
+                placeholder="예: 서울중학교"
+                autoComplete="off"
+                onChange={(e) => {
+                  register("schoolName").onChange(e);
+                  autocomplete.search(e.target.value);
+                }}
+                onBlur={() => setTimeout(() => autocomplete.setOpen(false), 150)}
+                onFocus={() => autocomplete.suggestions.length > 0 && autocomplete.setOpen(true)}
               />
+              {autocomplete.open && (
+                <ul className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto">
+                  {autocomplete.suggestions.map((s) => (
+                    <li
+                      key={`${s.name}-${s.level}`}
+                      className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
+                      onMouseDown={() => {
+                        setValue("schoolName", s.name, { shouldValidate: true });
+                        if (s.level) setValue("schoolLevel", s.level, { shouldValidate: true });
+                        if (s.region) setValue("destination", s.region, { shouldValidate: true });
+                        autocomplete.setOpen(false);
+                      }}
+                    >
+                      <span className="text-sm font-medium text-text-dark">{s.name}</span>
+                      <span className="ml-2 text-xs text-text-gray">{s.level}{s.region ? ` · ${s.region}` : ""}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {errors.schoolName && (
                 <p className="text-red-500 text-sm mt-1">{errors.schoolName.message}</p>
               )}
@@ -260,6 +313,31 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
               </div>
             </div>
 
+            {/* 여행 목적지 — 두 모드 공통 */}
+            <div>
+              <label htmlFor="destination" className="block text-sm font-medium mb-2">
+                여행 목적지{mode === "detailed" && <span className="text-red-500"> *</span>}
+              </label>
+              <select
+                id="destination"
+                {...register("destination")}
+                className={inputClass}
+                defaultValue=""
+              >
+                <option value="">선택해주세요</option>
+                <optgroup label="국내">
+                  {["서울/경기", "인천", "강원", "충청", "전라", "경상", "제주"].map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="해외">
+                  {["일본", "동남아시아", "기타 해외"].map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
+
             {/* 빠른 문의: 메시지 바로 표시 */}
             {mode === "quick" && (
               <div>
@@ -311,6 +389,42 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                       className={inputClass}
                       placeholder="예: 50"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="schoolLevel" className="block text-sm font-medium mb-2">
+                      학교급 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="schoolLevel"
+                      {...register("schoolLevel")}
+                      className={inputClass}
+                      defaultValue=""
+                    >
+                      <option value="">선택해주세요</option>
+                      {["초등학교", "중학교", "고등학교", "특성화고", "대학교/기관"].map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="accommodation" className="block text-sm font-medium mb-2">
+                      숙박 여부 <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="accommodation"
+                      {...register("accommodation")}
+                      className={inputClass}
+                      defaultValue=""
+                    >
+                      <option value="">선택해주세요</option>
+                      {["비숙박 (당일)", "1박 2일", "2박 3일", "3박 4일 이상"].map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 

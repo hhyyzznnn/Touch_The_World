@@ -27,6 +27,9 @@ export const inquirySchema = z.object({
     .string()
     .optional()
     .transform((val) => (val ? parseInt(val, 10) : undefined)),
+  destination: z.string().optional(),
+  schoolLevel: z.string().optional(),
+  accommodation: z.string().optional(),
   message: z.string().optional(),
 }).superRefine((value, ctx) => {
   const hasPhone = typeof value.phone === "string" && value.phone.trim().length > 0;

@@ -17,6 +17,7 @@ import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
 import { NewsTicker } from "@/components/NewsTicker";
+import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -120,10 +121,11 @@ export default async function HomePage({
   searchParams?: Promise<{ category?: string; copy?: "a" | "b" }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const [recentEvents, newsTickerItems, cardNewsItems] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems, greeting] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
     getCardNewsForHome(),
+    getPersonalizedGreeting(),
   ]);
   const copyVariant = resolvedSearchParams?.copy === "b" ? "b" : "a";
   const heroSubTitle =
@@ -162,7 +164,7 @@ export default async function HomePage({
 
             {/* AI Chat Input */}
             <div className="pt-4 sm:pt-6">
-              <HeroChatInputWrapper category={resolvedSearchParams?.category} />
+              <HeroChatInputWrapper category={resolvedSearchParams?.category} greeting={greeting} />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
@@ -343,6 +345,54 @@ export default async function HomePage({
                 기획부터 인솔, 사후 정리까지 전 과정을 체계적으로 관리합니다.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 함께한 학교들 */}
+      <section className="py-10 sm:py-14 bg-gray-50 border-t border-gray-100 overflow-hidden">
+        <div className="container mx-auto px-4 mb-6 sm:mb-8 text-center">
+          <p className="text-xs sm:text-sm text-text-gray tracking-widest uppercase mb-1">Partners</p>
+          <h2 className="text-lg sm:text-xl font-medium text-text-dark">함께한 학교들</h2>
+        </div>
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-gray-50 to-transparent z-10" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-gray-50 to-transparent z-10" />
+          <div
+            className="flex items-center gap-10 sm:gap-16 w-max"
+            style={{ animation: "marquee 28s linear infinite" }}
+          >
+            {[
+              { src: "/logos/schools/hanyang-foreign-high.png", name: "한영외고" },
+              { src: "/logos/schools/anyang-foreign-high.jpeg", name: "안양외고" },
+              { src: "/logos/schools/geunmyung.png", name: "근명중학교" },
+              { src: "/logos/schools/changmun-girls-high.jpeg", name: "창문여고" },
+              { src: "/logos/schools/keumcheon-high.png", name: "금천고등학교" },
+              { src: "/logos/schools/hangang-media-high.jpg", name: "한강미디어고" },
+              { src: "/logos/schools/gachon-university.webp", name: "가천대학교" },
+              { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
+              { src: "/logos/schools/hanyang-foreign-high.png", name: "한영외고" },
+              { src: "/logos/schools/anyang-foreign-high.jpeg", name: "안양외고" },
+              { src: "/logos/schools/geunmyung.png", name: "근명중학교" },
+              { src: "/logos/schools/changmun-girls-high.jpeg", name: "창문여고" },
+              { src: "/logos/schools/keumcheon-high.png", name: "금천고등학교" },
+              { src: "/logos/schools/hangang-media-high.jpg", name: "한강미디어고" },
+              { src: "/logos/schools/gachon-university.webp", name: "가천대학교" },
+              { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
+            ].map((school, i) => (
+              <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                  <Image
+                    src={school.src}
+                    alt={school.name}
+                    fill
+                    sizes="64px"
+                    className="object-contain"
+                  />
+                </div>
+                <span className="text-[10px] sm:text-xs text-text-gray whitespace-nowrap">{school.name}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>

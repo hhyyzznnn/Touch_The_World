@@ -13,6 +13,7 @@ import {
 
 interface HeroChatInputProps {
   initialCategory?: string;
+  greeting?: string | null;
 }
 
 const LOGIN_HISTORY_NOTICE =
@@ -22,7 +23,7 @@ function createSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
+export function HeroChatInput({ initialCategory, greeting }: HeroChatInputProps) {
   const searchParams = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
@@ -158,14 +159,13 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     }
   }, [messages, sessionId, userId]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!authLoaded || !inputValue.trim() || isLoading) return;
+  const sendMessage = async (text: string) => {
+    if (!authLoaded || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
-      content: inputValue.trim(),
+      content: text,
       timestamp: new Date(),
     };
 
@@ -178,9 +178,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: toRequestMessages([...messages, userMessage], userId ? 40 : 20),
           sessionId: sessionId,
@@ -220,6 +218,12 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!authLoaded || !inputValue.trim() || isLoading) return;
+    await sendMessage(inputValue.trim());
   };
 
   const handleCategorySelect = async (categoryName: string) => {
@@ -466,6 +470,17 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
           )}
         </div>
       </form>
+      {greeting && authLoaded && !isExpanded && (
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={() => sendMessage(greeting)}
+            className="rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors"
+          >
+            {greeting}
+          </button>
+        </div>
+      )}
       {!userId && authLoaded && (
         <p className="mt-2 text-center text-xs text-white/50">
           로그인하면 대화 기록이 저장돼요

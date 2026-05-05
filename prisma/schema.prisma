@@ -126,6 +126,9 @@ model Inquiry {
   mealPreference    String?  // 식사 취향/요구사항
   specialRequests   String?  // 특별 요구사항
   estimatedBudget   Int?     // 예상 예산 (원)
+  destination       String?  // 여행 목적지
+  schoolLevel       String?  // 학교급/학년
+  accommodation     String?  // 숙박 여부
   status            String   @default("pending") // pending, completed
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

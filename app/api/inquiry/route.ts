@@ -20,6 +20,9 @@ const inquirySchema = z.object({
   mealPreference: z.string().max(200).optional(),
   specialRequests: z.string().max(1000).optional(),
   estimatedBudget: z.number().int().nonnegative().optional(),
+  destination: z.string().max(50).optional(),
+  schoolLevel: z.string().max(50).optional(),
+  accommodation: z.string().max(50).optional(),
   message: z.string().max(2000).optional(),
 }).superRefine((value, ctx) => {
   if (!value.phone && !value.email) {
@@ -200,6 +203,9 @@ export async function POST(request: NextRequest) {
       mealPreference: ('sanitized' in mealPreferenceValidation && mealPreferenceValidation.sanitized) || undefined,
       specialRequests: ('sanitized' in specialRequestsValidation && specialRequestsValidation.sanitized) || undefined,
       estimatedBudget: body.estimatedBudget ? parseInt(body.estimatedBudget) : undefined,
+      destination: body.destination || undefined,
+      schoolLevel: body.schoolLevel || undefined,
+      accommodation: body.accommodation || undefined,
       message: ('sanitized' in messageValidation && messageValidation.sanitized) || undefined,
     });
 
@@ -218,6 +224,9 @@ export async function POST(request: NextRequest) {
         mealPreference: data.mealPreference ?? null,
         specialRequests: data.specialRequests ?? null,
         estimatedBudget: data.estimatedBudget ?? null,
+        destination: data.destination ?? null,
+        schoolLevel: data.schoolLevel ?? null,
+        accommodation: data.accommodation ?? null,
         message: data.message ?? null,
       },
     });
