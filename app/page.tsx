@@ -19,6 +19,7 @@ import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
 import { NewsTicker } from "@/components/NewsTicker";
 import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -350,51 +351,12 @@ export default async function HomePage({
       </section>
 
       {/* 함께한 학교들 */}
-      <section className="py-10 sm:py-14 bg-gray-50 border-t border-gray-100 overflow-hidden">
+      <section className="py-10 sm:py-14 bg-gray-50 border-t border-gray-100">
         <div className="container mx-auto px-4 mb-6 sm:mb-8 text-center">
           <p className="text-xs sm:text-sm text-text-gray tracking-widest uppercase mb-1">Partners</p>
           <h2 className="text-lg sm:text-xl font-medium text-text-dark">함께한 학교들</h2>
         </div>
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-gray-50 to-transparent z-10" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-gray-50 to-transparent z-10" />
-          <div
-            className="flex items-center gap-10 sm:gap-16 w-max"
-            style={{ animation: "marquee 28s linear infinite" }}
-          >
-            {[
-              { src: "/logos/schools/hanyang-foreign-high.png", name: "한영외고" },
-              { src: "/logos/schools/anyang-foreign-high.jpeg", name: "안양외고" },
-              { src: "/logos/schools/geunmyung.png", name: "근명중학교" },
-              { src: "/logos/schools/changmun-girls-high.jpeg", name: "창문여고" },
-              { src: "/logos/schools/keumcheon-high.png", name: "금천고등학교" },
-              { src: "/logos/schools/hangang-media-high.jpg", name: "한강미디어고" },
-              { src: "/logos/schools/gachon-university.webp", name: "가천대학교" },
-              { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
-              { src: "/logos/schools/hanyang-foreign-high.png", name: "한영외고" },
-              { src: "/logos/schools/anyang-foreign-high.jpeg", name: "안양외고" },
-              { src: "/logos/schools/geunmyung.png", name: "근명중학교" },
-              { src: "/logos/schools/changmun-girls-high.jpeg", name: "창문여고" },
-              { src: "/logos/schools/keumcheon-high.png", name: "금천고등학교" },
-              { src: "/logos/schools/hangang-media-high.jpg", name: "한강미디어고" },
-              { src: "/logos/schools/gachon-university.webp", name: "가천대학교" },
-              { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
-            ].map((school, i) => (
-              <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
-                <div className="relative w-14 h-14 sm:w-16 sm:h-16 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
-                  <Image
-                    src={school.src}
-                    alt={school.name}
-                    fill
-                    sizes="64px"
-                    className="object-contain"
-                  />
-                </div>
-                <span className="text-[10px] sm:text-xs text-text-gray whitespace-nowrap">{school.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <SchoolLogoMarquee />
       </section>
 
       {/* Recent Events */}
