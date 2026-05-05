@@ -1,0 +1,24 @@
+name: 나라장터 알림 발송
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # 매일 오전 9시 KST (00:00 UTC)
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 나라장터 알림 API 호출
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/cron/g2b-notification")
+
+          echo "HTTP 상태: $response"
+          cat /tmp/response.json
+
+          if [ "$response" != "200" ]; then
+            echo "API 호출 실패 (HTTP $response)"
+            exit 1
+          fi
