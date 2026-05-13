@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ProgramCard } from "@/components/ProgramCard";
+import { ProgramCard } from "@/components/programs/ProgramCard";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";

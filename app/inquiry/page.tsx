@@ -1,4 +1,4 @@
-import { InquiryForm } from "@/components/InquiryForm";
+import { InquiryForm } from "@/components/forms/InquiryForm";
 
 export default async function InquiryPage({
   searchParams,

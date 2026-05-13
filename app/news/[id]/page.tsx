@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { BRAND_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { CardNewsImageViewer } from "@/components/news/CardNewsImageViewer";
 
 async function getNews(id: string) {
   return await prisma.companyNews.findUnique({
@@ -120,17 +121,8 @@ export default async function NewsDetailPage({
           )}
 
           {cardNewsImages.length > 0 && (
-            <div className="mb-8 space-y-2">
-              {cardNewsImages.map((url, index) => (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  key={`${url}-${index}`}
-                  src={url}
-                  alt={`${news.title} ${index + 1}/${cardNewsImages.length}`}
-                  loading={index === 0 ? "eager" : "lazy"}
-                  className="mx-auto block w-full max-w-2xl rounded-lg border bg-gray-100"
-                />
-              ))}
+            <div className="mb-8">
+              <CardNewsImageViewer images={cardNewsImages} title={news.title} />
             </div>
           )}
 

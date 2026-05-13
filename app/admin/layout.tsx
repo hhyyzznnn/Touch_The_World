@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AdminNav } from "@/components/AdminNav";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { getCurrentUser } from "@/lib/auth-user";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";

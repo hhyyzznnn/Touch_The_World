@@ -1,4 +1,4 @@
-import { CompanyNewsForm } from "@/components/CompanyNewsForm";
+import { CompanyNewsForm } from "@/components/forms/CompanyNewsForm";
 
 export default function NewProgramPage() {
   return (

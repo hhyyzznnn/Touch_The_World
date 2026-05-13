@@ -8,7 +8,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ReviewSection } from "@/components/ReviewSection";
 import { ShareButton } from "@/components/ShareButton";
 import ReactMarkdown from "react-markdown";
-import { ProgramImage } from "@/components/ProgramImage";
+import { ProgramImage } from "@/components/programs/ProgramImage";
 import remarkGfm from "remark-gfm";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { parseThumbnailFocus } from "@/lib/thumbnail-focus";

@@ -1,5 +1,5 @@
 import { getPersonalizedProgramRecommendations } from "@/lib/personalized-recommendations";
-import { ProgramCard } from "@/components/ProgramCard";
+import { ProgramCard } from "@/components/programs/ProgramCard";
 
 interface PersonalizedRecommendationsProps {
   userId: string;

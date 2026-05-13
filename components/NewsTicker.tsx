@@ -3,10 +3,7 @@ import Link from "next/link";
 interface NewsItem {
   id: string;
   title: string;
-  summary: string | null;
   link: string | null;
-  isPinned: boolean;
-  createdAt?: Date;
 }
 
 export function NewsTicker({ items }: { items: NewsItem[] }) {

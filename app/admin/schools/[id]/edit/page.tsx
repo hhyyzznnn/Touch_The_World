@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { SchoolForm } from "@/components/SchoolForm";
+import { SchoolForm } from "@/components/forms/SchoolForm";
 
 async function getSchool(id: string) {
   return await prisma.school.findUnique({

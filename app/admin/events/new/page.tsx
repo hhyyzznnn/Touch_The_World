@@ -3,7 +3,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 // 동적 import로 번들 크기 최적화
 const EventForm = dynamic(
-  () => import("@/components/EventForm").then((mod) => ({ default: mod.EventForm })),
+  () => import("@/components/forms/EventForm").then((mod) => ({ default: mod.EventForm })),
   {
     loading: () => (
       <div className="flex items-center justify-center py-12">

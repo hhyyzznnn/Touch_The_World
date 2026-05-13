@@ -1,4 +1,4 @@
-import { ProgramCompareTable } from "@/components/ProgramCompareTable";
+import { ProgramCompareTable } from "@/components/programs/ProgramCompareTable";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

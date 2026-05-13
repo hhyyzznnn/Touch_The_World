@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { InquiryDetailModal } from "@/components/InquiryDetailModal";
+import { InquiryDetailModal } from "@/components/inquiry/InquiryDetailModal";
 import { Inquiry } from "@/types";
 import { InquiryStatusValue } from "@/lib/inquiry-status";
 

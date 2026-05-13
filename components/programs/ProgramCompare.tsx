@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProgramCard } from "@/components/ProgramCard";
+import { ProgramCard } from "@/components/programs/ProgramCard";
 import Link from "next/link";
 import { useToast } from "@/components/ui/toast";
 import {

@@ -1,4 +1,4 @@
-import { AchievementForm } from "@/components/AchievementForm";
+import { AchievementForm } from "@/components/forms/AchievementForm";
 
 export default function NewAchievementPage() {
   return (

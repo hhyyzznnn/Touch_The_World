@@ -9,7 +9,7 @@ import {
   Settings,
   ArrowRight,
 } from "lucide-react";
-import { InquiryDropdownButton } from "@/components/InquiryDropdownButton";
+import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButton";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -51,7 +51,7 @@ async function getNewsForTicker() {
       where: { type: "COMPANY_NEWS" },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       take: 1,
-      select: { id: true, title: true, summary: true, link: true, isPinned: true, createdAt: true },
+      select: { id: true, title: true, link: true },
     });
   } catch {
     return [];
@@ -95,7 +95,7 @@ export const revalidate = 600;
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ category?: string; copy?: "a" | "b" }>;
+  searchParams?: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const [recentEvents, newsTickerItems, cardNewsItems, greeting] = await Promise.all([
@@ -105,15 +105,8 @@ export default async function HomePage({
     getPersonalizedGreeting(),
   ]);
 
-  const copyVariant = resolvedSearchParams?.copy === "b" ? "b" : "a";
-  const heroHeadline =
-    copyVariant === "b"
-      ? "학교 맞춤형\n교육여행의 완성."
-      : "아이들의 세계를\n더 넓게.";
-  const heroSub =
-    copyVariant === "b"
-      ? "계획부터 현장 운영, 사후 정리까지 교육자가 핵심에만 집중할 수 있게 돕습니다."
-      : "수학여행부터 교사연수까지, 1996년부터 교육의 현장을 완성해온 터치더월드입니다.";
+  const heroHeadline = "아이들의 세계를\n더 넓게";
+  const heroSub = "수학여행부터 교사연수까지, 1996년부터 교육의 현장을 완성해온 터치더월드입니다.";
 
   return (
     <div className="overflow-x-hidden">

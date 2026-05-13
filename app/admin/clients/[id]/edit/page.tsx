@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ClientForm } from "@/components/ClientForm";
+import { ClientForm } from "@/components/forms/ClientForm";
 import { notFound } from "next/navigation";
 
 async function getClient(id: string) {

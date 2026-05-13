@@ -12,7 +12,7 @@ import {
   Search,
 } from "lucide-react";
 import { GlobalSearchBar } from "@/components/GlobalSearchBar";
-import { AdminStatsChartWrapper } from "@/components/AdminStatsChartWrapper";
+import { AdminStatsChartWrapper } from "@/components/admin/AdminStatsChartWrapper";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { getCurrentUser } from "@/lib/auth-user";

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { AdminDeleteButton } from "@/components/AdminDeleteButton";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 
 async function getDocuments() {
   return await prisma.document.findMany({
