@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { InquiryDetailModal } from "@/components/InquiryDetailModal";
-import { InquiryActions } from "@/components/InquiryActions";
+import { InquiryDetailModal } from "@/components/inquiry/InquiryDetailModal";
+import { InquiryActions } from "@/components/inquiry/InquiryActions";
 import { Pagination } from "@/components/Pagination";
 import { getInquiryStatusMeta } from "@/lib/inquiry-status";
 

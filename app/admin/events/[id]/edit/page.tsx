@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { EventForm } from "@/components/EventForm";
+import { EventForm } from "@/components/forms/EventForm";
 
 async function getEvent(id: string) {
   return await prisma.event.findUnique({

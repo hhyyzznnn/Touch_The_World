@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { AdminNotification } from "@/components/AdminNotification";
+import { AdminNotification } from "@/components/admin/AdminNotification";
 
 export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

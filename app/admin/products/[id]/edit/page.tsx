@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { ProductForm } from "@/components/ProductForm";
+import { ProductForm } from "@/components/forms/ProductForm";
 import { notFound } from "next/navigation";
 
 async function getProduct(id: string) {

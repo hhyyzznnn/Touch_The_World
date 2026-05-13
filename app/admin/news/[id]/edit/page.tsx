@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { CompanyNewsForm } from "@/components/CompanyNewsForm";
+import { CompanyNewsForm } from "@/components/forms/CompanyNewsForm";
 
 export default async function EditNewsPage({
   params,

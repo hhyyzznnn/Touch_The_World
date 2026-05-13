@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function InquiryDropdownButton() {
+export function InquiryDropdownButton({ dark }: { dark?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -28,7 +28,9 @@ export function InquiryDropdownButton() {
         asChild
         size="lg"
         variant="outline"
-        className="bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11"
+        className={dark
+          ? "border-2 border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-base rounded-xl transition-all duration-200 min-h-11 backdrop-blur-sm"
+          : "bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11"}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}

@@ -1,4 +1,4 @@
-import { SchoolForm } from "@/components/SchoolForm";
+import { SchoolForm } from "@/components/forms/SchoolForm";
 
 export default function NewSchoolPage() {
   return (

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { AdminDeleteButton } from "@/components/AdminDeleteButton";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 import { format } from "date-fns";
 import Image from "next/image";
 

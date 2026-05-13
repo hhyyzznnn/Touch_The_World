@@ -4,7 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
 import { FloatingChatButton } from "@/components/FloatingChatButton";
-import { ProgramCompare } from "@/components/ProgramCompare";
+import { ProgramCompare } from "@/components/programs/ProgramCompare";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
@@ -63,20 +63,12 @@ export const metadata: Metadata = {
     description: SEO_DESCRIPTION,
     siteName: "터치더월드",
     locale: "ko_KR",
-    images: [
-      {
-        url: "/ttw_logo.png",
-        width: 1200,
-        height: 630,
-        alt: "터치더월드 로고",
-      },
-    ],
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: SEO_TITLE,
     description: SEO_DESCRIPTION,
-    images: ["/ttw_logo.png"],
   },
 };
 

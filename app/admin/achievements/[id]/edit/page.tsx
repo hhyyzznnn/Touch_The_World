@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { AchievementForm } from "@/components/AchievementForm";
+import { AchievementForm } from "@/components/forms/AchievementForm";
 
 async function getAchievement(id: string) {
   return await prisma.achievement.findUnique({

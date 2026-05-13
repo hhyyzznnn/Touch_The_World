@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 
 const SCHOOLS = [
@@ -13,9 +11,10 @@ const SCHOOLS = [
   { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
 ];
 
-export function SchoolLogoMarquee() {
-  const track = [...SCHOOLS, ...SCHOOLS, ...SCHOOLS, ...SCHOOLS];
+// 심리스 루프를 위한 최소 2벌 복제
+const track = [...SCHOOLS, ...SCHOOLS];
 
+export function SchoolLogoMarquee() {
   return (
     <div className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-white to-transparent z-10" />
@@ -23,7 +22,7 @@ export function SchoolLogoMarquee() {
       <div
         className="flex items-center w-max"
         style={{
-          animation: "marquee-quarter 30s linear infinite",
+          animation: "marquee 30s linear infinite",
           willChange: "transform",
         }}
       >

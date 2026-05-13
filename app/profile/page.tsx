@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth-user";
-import { ProfileForm } from "@/components/ProfileForm";
+import { ProfileForm } from "@/components/forms/ProfileForm";
 import { UserStats } from "@/components/UserStats";
 import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { Breadcrumbs } from "@/components/Breadcrumbs";

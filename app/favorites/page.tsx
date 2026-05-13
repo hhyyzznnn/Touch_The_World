@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth-user";
 import { redirect } from "next/navigation";
-import { ProgramCard } from "@/components/ProgramCard";
+import { ProgramCard } from "@/components/programs/ProgramCard";
 import { EmptyState } from "@/components/EmptyState";
 import { Heart } from "lucide-react";
 

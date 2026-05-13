@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Pagination } from "@/components/Pagination";
-import { AdminDeleteButton } from "@/components/AdminDeleteButton";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 
 const ITEMS_PER_PAGE = 20;
 

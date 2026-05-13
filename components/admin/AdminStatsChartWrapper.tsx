@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { AdminStatsChart } from "@/components/AdminStatsChart";
+import { AdminStatsChart } from "@/components/admin/AdminStatsChart";
 
 interface MonthlyData {
   month: string;
