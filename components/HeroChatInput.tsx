@@ -306,16 +306,14 @@ export function HeroChatInput({ initialCategory, greeting }: HeroChatInputProps)
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      {!userId && authLoaded && (
-        <div className="mb-2 space-y-1.5 px-2 text-left">
+      {!userId && authLoaded && typeof dailyRemaining === "number" && (
+        <div className="mb-2 px-2 text-left">
           <p className="text-xs text-text-gray leading-relaxed">
-            {typeof dailyRemaining === "number"
-              ? `비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회). 현재 창에서는 대화 맥락이 유지됩니다.`
-              : "비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다. 브라우저 종료 시 기록은 사라집니다."}
+            {`비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회)`}
           </p>
           {shouldShowLoginPrompt && (
             <p className="text-xs text-amber-700 leading-relaxed">
-              남은 횟수가 적습니다. 로그인하면 대화 저장/이어보기와 한도 확장으로 상담을 끊김 없이 진행할 수 있습니다.
+              남은 횟수가 적습니다. 로그인하면 한도가 확장됩니다.
             </p>
           )}
         </div>

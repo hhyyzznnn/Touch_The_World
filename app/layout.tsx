@@ -154,10 +154,10 @@ export default function RootLayout({
           <NextSSRPlugin
             routerConfig={extractRouterConfig(ourFileRouter)}
           />
-          <Header />
+          <div className="print:hidden"><Header /></div>
           <main className="min-h-screen">{children}</main>
-          <ConditionalFooter />
-          <FloatingChatButton />
+          <div className="print:hidden"><ConditionalFooter /></div>
+          <div className="print:hidden"><FloatingChatButton /></div>
           <ProgramCompare />
         </ToastProvider>
       </body>
