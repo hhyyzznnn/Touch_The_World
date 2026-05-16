@@ -8,21 +8,20 @@ export const contentType = "image/png";
 
 async function loadKoreanFont(): Promise<ArrayBuffer | undefined> {
   try {
-    // 사용할 텍스트만 포함한 서브셋 요청
     const text = encodeURIComponent(
       "터치더월드교육여행체험학습AI프로그램Since1996학교지자체대상전문기업·"
     );
+    // 구형 UA 사용 시 Google Fonts가 TTF 형식 반환 — ImageResponse는 woff2 미지원
     const css = await fetch(
       `https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700&text=${text}`,
       {
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "User-Agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)",
         },
       }
     ).then((r) => r.text());
 
-    const match = css.match(/src: url\((.+?)\) format\('woff2'\)/);
+    const match = css.match(/src: url\((.+?)\) format\('truetype'\)/);
     if (!match?.[1]) return undefined;
 
     return fetch(match[1]).then((r) => r.arrayBuffer());
