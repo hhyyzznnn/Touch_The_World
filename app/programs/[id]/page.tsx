@@ -9,6 +9,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { ShareButton } from "@/components/ShareButton";
 import ReactMarkdown from "react-markdown";
 import { ProgramImage } from "@/components/programs/ProgramImage";
+import { PrintQuoteButton } from "@/components/programs/PrintQuoteButton";
 import remarkGfm from "remark-gfm";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
@@ -210,7 +211,8 @@ export default async function ProgramDetailPage({
               <p className="text-lg sm:text-xl text-gray-600 mb-6 break-words">{program.summary}</p>
             )}
           </div>
-          <div className="ml-4">
+          <div className="ml-4 flex items-center gap-2">
+            <PrintQuoteButton programId={program.id} />
             <ShareButton
               url={`/programs/${program.id}`}
               title={program.title}

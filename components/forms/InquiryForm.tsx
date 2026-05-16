@@ -54,6 +54,8 @@ function formatCurrency(value: string) {
 
 const inputClass =
   "w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary";
+const selectClass =
+  "w-full px-4 py-3 h-11 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary";
 
 export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
   const toast = useToast();
@@ -321,7 +323,7 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
               <select
                 id="destination"
                 {...register("destination")}
-                className={inputClass}
+                className={selectClass}
                 defaultValue=""
               >
                 <option value="">선택해주세요</option>
@@ -400,7 +402,7 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                     <select
                       id="schoolLevel"
                       {...register("schoolLevel")}
-                      className={inputClass}
+                      className={selectClass}
                       defaultValue=""
                     >
                       <option value="">선택해주세요</option>
@@ -417,7 +419,7 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                     <select
                       id="accommodation"
                       {...register("accommodation")}
-                      className={inputClass}
+                      className={selectClass}
                       defaultValue=""
                     >
                       <option value="">선택해주세요</option>

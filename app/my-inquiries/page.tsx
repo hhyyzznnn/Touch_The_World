@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Calendar, Users, MapPin } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { formatInquiryNumber, getInquiryStatusMeta } from "@/lib/inquiry-status";
+import { StatusStepper } from "@/components/inquiry/StatusStepper";
 
 export const metadata: Metadata = {
   title: "문의 내역 | 터치더월드",
@@ -103,9 +104,6 @@ export default async function MyInquiriesPage() {
                       </span>
                     </div>
                   </div>
-                  <p className="mt-2 text-sm text-text-gray">
-                    {statusMeta.userGuide}
-                  </p>
                 </div>
                 <div className="flex gap-2">
                   <Button asChild variant="outline" size="sm">
@@ -153,13 +151,13 @@ export default async function MyInquiriesPage() {
                 )}
               </div>
 
-              {inquiry.message && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-sm text-text-gray line-clamp-2">
-                    {inquiry.message}
-                  </p>
-                </div>
-              )}
+              {/* 진행 상태 스테퍼 */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <StatusStepper status={inquiry.status} />
+                <p className="mt-3 text-xs text-text-gray text-center">
+                  {statusMeta.userGuide}
+                </p>
+              </div>
             </div>
             );
           })}
