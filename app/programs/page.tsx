@@ -158,12 +158,12 @@ export default async function ProgramsPage({
                     {(item.category || item.hashtags.length > 0) && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {item.category && (
-                          <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2 py-0.5 text-[11px] font-medium">
+                          <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
                             #{item.category}
                           </span>
                         )}
                         {item.hashtags.slice(0, 2).map((tag) => (
-                          <span key={tag} className="rounded-full bg-gray-100 text-text-gray px-2 py-0.5 text-[11px]">
+                          <span key={tag} className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
                             {tag}
                           </span>
                         ))}

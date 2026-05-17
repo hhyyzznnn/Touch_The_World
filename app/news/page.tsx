@@ -83,7 +83,7 @@ export default async function NewsPage() {
                           {tags.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {tags.map((tag) => (
-                                <span key={tag} className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2 py-0.5 text-[10px] font-medium">
+                                <span key={tag} className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
                                   {tag}
                                 </span>
                               ))}
