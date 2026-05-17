@@ -34,7 +34,7 @@ export function CategoryGrid() {
             onMouseLeave={() => setHoveredIndex(null)}
           >
             <motion.div
-              className="flex flex-col items-center justify-center px-4 py-5 sm:py-6 rounded-xl min-h-[152px] sm:min-h-[168px]"
+              className="flex flex-col items-center justify-center px-4 rounded-xl h-[176px] overflow-hidden"
               animate={{
                 backgroundColor: isHovered ? "#2E6D45" : "#ffffff",
                 y: isHovered ? -4 : 0,
@@ -73,7 +73,7 @@ export function CategoryGrid() {
 
               {/* 한 줄 설명 — 항상 DOM에 있고 opacity·y로만 전환 */}
               <motion.p
-                className="text-center text-[11px] sm:text-xs leading-snug mt-2 px-1 break-keep"
+                className="text-center text-[11px] sm:text-xs leading-snug mt-2 px-1 break-keep line-clamp-1"
                 style={{ color: "rgba(255,255,255,0.88)" }}
                 animate={{
                   opacity: isHovered ? 1 : 0,
