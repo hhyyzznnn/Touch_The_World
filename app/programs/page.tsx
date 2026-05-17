@@ -149,21 +149,21 @@ export default async function ProgramsPage({
                         NEW
                       </span>
                     )}
-                    {item.category && (
-                      <span className="absolute bottom-2 left-2 inline-flex items-center rounded bg-black/50 px-2 py-0.5 text-xs text-white">
-                        {item.category}
-                      </span>
-                    )}
                   </div>
                   <div className="p-3 sm:p-4">
                     <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
                     {item.summary && (
                       <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
                     )}
-                    {item.hashtags.length > 0 && (
+                    {(item.category || item.hashtags.length > 0) && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {item.hashtags.slice(0, 3).map((tag) => (
-                          <span key={tag} className="text-xs text-brand-green-primary/80">
+                        {item.category && (
+                          <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2 py-0.5 text-[11px] font-medium">
+                            #{item.category}
+                          </span>
+                        )}
+                        {item.hashtags.slice(0, 2).map((tag) => (
+                          <span key={tag} className="rounded-full bg-gray-100 text-text-gray px-2 py-0.5 text-[11px]">
                             {tag}
                           </span>
                         ))}

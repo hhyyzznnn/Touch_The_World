@@ -6,7 +6,8 @@ import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButto
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
-import { PROGRAM_CATEGORIES, COMPANY_INFO } from "@/lib/constants";
+import { COMPANY_INFO } from "@/lib/constants";
+import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
@@ -136,11 +137,11 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ── 회사 소식 ── */}
-      <NewsTicker items={newsTickerItems} />
-
       {/* ── Stats (숫자 애니메이션) ── */}
       <StatsSection />
+
+      {/* ── 회사 소식 ── */}
+      <NewsTicker items={newsTickerItems} />
 
       {/* ── 카드뉴스 ── */}
       {cardNewsItems.length > 0 && (
@@ -196,23 +197,23 @@ export default async function HomePage({
                           NEW
                         </span>
                       )}
-                      {tags.length > 0 && (
-                        <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-                          {tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded bg-brand-green-primary/75 px-2 py-1 text-xs text-white backdrop-blur-sm leading-tight"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
                     <div className="p-3 sm:p-4">
                       <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
                       {item.summary && (
                         <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
+                      )}
+                      {tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2 py-0.5 text-[11px] font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </Link>
@@ -245,28 +246,7 @@ export default async function HomePage({
           <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-6 sm:mb-12 text-center">
             | 프로그램 유형을 선택하세요
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6 max-w-5xl mx-auto">
-            {PROGRAM_CATEGORIES.map((category) => {
-              const Icon = category.icon;
-              return (
-                <Link
-                  key={category.name}
-                  href={category.href}
-                  className="flex flex-col items-center justify-center px-5 sm:px-7 md:px-9 py-5 sm:py-6 md:py-6 rounded-lg bg-white shadow-sm transform transition-all hover:shadow-md hover:-translate-y-0.5 group min-h-[136px] sm:min-h-[140px]"
-                >
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-brand-green/10 rounded-full flex items-center justify-center mb-2 sm:mb-3">
-                    <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-brand-green" />
-                  </div>
-                  <span
-                    className="text-center text-text-dark text-xs sm:text-base md:text-lg leading-snug break-keep whitespace-pre-line"
-                    style={{ fontWeight: 350 }}
-                  >
-                    {category.name}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+          <CategoryGrid />
         </div>
       </section>
 

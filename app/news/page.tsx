@@ -75,21 +75,20 @@ export default async function NewsPage() {
                               NEW
                             </span>
                           )}
+                        </div>
+                        <div className="mt-2 px-0.5 space-y-1.5">
+                          <p className="text-text-dark text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
+                            {item.title}
+                          </p>
                           {tags.length > 0 && (
-                            <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+                            <div className="flex flex-wrap gap-1">
                               {tags.map((tag) => (
-                                <span key={tag} className="rounded-full bg-brand-green-primary/75 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm">
+                                <span key={tag} className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2 py-0.5 text-[10px] font-medium">
                                   {tag}
                                 </span>
                               ))}
                             </div>
                           )}
-                          {/* 하단 제목 오버레이 */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
-                            <p className="text-white text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
-                              {item.title}
-                            </p>
-                          </div>
                         </div>
                       </Link>
                     );
