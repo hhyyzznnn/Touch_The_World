@@ -35,6 +35,13 @@ function useSchoolAutocomplete() {
 
 type InquiryMode = "quick" | "detailed";
 
+interface InquiryPresets {
+  programRef?: string;   // 카드뉴스 제목
+  destination?: string;  // 여행 목적지
+  schoolLevel?: string;  // 학교급
+  purpose?: string;      // 프로그램 유형
+}
+
 function onlyDigits(value: string) {
   return value.replace(/\D/g, "");
 }
@@ -57,7 +64,13 @@ const inputClass =
 const selectClass =
   "w-full px-4 py-3 h-11 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary";
 
-export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
+export function InquiryForm({
+  initialMode,
+  presets,
+}: {
+  initialMode: InquiryMode;
+  presets?: InquiryPresets;
+}) {
   const toast = useToast();
   const [mode, setMode] = useState<InquiryMode>(initialMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +91,14 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
     setValue,
   } = useForm<InquiryFormData>({
     resolver: zodResolver(inquirySchema),
+    defaultValues: {
+      destination: presets?.destination ?? "",
+      schoolLevel: presets?.schoolLevel ?? "",
+      purpose: presets?.purpose ?? "",
+      message: presets?.programRef
+        ? `'${presets.programRef}' 카드뉴스를 보고 문의드립니다.\n\n`
+        : "",
+    },
   });
 
   const onSubmit = async (data: InquiryFormData) => {
@@ -159,6 +180,21 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
+        {/* 참고 프로그램 배너 */}
+        {presets?.programRef && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/8 px-4 py-3.5">
+            <span className="mt-0.5 text-lg">📌</span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-primary">
+                참고 프로그램
+              </p>
+              <p className="mt-0.5 text-sm font-medium text-text-dark leading-snug">
+                {presets.programRef}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* 모드 탭 */}
         <div className="mb-8">
           <h1 className="text-3xl font-medium mb-6">문의하기</h1>
@@ -324,7 +360,6 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                 id="destination"
                 {...register("destination")}
                 className={selectClass}
-                defaultValue=""
               >
                 <option value="">선택해주세요</option>
                 <optgroup label="국내">
@@ -403,7 +438,6 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                       id="schoolLevel"
                       {...register("schoolLevel")}
                       className={selectClass}
-                      defaultValue=""
                     >
                       <option value="">선택해주세요</option>
                       {["초등학교", "중학교", "고등학교", "특성화고", "대학교/기관"].map((v) => (
@@ -420,7 +454,6 @@ export function InquiryForm({ initialMode }: { initialMode: InquiryMode }) {
                       id="accommodation"
                       {...register("accommodation")}
                       className={selectClass}
-                      defaultValue=""
                     >
                       <option value="">선택해주세요</option>
                       {["비숙박 (당일)", "1박 2일", "2박 3일", "3박 4일 이상"].map((v) => (

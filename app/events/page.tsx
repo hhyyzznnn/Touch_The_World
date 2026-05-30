@@ -232,16 +232,20 @@ export default async function EventsPage({
                       {format(new Date(event.date), "yyyy.MM.dd")}
                     </span>
                   </div>
-                  <h3 className="text-lg font-medium text-text-dark mb-2 line-clamp-2">
-                    {event.program.title}
-                  </h3>
-                  <div className="text-sm text-text-gray mb-2">
+                  <h3 className="text-lg font-semibold text-text-dark mb-0.5 line-clamp-1">
                     {event.school.name}
+                  </h3>
+                  <div className="text-sm text-text-gray mb-2 line-clamp-1">
+                    {event.program.title}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-text-gray">
                     <span>{event.location}</span>
-                    <span>·</span>
-                    <span>학생 {event.studentCount}명</span>
+                    {event.studentCount != null && (
+                      <>
+                        <span>·</span>
+                        <span>학생 {event.studentCount}명</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Link>

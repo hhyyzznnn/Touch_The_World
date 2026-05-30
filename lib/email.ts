@@ -114,6 +114,11 @@ export async function sendInquiryNotificationEmail(
   }
 ) {
   const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  // 추가 수신자: ADMIN_CC_EMAILS 환경변수에 쉼표로 구분하여 설정
+  const ccEmails = process.env.ADMIN_CC_EMAILS
+    ? process.env.ADMIN_CC_EMAILS.split(",").map((e) => e.trim()).filter(Boolean)
+    : [];
+  const recipients = [adminEmail, ...ccEmails];
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
   try {
@@ -122,7 +127,7 @@ export async function sendInquiryNotificationEmail(
       console.log("=".repeat(60));
       console.log("📧 문의 알림 이메일 (개발 모드)");
       console.log("=".repeat(60));
-      console.log(`받는 사람: ${adminEmail}`);
+      console.log(`받는 사람: ${recipients.join(", ")}`);
       console.log(`학교명: ${inquiryData.schoolName}`);
       console.log(`담당자: ${inquiryData.contact}`);
       console.log(`전화번호: ${inquiryData.phone || "(미입력)"}`);
@@ -136,7 +141,7 @@ export async function sendInquiryNotificationEmail(
 
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL,
-      to: adminEmail,
+      to: recipients,
       subject: `[터치더월드] 새로운 문의가 접수되었습니다 - ${inquiryData.schoolName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -234,7 +239,7 @@ export async function sendInquiryNotificationEmail(
       console.log("=".repeat(60));
       console.log("📧 문의 알림 이메일 (개발 모드)");
       console.log("=".repeat(60));
-      console.log(`받는 사람: ${adminEmail}`);
+      console.log(`받는 사람: ${recipients.join(", ")}`);
       console.log(`학교명: ${inquiryData.schoolName}`);
       console.log(`담당자: ${inquiryData.contact}`);
       console.log(`전화번호: ${inquiryData.phone || "(미입력)"}`);

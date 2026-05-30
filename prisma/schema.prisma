@@ -78,7 +78,7 @@ model Event {
   programId    String
   date         DateTime
   location     String
-  studentCount Int
+  studentCount Int?
   status       String   @default("in_progress") // in_progress, completed
   notes        String?
   createdAt    DateTime @default(now())

@@ -11,8 +11,8 @@ const SCHOOLS = [
   { src: "/logos/schools/pyeongtaek-meister-high.webp", name: "평택마이스터고" },
 ];
 
-// 심리스 루프를 위한 최소 2벌 복제
-const track = [...SCHOOLS, ...SCHOOLS];
+// 4벌 복제 — 와이드 화면에서도 공백 없는 무한 루프
+const track = [...SCHOOLS, ...SCHOOLS, ...SCHOOLS, ...SCHOOLS];
 
 export function SchoolLogoMarquee() {
   return (

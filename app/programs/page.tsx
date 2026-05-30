@@ -9,15 +9,18 @@ import { seoLandingPageList } from "@/lib/seo-landing-pages";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
 
-export const metadata: Metadata = {
-  title: "프로그램 카드뉴스 | 터치더월드",
-  description:
-    "터치더월드의 프로그램 가치와 인사이트를 카드뉴스 형태로 확인하세요. 세부 일정과 견적은 상담 후 맞춤 제안합니다.",
-  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]),
-  alternates: {
-    canonical: "/programs",
-  },
-};
+// category/page 파라미터가 있는 URL에서도 canonical이 /programs로 반드시 포함되도록 generateMetadata 사용
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "프로그램 카드뉴스 | 터치더월드",
+    description:
+      "터치더월드의 프로그램 가치와 인사이트를 카드뉴스 형태로 확인하세요. 세부 일정과 견적은 상담 후 맞춤 제안합니다.",
+    keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]),
+    alternates: {
+      canonical: "/programs",
+    },
+  };
+}
 
 const ITEMS_PER_PAGE = 12;
 

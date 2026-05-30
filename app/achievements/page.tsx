@@ -141,16 +141,20 @@ export default async function AchievementsPage() {
                       {format(new Date(event.date), "yyyy.MM.dd")}
                     </span>
                   </div>
-                  <h3 className="text-base font-medium text-text-dark mb-1 line-clamp-2">
-                    {event.program.title}
-                  </h3>
-                  <div className="text-sm text-text-gray mb-1">
+                  <h3 className="text-base font-semibold text-text-dark mb-0.5 line-clamp-1">
                     {event.school.name}
+                  </h3>
+                  <div className="text-sm text-text-gray mb-2 line-clamp-1">
+                    {event.program.title}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-text-gray">
                     <span>{event.location}</span>
-                    <span>·</span>
-                    <span>학생 {event.studentCount}명</span>
+                    {event.studentCount != null && (
+                      <>
+                        <span>·</span>
+                        <span>학생 {event.studentCount}명</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Link>

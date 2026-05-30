@@ -16,6 +16,7 @@ import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
+import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -31,6 +32,7 @@ export const metadata: Metadata = {
     siteName: "터치더월드",
     locale: "ko_KR",
     type: "website",
+    images: [{ url: "/images/og_image2.png", width: 1376, height: 768, alt: "터치더월드 | 교육여행 전문" }],
   },
 };
 
@@ -50,12 +52,14 @@ async function getNewsForTicker() {
   }
 }
 
+const CARD_NEWS_TAKE = SHORTS_VIDEOS.length > 0 ? 3 : 4;
+
 async function getCardNewsForHome() {
   try {
     return await prisma.companyNews.findMany({
       where: { type: "PROGRAM_CARD_NEWS", imageUrl: { not: null } },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-      take: 4,
+      take: CARD_NEWS_TAKE,
       select: {
         id: true, title: true, summary: true, imageUrl: true,
         link: true, isPinned: true, createdAt: true, category: true, hashtags: true,
@@ -69,7 +73,7 @@ async function getCardNewsForHome() {
 async function getRecentEvents() {
   try {
     return await prisma.event.findMany({
-      take: 3,
+      take: 5,
       include: {
         school: { select: { id: true, name: true } },
         program: { select: { id: true, title: true, category: true } },
@@ -143,8 +147,8 @@ export default async function HomePage({
       {/* ── 회사 소식 ── */}
       <NewsTicker items={newsTickerItems} />
 
-      {/* ── 카드뉴스 ── */}
-      {cardNewsItems.length > 0 && (
+      {/* ── 카드뉴스 (영상 첫 칸 통합) ── */}
+      {(cardNewsItems.length > 0 || SHORTS_VIDEOS.length > 0) && (
         <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-5 sm:mb-8">
@@ -158,6 +162,32 @@ export default async function HomePage({
               </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+
+              {/* 쇼츠 영상 — 첫 번째 칸 (9:16 전체, 텍스트 영역 없음) */}
+              {SHORTS_VIDEOS[0] && (() => {
+                const video = SHORTS_VIDEOS[0];
+                const inner = (
+                  <div className="group relative aspect-[9/16] overflow-hidden rounded-xl bg-gray-900 border border-gray-200 hover:shadow-md transition-shadow">
+                    <video
+                      src={video.src}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+                    <p className="absolute inset-x-0 bottom-3 px-3 text-white text-sm font-medium line-clamp-2 leading-snug">
+                      {video.title}
+                    </p>
+                  </div>
+                );
+                return video.href
+                  ? <Link key="shorts-video" href={video.href}>{inner}</Link>
+                  : <div key="shorts-video">{inner}</div>;
+              })()}
+
               {cardNewsItems.map((item) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");

@@ -63,7 +63,7 @@ export async function PUT(
         programId: finalProgramId,
         date: new Date(date),
         location: location || "",
-        studentCount: studentCount ? parseInt(studentCount) : 0,
+        studentCount: studentCount != null && studentCount !== "" ? parseInt(String(studentCount)) : null,
         status: status || "in_progress",
         notes: endDate 
           ? `${content || ""}\n기간: ${date} ~ ${endDate}`.trim()

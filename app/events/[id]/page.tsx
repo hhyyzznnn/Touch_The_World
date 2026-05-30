@@ -123,7 +123,7 @@ export default async function EventDetailPage({
         <h1 className="text-4xl font-bold mb-4">{event.school.name}</h1>
         <div className="text-lg text-gray-600 mb-2">{event.program.title}</div>
         <div className="text-gray-500">
-          {event.location} · 학생 {event.studentCount}명
+          {event.location}{event.studentCount != null ? ` · 학생 ${event.studentCount}명` : ""}
         </div>
       </div>
 

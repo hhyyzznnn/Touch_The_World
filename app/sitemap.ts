@@ -112,22 +112,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Error fetching events for sitemap:", error);
   }
 
-  // 동적 페이지: 학교
-  let schoolPages: MetadataRoute.Sitemap = [];
-  try {
-    const schools = await prisma.school.findMany({
-      select: { id: true, updatedAt: true },
-    });
-    schoolPages = schools.map((school) => ({
-      url: `${baseUrl}/school/${school.id}`,
-      lastModified: school.updatedAt,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }));
-  } catch (error) {
-    console.error("Error fetching schools for sitemap:", error);
-  }
-
   // 동적 페이지: 회사 소식
   let newsPages: MetadataRoute.Sitemap = [];
   try {
@@ -145,5 +129,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Error fetching news for sitemap:", error);
   }
 
-  return [...staticPages, ...programPages, ...eventPages, ...schoolPages, ...newsPages];
+  return [...staticPages, ...programPages, ...eventPages, ...newsPages];
 }
