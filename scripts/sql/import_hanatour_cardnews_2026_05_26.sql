@@ -17,7 +17,7 @@ INSERT INTO "CompanyNews" (
   "updatedAt"
 ) VALUES (
   'cardnews_hanatour_teacher_benefits_2026',
-  'PROGRAM_CARD_NEWS',
+  'COMPANY_NEWS',
   '기타 프로그램',
   '교직원과 가족을 위한 하나투어 전용 여행 혜택',
   '교직원회원 전용 사이트 ttw.hanatour.com에서 패키지 3% 할인, 호텔 3% 할인, 지역별 특전, 단체여행 팁북 10달러 상당 혜택을 누리세요.',

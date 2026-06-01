@@ -51,8 +51,8 @@ async function getNewsForTicker() {
     return await prisma.companyNews.findMany({
       where: { type: "COMPANY_NEWS" },
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-      take: 1,
-      select: { id: true, title: true, link: true },
+      take: 8,
+      select: { id: true, title: true, link: true, isPinned: true },
     });
   } catch {
     return [];
