@@ -13,6 +13,7 @@ import { getSiteUrl } from "@/lib/site-url";
 import { COMPANY_INFO } from "@/lib/constants";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { ToastProvider } from "@/components/ui/toast";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
 const notoSerif = Noto_Serif_KR({ 
   subsets: ["latin"],
@@ -150,6 +151,7 @@ export default function RootLayout({
           }}
         />
       </head>
+      <GoogleAnalytics />
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`} suppressHydrationWarning>
         <ToastProvider>
           <KakaoScript />

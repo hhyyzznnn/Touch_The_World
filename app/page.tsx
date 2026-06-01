@@ -36,6 +36,13 @@ export const metadata: Metadata = {
   },
 };
 
+function stripBrandFromTitle(title: string): string {
+  return title
+    .replace(/^\[?터치더월드\]?\s*[×x\-·|]\s*/i, "")
+    .replace(/\s*[×x\-·|]\s*터치더월드\s*$/i, "")
+    .trim();
+}
+
 const EVENT_IMAGE_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==";
 
@@ -229,7 +236,7 @@ export default async function HomePage({
                       )}
                     </div>
                     <div className="p-3 sm:p-4">
-                      <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
+                      <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
                       {item.summary && (
                         <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
                       )}

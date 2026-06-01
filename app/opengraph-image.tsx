@@ -9,7 +9,7 @@ export const contentType = "image/png";
 async function loadKoreanFont(): Promise<ArrayBuffer | undefined> {
   try {
     const text = encodeURIComponent(
-      "터치더월드교육여행체험학습AI프로그램Since1996학교지자체대상전문기업·"
+      "터치더월드교육여행체험학습AI프로그램Since1996초중고등학교지자체대상전문기업·"
     );
     // 구형 UA 사용 시 Google Fonts가 TTF 형식 반환 — ImageResponse는 woff2 미지원
     const css = await fetch(
@@ -176,7 +176,7 @@ export default async function Image() {
             letterSpacing: "1px",
           }}
         >
-          Since 1996 · 학교·지자체 대상 전문 교육여행 기업
+          Since 1996 · 초·중·고등학교 및 지자체 대상 전문 교육여행 기업
         </div>
       </div>
     ),

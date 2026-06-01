@@ -13,9 +13,32 @@ export const metadata: Metadata = {
   },
 };
 
-async function getCardNews() {
+const FILTER_TABS = [
+  { label: "전체", value: "all" },
+  { label: "국내", value: "국내" },
+  { label: "해외", value: "해외" },
+  { label: "일본", value: "일본" },
+] as const;
+
+function stripBrandFromTitle(title: string): string {
+  return title
+    .replace(/^\[?터치더월드\]?\s*[×x\-·|]\s*/i, "")
+    .replace(/\s*[×x\-·|]\s*터치더월드\s*$/i, "")
+    .trim();
+}
+
+async function getCardNews(tag: string) {
+  const where =
+    tag === "all"
+      ? { type: CompanyNewsType.PROGRAM_CARD_NEWS, imageUrl: { not: null } }
+      : {
+          type: CompanyNewsType.PROGRAM_CARD_NEWS,
+          imageUrl: { not: null },
+          hashtags: { has: `#${tag}` },
+        };
+
   return await prisma.companyNews.findMany({
-    where: { type: CompanyNewsType.PROGRAM_CARD_NEWS, imageUrl: { not: null } },
+    where,
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     select: { id: true, title: true, imageUrl: true, link: true, category: true, hashtags: true, isPinned: true },
   });
@@ -28,17 +51,50 @@ async function getNews() {
   });
 }
 
-export default async function NewsPage() {
-  const [cardNews, list] = await Promise.all([getCardNews(), getNews()]);
+export default async function NewsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tag?: string }>;
+}) {
+  const { tag: rawTag } = await searchParams;
+  const activeTag = FILTER_TABS.some((t) => t.value === rawTag) ? rawTag! : "all";
+
+  const [cardNews, list] = await Promise.all([getCardNews(activeTag), getNews()]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 sm:py-12 space-y-10 sm:space-y-14">
 
-        {/* 카드뉴스 가로 스크롤 */}
-        {cardNews.length > 0 && (
-          <section>
-            <h2 className="text-xl sm:text-2xl font-bold text-text-dark mb-4">카드뉴스</h2>
+        {/* 카드뉴스 섹션 */}
+        <section>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-text-dark">카드뉴스</h2>
+            {/* 필터 탭 */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {FILTER_TABS.map((tab) => {
+                const isActive = activeTag === tab.value;
+                return (
+                  <Link
+                    key={tab.value}
+                    href={tab.value === "all" ? "/news" : `/news?tag=${tab.value}`}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-brand-green-primary text-white"
+                        : "bg-white border border-gray-200 text-text-gray hover:border-brand-green-primary hover:text-brand-green-primary"
+                    }`}
+                  >
+                    {tab.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {cardNews.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-text-gray">
+              해당 지역 카드뉴스가 없습니다.
+            </div>
+          ) : (
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-gray-50 to-transparent z-10" />
               <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-gray-50 to-transparent z-10" />
@@ -50,7 +106,7 @@ export default async function NewsPage() {
                     const tags = [
                       item.category ? `#${item.category}` : null,
                       item.hashtags.find((t) =>
-                        ["#서울","#인천","#포천","#가평","#충남","#일본","#해외"].includes(t)
+                        ["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#국내"].includes(t)
                       ) ?? null,
                     ].filter(Boolean) as string[];
 
@@ -78,7 +134,7 @@ export default async function NewsPage() {
                         </div>
                         <div className="mt-2 px-0.5 space-y-1.5">
                           <p className="text-text-dark text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
-                            {item.title}
+                            {stripBrandFromTitle(item.title)}
                           </p>
                           {tags.length > 0 && (
                             <div className="flex flex-wrap gap-1">
@@ -96,8 +152,8 @@ export default async function NewsPage() {
                 </div>
               </div>
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         {/* 회사 소식 테이블 */}
         <section>
