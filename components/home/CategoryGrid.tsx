@@ -91,8 +91,8 @@ export function CategoryGrid() {
                   <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </motion.div>
 
-                {/* 카테고리명 */}
-                <span className="text-center text-xs sm:text-sm md:text-base leading-snug break-keep whitespace-pre-line font-semibold text-white drop-shadow-sm">
+                {/* 카테고리명 — 2줄 고정 높이로 아이콘 위치 통일 */}
+                <span className="flex items-center justify-center h-10 text-center text-xs sm:text-sm md:text-base leading-snug break-keep whitespace-pre-line font-semibold text-white drop-shadow-sm">
                   {category.name}
                 </span>
 
