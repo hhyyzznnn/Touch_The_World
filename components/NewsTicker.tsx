@@ -48,11 +48,15 @@ export function NewsTicker({ items }: { items: NewsItem[] }) {
   return (
     <section className="bg-brand-green-primary/10 border-y border-brand-green-primary/20 overflow-hidden">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-center gap-2 text-sm sm:text-base max-w-4xl mx-auto">
-          <span className="text-text-gray font-medium shrink-0">회사 소식</span>
-          <span className="text-gray-300 shrink-0" aria-hidden>|</span>
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 text-sm sm:text-base max-w-4xl mx-auto">
+          {/* 좌측 레이블 */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-text-gray font-medium">회사 소식</span>
+            <span className="text-gray-300" aria-hidden>|</span>
+          </div>
 
-          <div className="flex-1 min-w-0" style={style}>
+          {/* 중앙 제목 */}
+          <div className="flex justify-center overflow-hidden" style={style}>
             <Link
               href={href}
               className="inline-flex items-center gap-2 hover:underline underline-offset-2 min-w-0"
@@ -64,15 +68,18 @@ export function NewsTicker({ items }: { items: NewsItem[] }) {
                   NEW
                 </span>
               )}
-              <span className="text-text-dark max-w-[58vw] sm:max-w-2xl truncate">{item.title}</span>
+              <span className="text-text-dark truncate">{item.title}</span>
             </Link>
           </div>
 
-          {items.length > 1 && (
-            <span className="text-xs text-text-gray/60 shrink-0 tabular-nums">
-              {index + 1}/{items.length}
-            </span>
-          )}
+          {/* 우측 카운터 */}
+          <div className="shrink-0 w-8 text-right">
+            {items.length > 1 && (
+              <span className="text-xs text-text-gray/60 tabular-nums">
+                {index + 1}/{items.length}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </section>
