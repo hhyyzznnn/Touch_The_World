@@ -65,13 +65,13 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
           rel={isExternal ? "noopener noreferrer" : undefined}
           onClick={close}
         >
-          <div className="relative aspect-[3/4] bg-gray-100">
+          <div className="relative aspect-square bg-white">
             <Image
               src={imageUrl}
               alt={title}
               fill
               sizes="384px"
-              className="object-cover"
+              className="object-contain"
               priority
             />
           </div>
