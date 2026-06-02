@@ -17,6 +17,7 @@ import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } fro
 import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
 import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
+import { HomePopup } from "@/components/home/HomePopup";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -45,6 +46,18 @@ function stripBrandFromTitle(title: string): string {
 
 const EVENT_IMAGE_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==";
+
+async function getPopupNews() {
+  try {
+    return await prisma.companyNews.findFirst({
+      where: { type: "COMPANY_NEWS", imageUrl: { not: null } },
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      select: { id: true, title: true, summary: true, imageUrl: true, link: true },
+    });
+  } catch {
+    return null;
+  }
+}
 
 async function getNewsForTicker() {
   try {
@@ -101,15 +114,27 @@ export default async function HomePage({
   searchParams?: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const [recentEvents, newsTickerItems, cardNewsItems, greeting] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems, greeting, popupNews] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
     getCardNewsForHome(),
     getPersonalizedGreeting(),
+    getPopupNews(),
   ]);
 
   return (
     <div>
+      {/* ── 홈 팝업 ── */}
+      {popupNews?.imageUrl && (
+        <HomePopup
+          id={popupNews.id}
+          title={popupNews.title}
+          summary={popupNews.summary ?? ""}
+          imageUrl={popupNews.imageUrl}
+          link={popupNews.link}
+        />
+      )}
+
       {/* ── Hero ── */}
       <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
