@@ -242,7 +242,7 @@ export default async function HomePage({
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
-                    <div className="relative aspect-square bg-gray-100">
+                    <div className="relative aspect-[4/5] bg-gray-100">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
