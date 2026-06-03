@@ -118,7 +118,7 @@ export default async function NewsPage({
                         rel={isExternal ? "noopener noreferrer" : undefined}
                         className="group flex-shrink-0 w-[56vw] sm:w-64 md:w-72"
                       >
-                        <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100">
+                        <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
                           <Image
                             src={item.imageUrl!}
                             alt={item.title}
