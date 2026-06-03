@@ -118,13 +118,13 @@ export default async function NewsPage({
                         rel={isExternal ? "noopener noreferrer" : undefined}
                         className="group flex-shrink-0 w-[56vw] sm:w-64 md:w-72"
                       >
-                        <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-100">
+                        <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-50">
                           <Image
                             src={item.imageUrl!}
                             alt={item.title}
                             fill
                             sizes="(max-width: 640px) 56vw, 288px"
-                            className="object-cover group-hover:scale-[1.03] transition-transform duration-300"
+                            className="object-contain group-hover:scale-[1.03] transition-transform duration-300"
                           />
                           {item.isPinned && (
                             <span className="absolute top-2 left-2 rounded-full bg-brand-green-primary px-2.5 py-0.5 text-[10px] font-bold text-white">
