@@ -5,14 +5,17 @@ import { Button } from "@/components/ui/button";
 import { InquiryDetailModal } from "@/components/inquiry/InquiryDetailModal";
 import { Inquiry } from "@/types";
 import { InquiryStatusValue } from "@/lib/inquiry-status";
+import { useToast } from "@/components/ui/toast";
 
 interface InquiryActionsProps {
   inquiry: Omit<Inquiry, "status"> & { status: string };
 }
 
 export function InquiryActions({ inquiry }: InquiryActionsProps) {
+  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentInquiry, setCurrentInquiry] = useState(inquiry);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleStatusUpdate = (updatedInquiry: Omit<Inquiry, "status"> & { status: string }) => {
     setCurrentInquiry(updatedInquiry);
@@ -27,26 +30,26 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
   const quickAction = quickTransitionMap[currentInquiry.status as InquiryStatusValue];
 
   const handleQuickStatusChange = async () => {
-    if (!quickAction) return;
+    if (!quickAction || isTransitioning) return;
+    setIsTransitioning(true);
     try {
       const response = await fetch(`/api/admin/inquiries/${currentInquiry.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: quickAction.next }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        if (data?.inquiry) {
-          setCurrentInquiry(data.inquiry);
-          return;
-        }
-        window.location.reload();
+        setCurrentInquiry(data?.inquiry ?? { ...currentInquiry, status: quickAction.next });
+        toast.success("상태가 변경되었습니다.");
+      } else {
+        toast.error("상태 변경에 실패했습니다.");
       }
-    } catch (error) {
-      console.error("Error updating status:", error);
+    } catch {
+      toast.error("상태 변경에 실패했습니다.");
+    } finally {
+      setIsTransitioning(false);
     }
   };
 
@@ -66,8 +69,9 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
             size="sm"
             variant="outline"
             onClick={handleQuickStatusChange}
+            disabled={isTransitioning}
           >
-            {quickAction.label}
+            {isTransitioning ? "처리 중..." : quickAction.label}
           </Button>
         )}
       </div>

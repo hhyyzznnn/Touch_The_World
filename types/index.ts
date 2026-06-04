@@ -47,6 +47,9 @@ export interface Inquiry {
   mealPreference: string | null;
   specialRequests: string | null;
   estimatedBudget: number | null;
+  destination: string | null;
+  schoolLevel: string | null;
+  accommodation: string | null;
   status: InquiryStatus;
   createdAt: Date;
   updatedAt: Date;

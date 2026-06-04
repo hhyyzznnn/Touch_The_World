@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
+import { CheckCircle2, Bookmark } from "lucide-react";
 
 type SchoolSuggestion = { name: string; level: string; region: string | null };
 
@@ -149,7 +150,9 @@ export function InquiryForm({
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto text-center">
           <div className="mb-6">
-            <div className="text-6xl mb-4">✓</div>
+            <div className="flex justify-center mb-4">
+              <CheckCircle2 className="w-16 h-16 text-brand-green-primary" />
+            </div>
             <h1 className="text-3xl font-medium mb-4">문의가 접수되었습니다</h1>
             <p className="text-gray-600 mb-8">빠른 시일 내에 연락드리겠습니다.</p>
             {submitResult?.inquiryNumber && (
@@ -182,8 +185,8 @@ export function InquiryForm({
       <div className="max-w-2xl mx-auto">
         {/* 참고 프로그램 배너 */}
         {presets?.programRef && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/8 px-4 py-3.5">
-            <span className="mt-0.5 text-lg">📌</span>
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/10 px-4 py-3.5">
+            <Bookmark className="mt-0.5 w-4 h-4 text-brand-green-primary flex-shrink-0" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-green-primary">
                 참고 프로그램
@@ -341,6 +344,7 @@ export function InquiryForm({
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   {...register("email")}
                   className={inputClass}
                   placeholder="example@school.kr"
@@ -420,8 +424,8 @@ export function InquiryForm({
                     </label>
                     <input
                       id="participantCount"
-                      type="number"
-                      min="1"
+                      type="text"
+                      inputMode="numeric"
                       {...register("participantCount")}
                       className={inputClass}
                       placeholder="예: 50"

@@ -8,7 +8,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Mail, Calendar, Users, MapPin } from "lucide-react";
+import { Mail, Calendar, Users, MapPin, User } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { formatInquiryNumber, getInquiryStatusMeta } from "@/lib/inquiry-status";
 import { StatusStepper } from "@/components/inquiry/StatusStepper";
@@ -92,7 +92,7 @@ export default async function MyInquiriesPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-text-gray">
                     <div className="flex items-center gap-1">
-                      <Mail className="w-4 h-4" />
+                      <User className="w-4 h-4" />
                       <span>{inquiry.contact}</span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -114,6 +114,13 @@ export default async function MyInquiriesPage() {
 
               {/* 문의 요약 정보 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-gray-100">
+                {inquiry.destination && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="w-4 h-4 text-text-gray" />
+                    <span className="text-text-gray">목적지:</span>
+                    <span className="text-text-dark font-medium">{inquiry.destination}</span>
+                  </div>
+                )}
                 {inquiry.expectedDate && (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="w-4 h-4 text-text-gray" />

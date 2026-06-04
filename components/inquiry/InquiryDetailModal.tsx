@@ -85,9 +85,9 @@ export function InquiryDetailModal({
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-500">날짜</label>
+              <label className="text-sm font-medium text-gray-500">접수 일시</label>
               <p className="mt-1 text-sm text-gray-900">
-                {format(new Date(inquiry.createdAt), "yyyy년 MM월 dd일")}
+                {format(new Date(inquiry.createdAt), "yyyy.MM.dd HH:mm")}
               </p>
             </div>
             <div>
@@ -145,21 +145,45 @@ export function InquiryDetailModal({
           </div>
 
           {/* 프로그램 정보 */}
-          {(inquiry.expectedDate || inquiry.participantCount || inquiry.purpose || inquiry.hasInstructor !== null || inquiry.preferredTransport || inquiry.mealPreference || inquiry.estimatedBudget) && (
+          {(inquiry.destination || inquiry.schoolLevel || inquiry.expectedDate || inquiry.participantCount || inquiry.accommodation || inquiry.purpose || inquiry.hasInstructor !== null || inquiry.preferredTransport || inquiry.mealPreference || inquiry.estimatedBudget) && (
             <div className="border-t pt-6 space-y-4">
               <h3 className="text-lg font-medium text-gray-900">프로그램 정보</h3>
-              
+
               <div className="grid grid-cols-2 gap-4">
+                {inquiry.destination && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">여행 목적지</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.destination}</p>
+                  </div>
+                )}
+                {inquiry.schoolLevel && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">학교급</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.schoolLevel}</p>
+                  </div>
+                )}
                 {inquiry.expectedDate && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">예상 일정</label>
                     <p className="mt-1 text-sm text-gray-900">{inquiry.expectedDate}</p>
                   </div>
                 )}
-                {inquiry.participantCount && (
+                {inquiry.participantCount != null && (
                   <div>
                     <label className="text-sm font-medium text-gray-500">예상 인원</label>
                     <p className="mt-1 text-sm text-gray-900">{inquiry.participantCount}명</p>
+                  </div>
+                )}
+                {inquiry.accommodation && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">숙박 여부</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.accommodation}</p>
+                  </div>
+                )}
+                {inquiry.estimatedBudget != null && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">예상 예산</label>
+                    <p className="mt-1 text-sm text-gray-900">{inquiry.estimatedBudget.toLocaleString()}원</p>
                   </div>
                 )}
               </div>
@@ -192,13 +216,6 @@ export function InquiryDetailModal({
                   <p className="mt-1 text-sm text-gray-900">{inquiry.mealPreference}</p>
                 </div>
               )}
-
-              {inquiry.estimatedBudget && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">예상 예산</label>
-                  <p className="mt-1 text-sm text-gray-900">{inquiry.estimatedBudget.toLocaleString()}원</p>
-                </div>
-              )}
             </div>
           )}
 
@@ -213,7 +230,7 @@ export function InquiryDetailModal({
 
           <div>
             <label className="text-sm font-medium text-gray-500">기타 문의 내용</label>
-            <div className="mt-1 p-4 bg-gray-50 rounded-md min-h-[150px]">
+            <div className="mt-1 p-4 bg-gray-50 rounded-md min-h-[80px]">
               <p className="text-sm text-gray-900 whitespace-pre-wrap">
                 {inquiry.message || "문의 내용이 없습니다."}
               </p>
