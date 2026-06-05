@@ -37,6 +37,10 @@ export const metadata: Metadata = {
   },
 };
 
+function isRecentlyAdded(createdAt: Date): boolean {
+  return Date.now() - new Date(createdAt).getTime() < 14 * 24 * 60 * 60 * 1000;
+}
+
 function stripBrandFromTitle(title: string): string {
   return title
     .replace(/^\[?터치더월드\]?\s*[×x\-·|]\s*/i, "")
@@ -254,7 +258,7 @@ export default async function HomePage({
                       ) : (
                         <ImagePlaceholder text="카드뉴스" className="text-xs" />
                       )}
-                      {item.isPinned && (
+                      {isRecentlyAdded(item.createdAt) && (
                         <span className="absolute top-2 left-2 inline-flex items-center rounded bg-brand-green-primary px-2 py-0.5 text-xs font-bold text-white">
                           NEW
                         </span>
@@ -306,7 +310,7 @@ export default async function HomePage({
       <section className="py-10 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-6 sm:mb-12 text-center">
-            | 프로그램 유형을 선택하세요
+            프로그램 유형을 선택하세요
           </h2>
           <CategoryGrid />
         </div>
@@ -378,7 +382,7 @@ export default async function HomePage({
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
-              | 최근 진행 행사
+              최근 진행 행사
             </h2>
             <Link
               href="/events"
