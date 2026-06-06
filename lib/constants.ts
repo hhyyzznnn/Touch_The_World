@@ -40,8 +40,9 @@ export const COMPANY_INFO = {
   email: "pjjttw@naver.com",
   businessHours: "평일 09:00 - 18:00 (점심시간 12:00 - 13:00)",
   kakaoChannel: "https://pf.kakao.com/_xoxixkPn/chat", // 카카오톡 채널 링크 (채팅 진입 URL)
-  instagram: "https://www.instagram.com/touch_tw", // 인스타그램 링크
-  facebook: "https://www.facebook.com/pjjttw", // 페이스북 링크
+  instagram: "https://www.instagram.com/touch_tw",
+  facebook: "https://www.facebook.com/pjjttw",
+  youtube: "https://www.youtube.com/@%EB%B0%95%EC%A0%95%EC%A3%BC-o4x",
 } as const;
 
 export const NAVIGATION_LINKS = [

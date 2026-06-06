@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 import { PROGRAM_CATEGORIES, COMPANY_INFO } from "@/lib/constants";
 import { GlobalSearchBar } from "./GlobalSearchBar";
 import { UserMenu } from "./UserMenu";
-import { Menu, X, ChevronDown, Instagram, Facebook } from "lucide-react";
+import { Menu, X, ChevronDown, Instagram, Facebook, Youtube } from "lucide-react";
 
 export function Header() {
   const pathname = usePathname();
@@ -98,7 +98,7 @@ export function Header() {
           {/* 사용자 메뉴 및 SNS 버튼 */}
           <div className="hidden xl:flex items-center ml-6 gap-3">
             {/* SNS 버튼 */}
-            {(COMPANY_INFO.instagram || COMPANY_INFO.facebook) && (
+            {(COMPANY_INFO.instagram || COMPANY_INFO.facebook || COMPANY_INFO.youtube) && (
               <div className="flex items-center gap-2">
                 {COMPANY_INFO.instagram && (
                   <a
@@ -120,6 +120,17 @@ export function Header() {
                     aria-label="Facebook"
                   >
                     <Facebook className="w-4 h-4" />
+                  </a>
+                )}
+                {COMPANY_INFO.youtube && (
+                  <a
+                    href={COMPANY_INFO.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                    aria-label="YouTube"
+                  >
+                    <Youtube className="w-4 h-4" />
                   </a>
                 )}
               </div>
@@ -246,7 +257,7 @@ export function Header() {
             {/* 모바일 사용자 메뉴 및 SNS 버튼 */}
             <div className="px-4 pt-4 border-t">
               {/* 모바일 SNS 버튼 */}
-              {(COMPANY_INFO.instagram || COMPANY_INFO.facebook) && (
+              {(COMPANY_INFO.instagram || COMPANY_INFO.facebook || COMPANY_INFO.youtube) && (
                 <div className="flex items-center gap-2 mb-4">
                   {COMPANY_INFO.instagram && (
                     <a
@@ -270,6 +281,18 @@ export function Header() {
                       onClick={closeMenu}
                     >
                       <Facebook className="w-4 h-4" />
+                    </a>
+                  )}
+                  {COMPANY_INFO.youtube && (
+                    <a
+                      href={COMPANY_INFO.youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                      aria-label="YouTube"
+                      onClick={closeMenu}
+                    >
+                      <Youtube className="w-4 h-4" />
                     </a>
                   )}
                 </div>
