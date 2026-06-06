@@ -13,9 +13,8 @@ import path from "path";
 const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
 
 const MIGRATE_ITEMS = [
-  { id: "cardnews_hanatour_teacher_benefits_2026",  folder: "public/company-news/hanatour-teacher-benefits-2026" },
-  { id: "cardnews_pocheon_education_trip_2026",     folder: "public/company-news/pocheon-education-trip-2026" },
-  { id: "cardnews_pocheon_teacher_training_2026",  folder: "public/company-news/pocheon-teacher-training-2026" },
+  // 예시: 아래에 이관할 항목을 추가하세요
+  // { id: "cardnews_xxx", folder: "public/company-news/xxx" },
 ];
 
 async function uploadFolder(folderPath: string): Promise<string[]> {
