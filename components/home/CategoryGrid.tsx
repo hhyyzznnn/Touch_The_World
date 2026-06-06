@@ -72,7 +72,7 @@ export function CategoryGrid() {
           {/* 하단 텍스트 */}
           <div className="p-3 sm:p-4">
             {/* 배지 */}
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs sm:text-[13px] font-semibold bg-brand-green-primary text-white mb-2">
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-[13px] sm:text-sm font-semibold bg-brand-green-primary text-white mb-2">
               {categoryBadges[index]}
             </span>
 
