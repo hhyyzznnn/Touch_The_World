@@ -12,7 +12,7 @@ import path from "path";
 
 const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
 
-const MIGRATE_ITEMS = [
+const MIGRATE_ITEMS: { id: string; folder: string }[] = [
   // 예시: 아래에 이관할 항목을 추가하세요
   // { id: "cardnews_xxx", folder: "public/company-news/xxx" },
 ];

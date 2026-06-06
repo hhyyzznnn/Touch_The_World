@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { X, ArrowRight } from "lucide-react";
 
 interface HomePopupProps {
   id: string;
@@ -21,7 +21,6 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw && Date.now() < parseInt(raw)) return;
-    // 약간 딜레이 후 등장 (페이지 로드 직후 너무 급하지 않게)
     const t = setTimeout(() => setVisible(true), 600);
     return () => clearTimeout(t);
   }, []);
@@ -42,11 +41,11 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm"
       onClick={close}
     >
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 닫기 버튼 */}
@@ -64,8 +63,9 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
           target={isExternal ? "_blank" : undefined}
           rel={isExternal ? "noopener noreferrer" : undefined}
           onClick={close}
+          className="block"
         >
-          <div className="relative aspect-square bg-white">
+          <div className="relative aspect-[3/4] bg-gray-100">
             <Image
               src={imageUrl}
               alt={title}
@@ -77,25 +77,30 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
           </div>
         </Link>
 
-        {/* 텍스트 */}
-        <div className="px-4 pt-3 pb-1">
-          <p className="text-sm font-semibold text-text-dark line-clamp-1">{title}</p>
-          <p className="text-xs text-text-gray mt-0.5 line-clamp-2 leading-relaxed">{summary}</p>
+        {/* 텍스트 + CTA */}
+        <div className="px-5 pt-4 pb-2">
+          <p className="text-sm font-bold text-text-dark leading-snug line-clamp-1">{title}</p>
+          {summary && (
+            <p className="mt-0.5 text-xs text-text-gray leading-relaxed line-clamp-2">{summary}</p>
+          )}
+          <Link
+            href={href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
+            onClick={close}
+            className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-brand-green-primary hover:bg-brand-green text-white text-sm font-semibold py-2.5 transition-colors"
+          >
+            자세히 보기 <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
 
-        {/* 하단 버튼 */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        {/* 하단 */}
+        <div className="flex justify-center px-5 pt-2 pb-5">
           <button
             onClick={hideToday}
-            className="text-xs text-text-gray hover:text-text-dark transition-colors"
+            className="text-xs text-text-gray/70 hover:text-text-gray transition-colors"
           >
-            오늘 하루 안 보기
-          </button>
-          <button
-            onClick={close}
-            className="text-xs font-medium text-brand-green-primary hover:underline"
-          >
-            닫기
+            오늘 하루 보지 않기
           </button>
         </div>
       </div>
