@@ -24,7 +24,15 @@ const DynamicAdminStatsChart = dynamic(
   () => Promise.resolve({ default: AdminStatsChart }),
   { 
     ssr: false,
-    loading: () => <div className="h-[300px] flex items-center justify-center text-gray-400">차트 로딩 중...</div>
+    loading: () => (
+      <div className="grid md:grid-cols-2 gap-4">
+        {[0, 1].map((i) => (
+          <div key={i} className="bg-white rounded-xl border p-5 h-[336px] flex items-center justify-center">
+            <span className="text-sm text-gray-300">차트 불러오는 중…</span>
+          </div>
+        ))}
+      </div>
+    )
   }
 );
 
