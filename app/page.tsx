@@ -148,30 +148,43 @@ export default async function HomePage({
               <span className="text-text-dark">THE WORLD</span>
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl font-medium text-text-dark" style={{ lineHeight: "1.4", letterSpacing: "-0.02em" }}>
-              <span className="block">안전과 교육의 가치를 실현하는</span>
-              <span className="block">프리미엄 교육여행 파트너</span>
-            </p>
-            <p className="text-sm sm:text-base md:text-lg text-text-gray leading-relaxed">
-              <span className="block">교육자의 시간을 절약하고,</span>
-              <span className="block">학습자의 세계를 확장합니다.</span>
+              <span className="block">수학여행·교사연수·해외연수,</span>
+              <span className="block">학교 맞춤 설계 전문</span>
             </p>
 
-            <div className="pt-4 sm:pt-6">
+            {/* 신뢰 배지 */}
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs sm:text-sm text-text-gray">
+              <span className="flex items-center gap-1">
+                <span className="text-brand-green-primary font-semibold">1996년</span> 창립
+              </span>
+              <span className="text-gray-300">·</span>
+              <span className="flex items-center gap-1">
+                전국 <span className="text-brand-green-primary font-semibold">500+</span> 협력 학교
+              </span>
+              <span className="text-gray-300">·</span>
+              <span className="flex items-center gap-1">
+                <span className="text-brand-green-primary font-semibold">안전 무사고</span> 운영
+              </span>
+            </div>
+
+            <div className="pt-2 sm:pt-4">
               <HeroChatInputWrapper category={resolvedSearchParams?.category} greeting={greeting} />
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
+            {/* CTA — 문의가 주 버튼 */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center pt-2 sm:pt-4">
+              <InquiryDropdownButton />
               <Button
                 asChild
                 size="lg"
-                className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200 min-h-11"
+                variant="outline"
+                className="border-gray-300 text-text-dark hover:bg-gray-50 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl transition-all duration-200 min-h-11"
               >
                 <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
                   <List className="w-4 h-4 sm:w-5 sm:h-5" />
                   전체 프로그램
                 </Link>
               </Button>
-              <InquiryDropdownButton />
             </div>
           </div>
         </div>
@@ -187,11 +200,14 @@ export default async function HomePage({
       {(cardNewsItems.length > 0 || SHORTS_VIDEOS.length > 0) && (
         <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-5 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">카드뉴스</h2>
+            <div className="flex items-start justify-between mb-5 sm:mb-8">
+              <div>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">카드뉴스</h2>
+                <p className="mt-1 text-xs sm:text-sm text-text-gray">최신 교육여행 트렌드와 프로그램을 미리 확인하세요</p>
+              </div>
               <Link
                 href="/news"
-                className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base"
+                className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base flex-shrink-0 mt-1"
               >
                 전체 보기
                 <ChevronRight className="w-4 h-4" />
@@ -310,9 +326,12 @@ export default async function HomePage({
       {/* ── 프로그램 유형 ── */}
       <section className="py-10 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-6 sm:mb-12 text-center">
-            프로그램 유형을 선택하세요
-          </h2>
+          <div className="text-center mb-6 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
+              어떤 프로그램이 필요하신가요?
+            </h2>
+            <p className="mt-2 text-sm text-text-gray">프로그램을 선택하면 맞춤 견적을 받을 수 있습니다</p>
+          </div>
           <CategoryGrid />
         </div>
       </section>
