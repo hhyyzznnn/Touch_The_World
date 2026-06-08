@@ -77,7 +77,7 @@ export function CategoryGrid() {
             </span>
 
             {/* 제목 */}
-            <p className="text-xs sm:text-sm font-bold text-text-dark leading-snug whitespace-pre-line mb-1.5">
+            <p className="text-sm sm:text-base font-bold text-text-dark leading-snug whitespace-pre-line mb-1.5">
               {categoryTitles[index]}
             </p>
 

@@ -133,6 +133,16 @@ export default async function NewsPage({
                         rel={isExternal ? "noopener noreferrer" : undefined}
                         className="group flex-shrink-0 w-[56vw] sm:w-56 md:w-auto"
                       >
+                        {/* 태그 — 이미지 위, 겹침 없음 */}
+                        {tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-1.5">
+                            {tags.map((tag) => (
+                              <span key={tag} className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-50">
                           <Image
                             src={item.imageUrl!}
@@ -147,19 +157,10 @@ export default async function NewsPage({
                             </span>
                           )}
                         </div>
-                        <div className="mt-2 px-0.5 space-y-1.5">
+                        <div className="mt-2 px-0.5">
                           <p className="text-text-dark text-xs sm:text-sm font-medium line-clamp-2 leading-snug">
                             {stripBrandFromTitle(item.title)}
                           </p>
-                          {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {tags.map((tag) => (
-                                <span key={tag} className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       </Link>
                     );

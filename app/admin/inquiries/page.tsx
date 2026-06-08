@@ -2,26 +2,62 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { InquiryActions } from "@/components/inquiry/InquiryActions";
+import { KakaoButton } from "@/components/inquiry/KakaoButton";
 import { Pagination } from "@/components/Pagination";
 import { getInquiryStatusMeta, INQUIRY_STATUS_VALUES } from "@/lib/inquiry-status";
 import Link from "next/link";
 
 const ITEMS_PER_PAGE = 20;
 
-async function getInquiries(page: number, status?: string) {
-  const where = status && INQUIRY_STATUS_VALUES.includes(status as never)
-    ? { status }
-    : undefined;
+const DOMESTIC_VALUES = ["서울/경기", "인천", "강원", "충청", "전라", "경상", "제주"];
+const OVERSEAS_VALUES = ["일본", "동남아시아", "기타 해외"];
 
+const SCHOOL_LEVEL_OPTIONS = [
+  { label: "전체", value: "" },
+  { label: "초등", value: "초등학교" },
+  { label: "중학교", value: "중학교" },
+  { label: "고등학교", value: "고등학교" },
+  { label: "특성화고", value: "특성화고" },
+  { label: "대학/기관", value: "대학교/기관" },
+];
+
+type SearchParams = {
+  page?: string;
+  status?: string;
+  destType?: string;  // "domestic" | "overseas" | ""
+  level?: string;     // schoolLevel 값
+  sort?: string;      // "asc" | "desc"
+};
+
+function buildWhere(status?: string, destType?: string, level?: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const conditions: any[] = [];
+
+  if (status && INQUIRY_STATUS_VALUES.includes(status as never)) {
+    conditions.push({ status });
+  }
+
+  if (destType === "domestic") {
+    conditions.push({ destination: { in: DOMESTIC_VALUES } });
+  } else if (destType === "overseas") {
+    conditions.push({ destination: { in: OVERSEAS_VALUES } });
+  }
+
+  if (level) {
+    conditions.push({ schoolLevel: level });
+  }
+
+  return conditions.length > 0 ? { AND: conditions } : undefined;
+}
+
+async function getInquiries(params: SearchParams) {
+  const page = params.page ? parseInt(params.page, 10) : 1;
+  const where = buildWhere(params.status, params.destType, params.level);
+  const orderBy = { createdAt: params.sort === "asc" ? ("asc" as const) : ("desc" as const) };
   const skip = (page - 1) * ITEMS_PER_PAGE;
 
   const [inquiries, total] = await Promise.all([
-    prisma.inquiry.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: ITEMS_PER_PAGE,
-    }),
+    prisma.inquiry.findMany({ where, orderBy, skip, take: ITEMS_PER_PAGE }),
     prisma.inquiry.count({ where }),
   ]);
 
@@ -38,17 +74,29 @@ async function getStatusCounts() {
   return map;
 }
 
+function buildFilterUrl(base: SearchParams, overrides: Partial<SearchParams>) {
+  const merged = { ...base, ...overrides, page: undefined };
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(merged)) {
+    if (v) params.set(k, v);
+  }
+  const qs = params.toString();
+  return `/admin/inquiries${qs ? `?${qs}` : ""}`;
+}
+
 export default async function AdminInquiriesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; status?: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const currentPage = params.page ? parseInt(params.page, 10) : 1;
   const activeStatus = params.status ?? "";
+  const activeDestType = params.destType ?? "";
+  const activeLevel = params.level ?? "";
+  const activeSort = params.sort ?? "desc";
 
   const [{ inquiries, total, totalPages }, statusCounts] = await Promise.all([
-    getInquiries(currentPage, activeStatus || undefined),
+    getInquiries(params),
     getStatusCounts(),
   ]);
 
@@ -71,12 +119,9 @@ export default async function AdminInquiriesPage({
       </div>
 
       {/* 상태 필터 탭 */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-4">
         {filterTabs.map((tab) => {
           const isActive = activeStatus === tab.value;
-          const href = tab.value
-            ? `/admin/inquiries?status=${tab.value}`
-            : "/admin/inquiries";
           return (
             <Button
               key={tab.value}
@@ -85,7 +130,7 @@ export default async function AdminInquiriesPage({
               variant={isActive ? "default" : "outline"}
               className={isActive ? "bg-brand-green-primary hover:bg-brand-green-primary/90" : ""}
             >
-              <Link href={href}>
+              <Link href={buildFilterUrl(params, { status: tab.value })}>
                 {tab.label}
                 <span className={`ml-1.5 text-xs ${isActive ? "text-white/80" : "text-gray-400"}`}>
                   {tab.count}
@@ -96,6 +141,74 @@ export default async function AdminInquiriesPage({
         })}
       </div>
 
+      {/* 2차 필터 — 목적지 유형 / 학교급 / 정렬 */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-sm">
+        {/* 목적지 */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500 text-xs font-medium">목적지</span>
+          {[
+            { label: "전체", value: "" },
+            { label: "국내", value: "domestic" },
+            { label: "해외", value: "overseas" },
+          ].map((opt) => (
+            <Link
+              key={opt.value}
+              href={buildFilterUrl(params, { destType: opt.value })}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                activeDestType === opt.value
+                  ? "bg-brand-green-primary text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {opt.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="w-px h-4 bg-gray-200" />
+
+        {/* 학교급 */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500 text-xs font-medium">학교급</span>
+          {SCHOOL_LEVEL_OPTIONS.map((opt) => (
+            <Link
+              key={opt.value}
+              href={buildFilterUrl(params, { level: opt.value })}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                activeLevel === opt.value
+                  ? "bg-brand-green-primary text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {opt.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="w-px h-4 bg-gray-200" />
+
+        {/* 정렬 */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500 text-xs font-medium">정렬</span>
+          {[
+            { label: "최신순", value: "desc" },
+            { label: "오래된순", value: "asc" },
+          ].map((opt) => (
+            <Link
+              key={opt.value}
+              href={buildFilterUrl(params, { sort: opt.value })}
+              className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
+                activeSort === opt.value
+                  ? "bg-gray-800 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {opt.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {inquiries.length === 0 ? (
         <div className="text-center py-12 text-text-gray">
           해당하는 문의가 없습니다.
@@ -104,11 +217,13 @@ export default async function AdminInquiriesPage({
         <>
           <div className="bg-white rounded-lg border overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px]">
+              <table className="w-full min-w-[800px]">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">날짜</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">학교명</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">학교급</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">목적지</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">담당자</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">연락처</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
@@ -118,6 +233,9 @@ export default async function AdminInquiriesPage({
                 <tbody className="divide-y">
                   {inquiries.map((inquiry) => {
                     const statusMeta = getInquiryStatusMeta(inquiry.status);
+                    const isOverseas = inquiry.destination
+                      ? OVERSEAS_VALUES.includes(inquiry.destination)
+                      : false;
                     return (
                       <tr key={inquiry.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
@@ -126,12 +244,31 @@ export default async function AdminInquiriesPage({
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                           {inquiry.schoolName}
                         </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {inquiry.schoolLevel ?? <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm">
+                          {inquiry.destination ? (
+                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              isOverseas
+                                ? "bg-blue-50 text-blue-700"
+                                : "bg-green-50 text-green-700"
+                            }`}>
+                              {isOverseas ? "🌏 " : "🇰🇷 "}{inquiry.destination}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm">
                           {inquiry.contact}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          <div>{inquiry.phone || <span className="text-gray-400">전화 없음</span>}</div>
-                          <div className="text-xs">{inquiry.email || <span className="text-gray-400">이메일 없음</span>}</div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span>{inquiry.phone || <span className="text-gray-400">전화 없음</span>}</span>
+                            {inquiry.phone && <KakaoButton phone={inquiry.phone} />}
+                          </div>
+                          <div className="text-xs mt-0.5">{inquiry.email || <span className="text-gray-400">이메일 없음</span>}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusMeta.badgeClassName}`}>
@@ -149,7 +286,7 @@ export default async function AdminInquiriesPage({
             </div>
           </div>
           <Pagination
-            currentPage={currentPage}
+            currentPage={params.page ? parseInt(params.page, 10) : 1}
             totalPages={totalPages}
             baseUrl="/admin/inquiries"
             searchParams={params}

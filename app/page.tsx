@@ -246,7 +246,20 @@ export default async function HomePage({
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
-                    <div className="relative aspect-[4/5] bg-gray-50">
+                    {/* 태그 — 이미지 위, 겹침 없음 */}
+                    {tags.length > 0 && (
+                      <div className="px-3 pt-2.5 pb-0 flex flex-wrap gap-1">
+                        {tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className={`relative aspect-[4/5] bg-gray-50 ${tags.length > 0 ? "mt-2" : ""}`}>
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
@@ -268,18 +281,6 @@ export default async function HomePage({
                       <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
                       {item.summary && (
                         <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
-                      )}
-                      {tags.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
                       )}
                     </div>
                   </Link>
