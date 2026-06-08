@@ -13,13 +13,12 @@ interface HomePopupProps {
   link?: string | null;
 }
 
-const STORAGE_KEY = "home_popup_hidden_until";
-
 export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps) {
   const [visible, setVisible] = useState(false);
+  const storageKey = `home_popup_hidden_until_${id}`;
 
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     if (raw && Date.now() < parseInt(raw)) return;
     const t = setTimeout(() => setVisible(true), 600);
     return () => clearTimeout(t);
@@ -30,7 +29,7 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
   const hideToday = () => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
-    localStorage.setItem(STORAGE_KEY, String(endOfDay.getTime()));
+    localStorage.setItem(storageKey, String(endOfDay.getTime()));
     setVisible(false);
   };
 

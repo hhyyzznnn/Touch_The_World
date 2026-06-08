@@ -18,6 +18,7 @@ import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
 import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
 import { HomePopup } from "@/components/home/HomePopup";
+import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -37,16 +38,6 @@ export const metadata: Metadata = {
   },
 };
 
-function isRecentlyAdded(createdAt: Date): boolean {
-  return Date.now() - new Date(createdAt).getTime() < 14 * 24 * 60 * 60 * 1000;
-}
-
-function stripBrandFromTitle(title: string): string {
-  return title
-    .replace(/^\[?터치더월드\]?\s*[×x\-·|]\s*/i, "")
-    .replace(/\s*[×x\-·|]\s*터치더월드\s*$/i, "")
-    .trim();
-}
 
 const EVENT_IMAGE_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==";
@@ -230,16 +221,11 @@ export default async function HomePage({
               {cardNewsItems.map((item) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");
-                const categoryTag = item.category
-                  ? `#${item.category}`
-                  : item.hashtags.find(
-                      (t) =>
-                        !["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#초등","#중등","#고등","#특성화고"].includes(t)
-                    );
+                const categoryTag = item.category ? `#${item.category}` : null;
                 const regionTag = item.hashtags.find((t) =>
-                  ["#서울","#인천","#포천","#가평","#충남","#일본","#해외"].includes(t)
-                );
-                const tags = [categoryTag, regionTag].filter(Boolean).slice(0, 2) as string[];
+                  ["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#국내"].includes(t)
+                ) ?? null;
+                const tags = [categoryTag, regionTag].filter(Boolean) as string[];
 
                 return (
                   <Link
@@ -262,7 +248,7 @@ export default async function HomePage({
                         ))}
                       </div>
                     )}
-                    <div className={`relative aspect-[4/5] bg-gray-50 ${tags.length > 0 ? "mt-2" : ""}`}>
+                    <div className={`relative aspect-[3/4] bg-gray-50 ${tags.length > 0 ? "mt-2" : ""}`}>
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}

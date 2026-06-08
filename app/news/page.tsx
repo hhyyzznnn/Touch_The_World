@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { CompanyNewsType } from "@prisma/client";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
+import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 
 export const metadata: Metadata = {
   title: "카드뉴스 · 회사 소식 | 터치더월드",
@@ -22,16 +23,6 @@ const FILTER_TABS = [
   { label: "일본", value: "일본" },
 ] as const;
 
-function stripBrandFromTitle(title: string): string {
-  return title
-    .replace(/^\[?터치더월드\]?\s*[×x\-·|]\s*/i, "")
-    .replace(/\s*[×x\-·|]\s*터치더월드\s*$/i, "")
-    .trim();
-}
-
-function isRecentlyAdded(createdAt: Date): boolean {
-  return Date.now() - new Date(createdAt).getTime() < 14 * 24 * 60 * 60 * 1000;
-}
 
 async function getCardNews(tag: string) {
   const where =
