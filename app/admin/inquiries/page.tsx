@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { InquiryActions } from "@/components/inquiry/InquiryActions";
@@ -29,9 +30,8 @@ type SearchParams = {
   sort?: string;      // "asc" | "desc"
 };
 
-function buildWhere(status?: string, destType?: string, level?: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const conditions: any[] = [];
+function buildWhere(status?: string, destType?: string, level?: string): Prisma.InquiryWhereInput | undefined {
+  const conditions: Prisma.InquiryWhereInput[] = [];
 
   if (status && INQUIRY_STATUS_VALUES.includes(status as never)) {
     conditions.push({ status });

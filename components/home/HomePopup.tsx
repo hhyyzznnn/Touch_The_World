@@ -18,11 +18,11 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
   const storageKey = `home_popup_hidden_until_${id}`;
 
   useEffect(() => {
-    const raw = localStorage.getItem(storageKey);
+    const raw = localStorage.getItem(`home_popup_hidden_until_${id}`);
     if (raw && Date.now() < parseInt(raw)) return;
     const t = setTimeout(() => setVisible(true), 600);
     return () => clearTimeout(t);
-  }, []);
+  }, [id]);
 
   const close = () => setVisible(false);
 
