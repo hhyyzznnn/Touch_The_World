@@ -8,6 +8,7 @@ import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } fro
 import { seoLandingPageList } from "@/lib/seo-landing-pages";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
+import { isRecentlyAdded } from "@/lib/news-utils";
 
 // category/page 파라미터가 있는 URL에서도 canonical이 /programs로 반드시 포함되도록 generateMetadata 사용
 export async function generateMetadata(): Promise<Metadata> {

@@ -88,6 +88,8 @@ async function getNewsSeoData(id: string) {
   });
 }
 
+export const revalidate = 86400;
+
 export async function generateMetadata({
   params,
 }: {
@@ -151,6 +153,16 @@ export default async function NewsDetailPage({
     news.summary ||
     `${format(new Date(news.createdAt), "yyyy년 MM월 dd일")} 게시된 터치더월드 소식입니다.`;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "카드뉴스", item: `${siteUrl}/news` },
+      { "@type": "ListItem", position: 3, name: news.title, item: pageUrl },
+    ],
+  };
+
   // 카드뉴스 타입에 맞는 JSON-LD 구조화 데이터
   const jsonLd =
     news.type === "PROGRAM_CARD_NEWS"
@@ -200,6 +212,10 @@ export default async function NewsDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

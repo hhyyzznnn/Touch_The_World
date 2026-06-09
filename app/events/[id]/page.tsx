@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { getSiteUrl } from "@/lib/site-url";
 
 async function getEvent(id: string) {
   return await prisma.event.findUnique({
@@ -51,6 +52,8 @@ async function getEventSeoData(id: string) {
     },
   });
 }
+
+export const revalidate = 86400;
 
 export async function generateMetadata({
   params,
@@ -108,8 +111,48 @@ export default async function EventDetailPage({
     notFound();
   }
 
+  const siteUrl = getSiteUrl();
+  const pageUrl = `${siteUrl}/events/${event.id}`;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "행사 사례", item: `${siteUrl}/events` },
+      { "@type": "ListItem", position: 3, name: `${event.school.name} ${event.program.title}`, item: pageUrl },
+    ],
+  };
+
+  const eventJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: `${event.school.name} ${event.program.title}`,
+    startDate: event.date.toISOString(),
+    endDate: event.date.toISOString(),
+    location: {
+      "@type": "Place",
+      name: event.location,
+      address: { "@type": "PostalAddress", addressCountry: "KR" },
+    },
+    organizer: {
+      "@type": "Organization",
+      name: "터치더월드",
+      url: siteUrl,
+    },
+    url: pageUrl,
+    ...(event.images[0]?.url ? { image: event.images[0].url } : {}),
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd) }}
+      />
       <div className="mb-6">
         <Link href="/events" className="text-brand-green-primary hover:underline">
           ← 행사 목록으로

@@ -10,6 +10,9 @@ export const revalidate = 600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getSiteUrl();
 
+  // 콘텐츠가 자주 바뀌지 않는 정적 페이지의 기준 날짜
+  const SITE_LAUNCH = new Date("2026-01-01");
+
   // 정적 페이지
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -20,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "monthly",
       priority: 0.8,
     },
@@ -50,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/inquiry`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "monthly",
       priority: 0.6,
     },
@@ -74,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...seoLandingPageList.map((page) => ({
       url: `${baseUrl}${page.path}`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "monthly" as const,
       priority: 0.85,
     })),

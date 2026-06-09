@@ -13,6 +13,7 @@ import { PrintQuoteButton } from "@/components/programs/PrintQuoteButton";
 import remarkGfm from "remark-gfm";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
+import { getSiteUrl } from "@/lib/site-url";
 
 async function getProgram(id: string) {
   return await prisma.program.findUnique({
@@ -192,9 +193,23 @@ export default async function ProgramDetailPage({
     notFound();
   }
   const parsedThumbnail = parseThumbnailFocus(program.thumbnailUrl);
+  const siteUrl = getSiteUrl();
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: "프로그램", item: `${siteUrl}/programs` },
+      { "@type": "ListItem", position: 3, name: program.title, item: `${siteUrl}/programs/${program.id}` },
+    ],
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Breadcrumbs
         items={[
           { label: "프로그램", href: "/programs" },
