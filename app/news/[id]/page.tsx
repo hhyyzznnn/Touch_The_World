@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { MessageCircle, ArrowRight } from "lucide-react";
 import { getSiteUrl } from "@/lib/site-url";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+import { CompanyNewsType } from "@prisma/client";
 
 /** 해시태그에서 목적지 선택지 값을 추출 */
 const HASHTAG_DESTINATION_MAP: Record<string, string> = {
@@ -71,6 +74,25 @@ function isConcreteProgram(category: string | null): boolean {
 async function getNews(id: string) {
   return await prisma.companyNews.findUnique({
     where: { id },
+  });
+}
+
+async function getRelatedCardNews(id: string, category: string | null, type: CompanyNewsType) {
+  if (!category) return [];
+  return await prisma.companyNews.findMany({
+    where: { id: { not: id }, type, category },
+    take: 4,
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      imageUrl: true,
+      category: true,
+      hashtags: true,
+      createdAt: true,
+      link: true,
+    },
   });
 }
 
@@ -140,6 +162,8 @@ export default async function NewsDetailPage({
   if (!news) {
     notFound();
   }
+
+  const relatedNews = await getRelatedCardNews(id, news.category, news.type);
   const cardNewsImages =
     news.imageUrls.length > 0
       ? news.imageUrls
@@ -317,10 +341,80 @@ export default async function NewsDetailPage({
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <Button asChild variant="outline">
-              <Link href="/news">목록으로</Link>
+              <Link href="/programs">목록으로</Link>
             </Button>
           </div>
         </article>
+
+        {relatedNews.length > 0 && (
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base sm:text-lg font-semibold text-text-dark">
+                같은 카테고리 다른 카드뉴스
+              </h2>
+              {news.category && (
+                <Link
+                  href={`/programs?category=${encodeURIComponent(news.category)}`}
+                  className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
+                >
+                  전체 보기
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {relatedNews.map((item) => {
+                const href = item.link?.trim() || `/news/${item.id}`;
+                const isExternal = !!item.link?.trim()?.startsWith("http");
+                const isNew = isRecentlyAdded(item.createdAt);
+                const regionTag = item.hashtags.find((t) =>
+                  ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"].includes(t)
+                ) ?? null;
+                const showTagRow = isNew || regionTag;
+
+                return (
+                  <Link
+                    key={item.id}
+                    href={href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                  >
+                    {showTagRow && (
+                      <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
+                        {isNew && (
+                          <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
+                            NEW
+                          </span>
+                        )}
+                        {regionTag && (
+                          <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
+                            {regionTag}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt={item.title}
+                          fill
+                          sizes="(max-width: 640px) 50vw, 25vw"
+                          className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs sm:text-sm font-medium text-text-dark line-clamp-2">
+                        {stripBrandFromTitle(item.title)}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

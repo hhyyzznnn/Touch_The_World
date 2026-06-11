@@ -184,7 +184,7 @@ export default async function HomePage({
                 <p className="mt-1 text-xs sm:text-sm text-text-gray">최신 교육여행 트렌드와 프로그램을 미리 확인하세요</p>
               </div>
               <Link
-                href="/news"
+                href="/programs"
                 className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base flex-shrink-0 mt-1"
               >
                 전체 보기
@@ -221,11 +221,12 @@ export default async function HomePage({
               {cardNewsItems.map((item) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");
+                const isNew = isRecentlyAdded(item.createdAt);
                 const categoryTag = item.category ? `#${item.category}` : null;
                 const regionTag = item.hashtags.find((t) =>
                   ["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#국내"].includes(t)
                 ) ?? null;
-                const tags = [categoryTag, regionTag].filter(Boolean) as string[];
+                const showTagRow = isNew || !!categoryTag || !!regionTag;
 
                 return (
                   <Link
@@ -235,20 +236,27 @@ export default async function HomePage({
                     rel={isExternal ? "noopener noreferrer" : undefined}
                     className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
-                    {/* 태그 — 이미지 위, 겹침 없음 */}
-                    {tags.length > 0 && (
-                      <div className="px-3 pt-2.5 pb-0 flex flex-wrap gap-1">
-                        {tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium"
-                          >
-                            {tag}
+                    {/* 태그 행 — NEW(각짐) + 카테고리(초록) + 지역(회색) */}
+                    {showTagRow && (
+                      <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
+                        {isNew && (
+                          <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
+                            NEW
                           </span>
-                        ))}
+                        )}
+                        {categoryTag && (
+                          <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
+                            {categoryTag}
+                          </span>
+                        )}
+                        {regionTag && (
+                          <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
+                            {regionTag}
+                          </span>
+                        )}
                       </div>
                     )}
-                    <div className={`relative aspect-[3/4] bg-gray-50 ${tags.length > 0 ? "mt-2" : ""}`}>
+                    <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
@@ -259,11 +267,6 @@ export default async function HomePage({
                         />
                       ) : (
                         <ImagePlaceholder text="카드뉴스" className="text-xs" />
-                      )}
-                      {isRecentlyAdded(item.createdAt) && (
-                        <span className="absolute top-2 left-2 inline-flex items-center rounded bg-brand-green-primary px-2 py-0.5 text-xs font-bold text-white">
-                          NEW
-                        </span>
                       )}
                     </div>
                     <div className="p-3 sm:p-4">

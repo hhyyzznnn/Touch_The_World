@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { getCategoryDisplayName } from "@/lib/category-utils";
@@ -42,6 +43,35 @@ async function getProgram(id: string) {
       },
     },
   });
+}
+
+async function getRelatedPrograms(id: string, category: string) {
+  const FIELDS = {
+    id: true,
+    title: true,
+    summary: true,
+    category: true,
+    thumbnailUrl: true,
+    region: true,
+  } as const;
+
+  // 같은 카테고리 우선
+  const sameCat = await prisma.program.findMany({
+    where: { category, id: { not: id } },
+    take: 3,
+    orderBy: { createdAt: "desc" },
+    select: FIELDS,
+  });
+  if (sameCat.length > 0) return { programs: sameCat, sameCategory: true };
+
+  // 없으면 카테고리 무관하게 다른 프로그램
+  const any = await prisma.program.findMany({
+    where: { id: { not: id } },
+    take: 3,
+    orderBy: { createdAt: "desc" },
+    select: FIELDS,
+  });
+  return { programs: any, sameCategory: false };
 }
 
 async function getProgramSeoData(id: string) {
@@ -192,7 +222,10 @@ export default async function ProgramDetailPage({
   if (!program) {
     notFound();
   }
-  const parsedThumbnail = parseThumbnailFocus(program.thumbnailUrl);
+  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }] = await Promise.all([
+    Promise.resolve(parseThumbnailFocus(program.thumbnailUrl)),
+    getRelatedPrograms(id, program.category),
+  ]);
   const siteUrl = getSiteUrl();
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -308,6 +341,61 @@ export default async function ProgramDetailPage({
           <Link href="/inquiry">이 프로그램 문의하기</Link>
         </Button>
       </div>
+
+      {relatedPrograms.length > 0 && (
+        <div className="mt-12 pt-10 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg sm:text-xl font-semibold text-text-dark">
+              {relatedSameCategory ? "같은 카테고리 다른 프로그램" : "다른 프로그램"}
+            </h2>
+            <Link
+              href={`/programs?category=${encodeURIComponent(program.category)}`}
+              className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
+            >
+              전체 보기
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {relatedPrograms.map((rel) => {
+              const thumb = parseThumbnailFocus(rel.thumbnailUrl);
+              return (
+                <Link
+                  key={rel.id}
+                  href={`/programs/${rel.id}`}
+                  className="group flex flex-col rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-md transition-shadow"
+                >
+                  <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                    {thumb.imageUrl ? (
+                      <Image
+                        src={thumb.imageUrl}
+                        alt={rel.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                        이미지 없음
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4 flex flex-col gap-1.5">
+                    <span className="text-xs font-medium text-brand-green-primary">
+                      {getCategoryDisplayName(rel.category)}
+                    </span>
+                    <p className="text-sm font-semibold text-text-dark line-clamp-2 leading-snug">
+                      {rel.title}
+                    </p>
+                    {rel.summary && (
+                      <p className="text-xs text-text-gray line-clamp-2">{rel.summary}</p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <ReviewSection
         programId={program.id}

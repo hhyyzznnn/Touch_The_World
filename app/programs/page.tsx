@@ -3,12 +3,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Pagination } from "@/components/Pagination";
-import { ChevronRight } from "lucide-react";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { seoLandingPageList } from "@/lib/seo-landing-pages";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
-import { isRecentlyAdded } from "@/lib/news-utils";
+import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 
 // category/page 파라미터가 있는 URL에서도 canonical이 /programs로 반드시 포함되도록 generateMetadata 사용
 export async function generateMetadata(): Promise<Metadata> {
@@ -48,6 +47,7 @@ async function getProgramCardNews(page: number, category?: string) {
         hashtags: true,
         createdAt: true,
         isPinned: true,
+        link: true,
       },
     }),
     prisma.companyNews.count({ where }),
@@ -59,7 +59,7 @@ async function getProgramCardNews(page: number, category?: string) {
   };
 }
 
-export const revalidate = 600;
+export const dynamic = "force-dynamic";
 
 export default async function ProgramsPage({
   searchParams,
@@ -81,13 +81,13 @@ export default async function ProgramsPage({
         </p>
 
         {/* 카테고리 필터 */}
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-1.5">
           <Link
             href="/programs"
-            className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+            className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
               !currentCategory
-                ? "border-brand-green bg-brand-green text-white"
-                : "border-brand-green/20 bg-brand-green/5 text-brand-green hover:border-brand-green/40 hover:bg-brand-green/10"
+                ? "bg-brand-green-primary text-white"
+                : "bg-gray-100 text-text-gray hover:bg-gray-200"
             }`}
           >
             전체
@@ -96,10 +96,10 @@ export default async function ProgramsPage({
             <Link
               key={cat}
               href={`/programs?category=${encodeURIComponent(cat)}`}
-              className={`inline-flex items-center rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 currentCategory === cat
-                  ? "border-brand-green bg-brand-green text-white"
-                  : "border-brand-green/20 bg-brand-green/5 text-brand-green hover:border-brand-green/40 hover:bg-brand-green/10"
+                  ? "bg-brand-green-primary text-white"
+                  : "bg-gray-100 text-text-gray hover:bg-gray-200"
               }`}
             >
               {cat}
@@ -108,15 +108,15 @@ export default async function ProgramsPage({
         </div>
 
         {/* SEO 랜딩 페이지 링크 */}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          <span className="text-xs text-gray-400">관련</span>
           {seoLandingPageList.map((page) => (
             <Link
               key={page.path}
               href={page.path}
-              className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-text-gray transition-colors hover:border-gray-300 hover:bg-gray-100"
+              className="text-xs text-gray-400 hover:text-brand-green-primary transition-colors"
             >
               {page.title}
-              <ChevronRight className="ml-1 h-3 w-3" />
             </Link>
           ))}
         </div>
@@ -132,51 +132,59 @@ export default async function ProgramsPage({
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {items.map((item) => {
+              const href = item.link?.trim() || `/news/${item.id}`;
+              const isExternal = !!item.link?.trim()?.startsWith("http");
+              const isNew = isRecentlyAdded(item.createdAt);
+              const categoryTag = item.category ?? null;
+              const regionTag = item.hashtags.find((t) =>
+                ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"].includes(t)
+              ) ?? null;
+              const showTagRow = isNew || categoryTag || regionTag;
+
               return (
                 <Link
                   key={item.id}
-                  href={`/news/${item.id}`}
+                  href={href}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
                   className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                 >
-                  <div className="relative aspect-[4/5] bg-gray-100">
+                  {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
+                  {showTagRow && (
+                    <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
+                      {isNew && (
+                        <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
+                          NEW
+                        </span>
+                      )}
+                      {categoryTag && (
+                        <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
+                          #{categoryTag}
+                        </span>
+                      )}
+                      {regionTag && (
+                        <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
+                          {regionTag}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
                     {item.imageUrl ? (
                       <Image
                         src={item.imageUrl}
                         alt={item.title}
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
+                        className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
                       />
                     ) : null}
-                    {item.isPinned && (
-                      <span className="absolute top-2 left-2 inline-flex items-center rounded bg-brand-green-primary px-2 py-0.5 text-xs font-bold text-white">
-                        NEW
-                      </span>
-                    )}
                   </div>
                   <div className="p-3 sm:p-4">
-                    <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{item.title}</p>
+                    <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
                     {item.summary && (
                       <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
                     )}
-                    {(item.category || item.hashtags.length > 0) && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {item.category && (
-                          <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
-                            #{item.category}
-                          </span>
-                        )}
-                        {item.hashtags.slice(0, 2).map((tag) => (
-                          <span key={tag} className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="mt-2 inline-flex items-center text-xs text-brand-green font-medium">
-                      자세히 보기
-                      <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-                    </div>
                   </div>
                 </Link>
               );
