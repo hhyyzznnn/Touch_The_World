@@ -5,10 +5,14 @@ import { NewsDeleteButton } from "./NewsDeleteButton";
 import { format } from "date-fns";
 import Image from "next/image";
 import { CompanyNewsType } from "@prisma/client";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 
-async function getNews(type?: CompanyNewsType) {
+async function getNews(type?: CompanyNewsType, q?: string) {
   return await prisma.companyNews.findMany({
-    where: type ? { type } : undefined,
+    where: {
+      ...(type ? { type } : {}),
+      ...(q ? { title: { contains: q, mode: "insensitive" } } : {}),
+    },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -26,7 +30,7 @@ const TYPE_COLOR: Record<CompanyNewsType, string> = {
 export default async function AdminNewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const typeFilter = params.type === "PROGRAM_CARD_NEWS"
@@ -35,15 +39,18 @@ export default async function AdminNewsPage({
       ? CompanyNewsType.COMPANY_NEWS
       : undefined;
 
-  const list = await getNews(typeFilter);
+  const list = await getNews(typeFilter, params.q);
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">콘텐츠 관리</h1>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/admin/news/new">새 게시물 추가</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <AdminSearchInput basePath="/admin/news" defaultQ={params.q} placeholder="제목 검색…" />
+          <Button asChild className="w-full sm:w-auto flex-shrink-0">
+            <Link href="/admin/news/new">새 게시물 추가</Link>
+          </Button>
+        </div>
       </div>
 
       {/* 타입 필터 탭 */}

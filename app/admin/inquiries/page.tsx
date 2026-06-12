@@ -6,6 +6,7 @@ import { InquiryActions } from "@/components/inquiry/InquiryActions";
 import { KakaoButton } from "@/components/inquiry/KakaoButton";
 import { Pagination } from "@/components/Pagination";
 import { getInquiryStatusMeta, INQUIRY_STATUS_VALUES } from "@/lib/inquiry-status";
+import { InquirySearchBar } from "@/components/admin/InquirySearchBar";
 import Link from "next/link";
 
 const ITEMS_PER_PAGE = 20;
@@ -25,12 +26,22 @@ const SCHOOL_LEVEL_OPTIONS = [
 type SearchParams = {
   page?: string;
   status?: string;
-  destType?: string;  // "domestic" | "overseas" | ""
-  level?: string;     // schoolLevel 값
-  sort?: string;      // "asc" | "desc"
+  destType?: string;
+  level?: string;
+  sort?: string;
+  q?: string;
+  dateFrom?: string;
+  dateTo?: string;
 };
 
-function buildWhere(status?: string, destType?: string, level?: string): Prisma.InquiryWhereInput | undefined {
+function buildWhere(
+  status?: string,
+  destType?: string,
+  level?: string,
+  q?: string,
+  dateFrom?: string,
+  dateTo?: string,
+): Prisma.InquiryWhereInput | undefined {
   const conditions: Prisma.InquiryWhereInput[] = [];
 
   if (status && INQUIRY_STATUS_VALUES.includes(status as never)) {
@@ -47,12 +58,34 @@ function buildWhere(status?: string, destType?: string, level?: string): Prisma.
     conditions.push({ schoolLevel: level });
   }
 
+  if (q) {
+    conditions.push({
+      OR: [
+        { schoolName: { contains: q, mode: "insensitive" } },
+        { contact: { contains: q, mode: "insensitive" } },
+        { phone: { contains: q } },
+        { email: { contains: q, mode: "insensitive" } },
+      ],
+    });
+  }
+
+  if (dateFrom || dateTo) {
+    const createdAt: Prisma.DateTimeFilter = {};
+    if (dateFrom) createdAt.gte = new Date(dateFrom);
+    if (dateTo) {
+      const end = new Date(dateTo);
+      end.setHours(23, 59, 59, 999);
+      createdAt.lte = end;
+    }
+    conditions.push({ createdAt });
+  }
+
   return conditions.length > 0 ? { AND: conditions } : undefined;
 }
 
 async function getInquiries(params: SearchParams) {
   const page = params.page ? parseInt(params.page, 10) : 1;
-  const where = buildWhere(params.status, params.destType, params.level);
+  const where = buildWhere(params.status, params.destType, params.level, params.q, params.dateFrom, params.dateTo);
   const orderBy = { createdAt: params.sort === "asc" ? ("asc" as const) : ("desc" as const) };
   const skip = (page - 1) * ITEMS_PER_PAGE;
 
@@ -118,6 +151,13 @@ export default async function AdminInquiriesPage({
         <span className="text-sm text-gray-500">총 {total}건</span>
       </div>
 
+      {/* 검색 + 날짜 범위 */}
+      <InquirySearchBar
+        defaultQ={params.q}
+        defaultDateFrom={params.dateFrom}
+        defaultDateTo={params.dateTo}
+      />
+
       {/* 상태 필터 탭 */}
       <div className="flex flex-wrap gap-2 mb-4">
         {filterTabs.map((tab) => {
@@ -143,7 +183,6 @@ export default async function AdminInquiriesPage({
 
       {/* 2차 필터 — 목적지 유형 / 학교급 / 정렬 */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-sm">
-        {/* 목적지 */}
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500 text-xs font-medium">목적지</span>
           {[
@@ -167,7 +206,6 @@ export default async function AdminInquiriesPage({
 
         <div className="w-px h-4 bg-gray-200" />
 
-        {/* 학교급 */}
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500 text-xs font-medium">학교급</span>
           {SCHOOL_LEVEL_OPTIONS.map((opt) => (
@@ -187,7 +225,6 @@ export default async function AdminInquiriesPage({
 
         <div className="w-px h-4 bg-gray-200" />
 
-        {/* 정렬 */}
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500 text-xs font-medium">정렬</span>
           {[
@@ -241,8 +278,13 @@ export default async function AdminInquiriesPage({
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                           {format(new Date(inquiry.createdAt), "MM.dd HH:mm")}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {inquiry.schoolName}
+                        <td className="px-4 py-3 text-sm">
+                          <div className="font-medium text-gray-900">{inquiry.schoolName}</div>
+                          {inquiry.aiSummary && (
+                            <div className="mt-0.5 text-xs text-gray-400 line-clamp-1 max-w-[180px]" title={inquiry.aiSummary}>
+                              {inquiry.aiSummary}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                           {inquiry.schoolLevel ?? <span className="text-gray-300">—</span>}
