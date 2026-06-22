@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { InquiryActions } from "@/components/inquiry/InquiryActions";
-import { KakaoButton } from "@/components/inquiry/KakaoButton";
+import { AiSummaryBackfillButton } from "@/components/admin/AiSummaryBackfillButton";
 import { Pagination } from "@/components/Pagination";
 import { getInquiryStatusMeta, INQUIRY_STATUS_VALUES } from "@/lib/inquiry-status";
 import { InquirySearchBar } from "@/components/admin/InquirySearchBar";
@@ -148,7 +148,10 @@ export default async function AdminInquiriesPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">문의 관리</h1>
-        <span className="text-sm text-gray-500">총 {total}건</span>
+        <div className="flex items-center gap-3">
+          <AiSummaryBackfillButton />
+          <span className="text-sm text-gray-500">총 {total}건</span>
+        </div>
       </div>
 
       {/* 검색 + 날짜 범위 */}
@@ -306,10 +309,7 @@ export default async function AdminInquiriesPage({
                           {inquiry.contact}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span>{inquiry.phone || <span className="text-gray-400">전화 없음</span>}</span>
-                            {inquiry.phone && <KakaoButton phone={inquiry.phone} />}
-                          </div>
+                          <div>{inquiry.phone || <span className="text-gray-400">전화 없음</span>}</div>
                           <div className="text-xs mt-0.5">{inquiry.email || <span className="text-gray-400">이메일 없음</span>}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">

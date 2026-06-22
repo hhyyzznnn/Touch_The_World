@@ -53,7 +53,7 @@ export function InquiryDropdownButton({ dark }: { dark?: boolean } = {}) {
             onClick={() => setOpen(false)}
           >
             <span className="text-sm font-medium text-text-dark">빠른 문의</span>
-            <span className="text-xs text-text-gray mt-0.5">이름·연락처만으로 간단하게</span>
+            <span className="text-xs text-text-gray mt-0.5 break-keep">이름·연락처만으로 간단하게</span>
           </Link>
           <Link
             href="/inquiry?type=detailed"

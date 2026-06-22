@@ -235,7 +235,6 @@ export async function sendInquiryNotificationEmail(
 
     if (error) {
       console.error("이메일 발송 오류:", error);
-      // 개발 환경에서는 콘솔에 출력
       console.log("=".repeat(60));
       console.log("📧 문의 알림 이메일 (개발 모드)");
       console.log("=".repeat(60));
@@ -252,7 +251,6 @@ export async function sendInquiryNotificationEmail(
     return { success: true, data };
   } catch (error) {
     console.error("이메일 발송 오류:", error);
-    // 오류 발생 시에도 개발 환경에서는 콘솔에 출력
     console.log("=".repeat(60));
     console.log("📧 문의 알림 이메일 (개발 모드)");
     console.log("=".repeat(60));
@@ -265,4 +263,93 @@ export async function sendInquiryNotificationEmail(
     console.log("=".repeat(60));
     return { success: true };
   }
+}
+
+export async function sendInquiryReminderEmail(inquiries: Array<{
+  id: string;
+  schoolName: string;
+  contact: string;
+  phone: string;
+  email: string;
+  createdAt: Date;
+  aiSummary: string | null;
+}>) {
+  const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  const ccEmails = process.env.ADMIN_CC_EMAILS
+    ? process.env.ADMIN_CC_EMAILS.split(",").map((e) => e.trim()).filter(Boolean)
+    : [];
+  const recipients = [adminEmail, ...ccEmails];
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+  const count = inquiries.length;
+
+  if (!process.env.RESEND_API_KEY) {
+    console.log("=".repeat(60));
+    console.log("📧 문의 리마인더 이메일 (개발 모드)");
+    console.log("=".repeat(60));
+    console.log(`미확인 문의 ${count}건`);
+    inquiries.forEach((inq) => console.log(`  - ${inq.schoolName} / ${inq.contact}`));
+    console.log("=".repeat(60));
+    return { success: true };
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+
+  const rowsHtml = inquiries.map((inq) => {
+    const hoursAgo = Math.floor((Date.now() - inq.createdAt.getTime()) / (1000 * 60 * 60));
+    return `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 10px 8px; color: #333;">${inq.schoolName}</td>
+        <td style="padding: 10px 8px; color: #666;">${inq.contact}</td>
+        <td style="padding: 10px 8px; color: #666;">${inq.phone || inq.email || "—"}</td>
+        <td style="padding: 10px 8px; color: #666; font-size: 12px;">${inq.aiSummary || "—"}</td>
+        <td style="padding: 10px 8px; color: #e57c00; font-weight: bold; white-space: nowrap;">${hoursAgo}시간 전</td>
+      </tr>
+    `;
+  }).join("");
+
+  const { data, error } = await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL,
+    to: recipients,
+    subject: `[터치더월드] 미확인 문의 ${count}건 — 24시간 경과`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
+        <h2 style="color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 10px;">
+          ⚠️ 미확인 문의 알림
+        </h2>
+        <p style="color: #555; margin: 15px 0;">
+          접수 후 <strong>24시간이 지났지만 아직 확인되지 않은 문의 ${count}건</strong>이 있습니다.
+        </p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0;">
+          <thead>
+            <tr style="background-color: #f5f5f5;">
+              <th style="padding: 10px 8px; text-align: left; color: #333; font-weight: 600;">학교명</th>
+              <th style="padding: 10px 8px; text-align: left; color: #333; font-weight: 600;">담당자</th>
+              <th style="padding: 10px 8px; text-align: left; color: #333; font-weight: 600;">연락처</th>
+              <th style="padding: 10px 8px; text-align: left; color: #333; font-weight: 600;">요약</th>
+              <th style="padding: 10px 8px; text-align: left; color: #333; font-weight: 600;">경과</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${baseUrl}/admin/inquiries?status=pending"
+             style="background-color: #c0392b; color: white; padding: 12px 28px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+            미확인 문의 바로 확인하기
+          </a>
+        </div>
+        <p style="color: #999; font-size: 12px; margin-top: 20px;">
+          이 이메일은 터치더월드 자동화 시스템에서 발송되었습니다.
+        </p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    throw new Error(`리마인더 이메일 발송 실패: ${error.message}`);
+  }
+
+  return { success: true, data };
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 import { validateAndSanitize, isValidEmail, isValidPhone } from "@/lib/security";
 import { sendInquiryNotificationEmail } from "@/lib/email";
+import { generateInquirySummary } from "@/lib/inquiry-ai";
 import { getCurrentUser } from "@/lib/auth-user";
 import { formatInquiryNumber } from "@/lib/inquiry-status";
 
@@ -231,25 +232,53 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 이메일 알림 전송 (비동기로 실행, 실패해도 문의 등록은 성공 처리)
-    sendInquiryNotificationEmail({
-      schoolName: data.schoolName,
-      contact: data.contact,
-      phone: data.phone || null,
-      email: data.email || null,
-      message: data.message || null,
-      expectedDate: data.expectedDate || null,
-      participantCount: data.participantCount || null,
-      purpose: data.purpose || null,
-      hasInstructor: data.hasInstructor ?? null,
-      preferredTransport: data.preferredTransport || null,
-      mealPreference: data.mealPreference || null,
-      specialRequests: data.specialRequests || null,
-      estimatedBudget: data.estimatedBudget || null,
-    }).catch((error) => {
+    // AI 키워드 요약 생성 후 DB 업데이트 (실패해도 문의 등록은 성공 처리)
+    try {
+      const aiSummary = await generateInquirySummary({
+        schoolName: data.schoolName,
+        destination: data.destination,
+        schoolLevel: data.schoolLevel,
+        participantCount: data.participantCount,
+        expectedDate: data.expectedDate,
+        purpose: data.purpose,
+        estimatedBudget: data.estimatedBudget,
+        hasInstructor: data.hasInstructor,
+        preferredTransport: data.preferredTransport,
+        accommodation: data.accommodation,
+        message: data.message,
+        specialRequests: data.specialRequests,
+      });
+      if (aiSummary) {
+        await prisma.inquiry.update({
+          where: { id: inquiry.id },
+          data: { aiSummary },
+        });
+      }
+    } catch (error) {
+      console.error("AI 요약 생성 실패:", error);
+    }
+
+    // 이메일 알림 전송 (실패해도 문의 등록은 성공 처리)
+    // Vercel 서버리스: return 전에 await해야 실행 컨텍스트가 살아있음
+    try {
+      await sendInquiryNotificationEmail({
+        schoolName: data.schoolName,
+        contact: data.contact,
+        phone: data.phone || null,
+        email: data.email || null,
+        message: data.message || null,
+        expectedDate: data.expectedDate || null,
+        participantCount: data.participantCount || null,
+        purpose: data.purpose || null,
+        hasInstructor: data.hasInstructor ?? null,
+        preferredTransport: data.preferredTransport || null,
+        mealPreference: data.mealPreference || null,
+        specialRequests: data.specialRequests || null,
+        estimatedBudget: data.estimatedBudget || null,
+      });
+    } catch (error) {
       console.error("이메일 알림 전송 실패:", error);
-      // 이메일 전송 실패는 로그만 남기고 사용자에게는 에러를 반환하지 않음
-    });
+    }
 
     return NextResponse.json(
       {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { InquiryDetailModal } from "@/components/inquiry/InquiryDetailModal";
 import { Inquiry } from "@/types";
@@ -13,9 +14,31 @@ interface InquiryActionsProps {
 
 export function InquiryActions({ inquiry }: InquiryActionsProps) {
   const toast = useToast();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentInquiry, setCurrentInquiry] = useState(inquiry);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm(`"${currentInquiry.schoolName}" 문의를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/admin/inquiries/${currentInquiry.id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        toast.success("문의가 삭제되었습니다.");
+        router.refresh();
+      } else {
+        toast.error("삭제에 실패했습니다.");
+      }
+    } catch {
+      toast.error("삭제에 실패했습니다.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleStatusUpdate = (updatedInquiry: Omit<Inquiry, "status"> & { status: string }) => {
     setCurrentInquiry(updatedInquiry);
@@ -74,6 +97,16 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
             {isTransitioning ? "처리 중..." : quickAction.label}
           </Button>
         )}
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className="text-red-500 hover:text-red-700 hover:border-red-300"
+        >
+          {isDeleting ? "삭제 중..." : "삭제"}
+        </Button>
       </div>
       <InquiryDetailModal
         inquiry={currentInquiry}

@@ -130,6 +130,7 @@ model Inquiry {
   schoolLevel       String?  // 학교급/학년
   accommodation     String?  // 숙박 여부
   status            String   @default("pending") // pending, completed
+  reminderSentAt    DateTime? // 24시간 미확인 리마인더 발송 시각
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

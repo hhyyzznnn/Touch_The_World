@@ -1,0 +1,24 @@
+name: 미확인 문의 리마인더 발송
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # 매일 오전 10시 KST (01:00 UTC)
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 미확인 문의 리마인더 API 호출
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.SITE_URL }}/api/cron/inquiry-reminder")
+
+          echo "HTTP 상태: $response"
+          cat /tmp/response.json
+
+          if [ "$response" != "200" ]; then
+            echo "API 호출 실패 (HTTP $response)"
+            exit 1
+          fi

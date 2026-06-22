@@ -46,3 +46,6 @@ next-env.d.ts
 /cardnews-import/**
 !/cardnews-import/
 !/cardnews-import/README.md
+
+# 보고서 (로컬 전용)
+/reports/

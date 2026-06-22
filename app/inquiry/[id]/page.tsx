@@ -46,7 +46,7 @@ export default async function InquiryDetailPage({
   const statusMeta = getInquiryStatusMeta(inquiry.status);
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8 sm:py-12">
       <Breadcrumbs
         items={[
           { label: "마이페이지", href: "/profile" },

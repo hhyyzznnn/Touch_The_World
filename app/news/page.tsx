@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { format } from "date-fns";
 import type { Metadata } from "next";
 import { CompanyNewsType } from "@prisma/client";
 import Image from "next/image";
@@ -8,9 +7,9 @@ import { ChevronRight } from "lucide-react";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 
 export const metadata: Metadata = {
-  title: "카드뉴스 · 회사 소식 | 터치더월드",
+  title: "프로그램 카드뉴스 | 터치더월드",
   description:
-    "터치더월드의 교육여행·수학여행·교사연수 카드뉴스와 최신 소식을 확인하세요.",
+    "터치더월드의 교육여행·수학여행·교사연수 프로그램 카드뉴스를 확인하세요.",
   alternates: {
     canonical: "/news",
   },
@@ -44,13 +43,6 @@ async function getCardNews(tag: string) {
   });
 }
 
-async function getNews() {
-  return await prisma.companyNews.findMany({
-    where: { type: CompanyNewsType.COMPANY_NEWS },
-    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-  });
-}
-
 export default async function NewsPage({
   searchParams,
 }: {
@@ -59,7 +51,7 @@ export default async function NewsPage({
   const { tag: rawTag } = await searchParams;
   const activeTag = FILTER_TABS.some((t) => t.value === rawTag) ? rawTag! : "all";
 
-  const [cardNews, list] = await Promise.all([getCardNews(activeTag), getNews()]);
+  const cardNews = await getCardNews(activeTag);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -176,53 +168,6 @@ export default async function NewsPage({
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
-
-        {/* 회사 소식 */}
-        <section>
-          <h2 className="text-xl sm:text-2xl font-bold text-text-dark mb-4">회사 소식</h2>
-          {list.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-text-gray">
-              등록된 소식이 없습니다.
-            </div>
-          ) : (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                      제목
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase w-24 sm:w-28">
-                      작성일
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {list.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/news/${item.id}`}
-                          className="flex items-center gap-2 text-text-dark hover:text-brand-green-primary hover:underline underline-offset-2"
-                        >
-                          {item.isPinned && (
-                            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-bold bg-brand-green-primary text-white flex-shrink-0">
-                              공지
-                            </span>
-                          )}
-                          <span>{item.title}</span>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-text-gray whitespace-nowrap">
-                        {format(new Date(item.createdAt), "yyyy.MM.dd")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
 
       </div>
     </div>

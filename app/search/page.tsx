@@ -304,7 +304,7 @@ export default async function SearchPage({
   const hasActiveFilters = Boolean(filters.category || filters.region || filters.priceMin || filters.priceMax || filters.hashtag);
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8 sm:py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-4">
           {query ? `&quot;${query}&quot; 검색 결과` : "검색"}

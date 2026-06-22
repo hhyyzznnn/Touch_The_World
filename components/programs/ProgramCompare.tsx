@@ -94,7 +94,7 @@ export function ProgramCompare({ maxCompare = 3 }: ProgramCompareProps) {
             </Link>
           </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-2">
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
           {compareList.map((program) => (
             <div
               key={program.id}

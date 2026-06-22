@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "./Logo";
@@ -15,6 +15,11 @@ export function Header() {
   const [isProgramsOpen, setIsProgramsOpen] = useState(false);
 
   const isAdmin = pathname?.startsWith("/admin");
+
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isMenuOpen]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -82,7 +87,7 @@ export function Header() {
               사업 실적
             </Link>
             <Link
-              href="/news"
+              href="/company-news"
               className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
             >
               회사 소식
@@ -105,7 +110,7 @@ export function Header() {
                     href={COMPANY_INFO.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
                     aria-label="Instagram"
                   >
                     <Instagram className="w-4 h-4" />
@@ -116,7 +121,7 @@ export function Header() {
                     href={COMPANY_INFO.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
                     aria-label="Facebook"
                   >
                     <Facebook className="w-4 h-4" />
@@ -127,7 +132,7 @@ export function Header() {
                     href={COMPANY_INFO.youtube}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
                     aria-label="YouTube"
                   >
                     <Youtube className="w-4 h-4" />
@@ -239,7 +244,7 @@ export function Header() {
                 사업 실적
               </Link>
               <Link
-                href="/news"
+                href="/company-news"
                 onClick={closeMenu}
                 className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
               >
@@ -264,7 +269,7 @@ export function Header() {
                       href={COMPANY_INFO.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
                       aria-label="Instagram"
                       onClick={closeMenu}
                     >
@@ -276,7 +281,7 @@ export function Header() {
                       href={COMPANY_INFO.facebook}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
                       aria-label="Facebook"
                       onClick={closeMenu}
                     >
@@ -288,7 +293,7 @@ export function Header() {
                       href={COMPANY_INFO.youtube}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
                       aria-label="YouTube"
                       onClick={closeMenu}
                     >

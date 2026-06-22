@@ -72,7 +72,7 @@ export default async function ProgramsPage({
   const { items, totalPages } = await getProgramCardNews(currentPage, currentCategory || undefined);
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8 sm:py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-3">프로그램 카드뉴스</h1>
         <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl">

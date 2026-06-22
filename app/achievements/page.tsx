@@ -89,7 +89,7 @@ export default async function AchievementsPage() {
   const recentEvents = await getRecentEvents();
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8 sm:py-12">
       <div className="mb-8">
         <h1 className="text-3xl font-medium mb-4">터치더월드 발자취</h1>
         <p className="text-lg text-text-gray">

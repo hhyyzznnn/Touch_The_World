@@ -83,6 +83,16 @@ export function InquiryForm({
   } | null>(null);
 
   const autocomplete = useSchoolAutocomplete();
+  const schoolInputRef = useRef<HTMLInputElement>(null);
+  const [dropdownAbove, setDropdownAbove] = useState(false);
+
+  const handleSchoolFocus = () => {
+    if (autocomplete.suggestions.length > 0) {
+      const rect = schoolInputRef.current?.getBoundingClientRect();
+      if (rect) setDropdownAbove(window.innerHeight - rect.bottom < 260);
+      autocomplete.setOpen(true);
+    }
+  };
 
   const {
     register,
@@ -262,7 +272,7 @@ export function InquiryForm({
               </label>
               <input
                 id="schoolName"
-                {...register("schoolName")}
+                {...(() => { const { ref, ...rest } = register("schoolName"); return { ...rest, ref: (el: HTMLInputElement | null) => { ref(el); (schoolInputRef as React.MutableRefObject<HTMLInputElement | null>).current = el; } }; })()}
                 className={inputClass}
                 placeholder="예: 서울중학교"
                 autoComplete="off"
@@ -271,10 +281,10 @@ export function InquiryForm({
                   autocomplete.search(e.target.value);
                 }}
                 onBlur={() => setTimeout(() => autocomplete.setOpen(false), 150)}
-                onFocus={() => autocomplete.suggestions.length > 0 && autocomplete.setOpen(true)}
+                onFocus={handleSchoolFocus}
               />
               {autocomplete.open && (
-                <ul className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto">
+                <ul className={`absolute z-50 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto ${dropdownAbove ? "bottom-full mb-1" : "mt-1"}`}>
                   {autocomplete.suggestions.map((s) => (
                     <li
                       key={`${s.name}-${s.level}`}
@@ -507,14 +517,14 @@ export function InquiryForm({
 
                   <div>
                     <label className="block text-sm font-medium mb-2">선호 이동수단</label>
-                    <div className="flex flex-wrap gap-4">
+                    <div className="grid grid-cols-2 gap-2">
                       {["전세버스", "KTX", "항공", "기타"].map((t) => (
-                        <label key={t} className="flex items-center">
+                        <label key={t} className="flex items-center gap-2 py-1">
                           <input
                             type="radio"
                             value={t}
                             {...register("preferredTransport")}
-                            className="mr-2 accent-brand-green-primary"
+                            className="accent-brand-green-primary"
                           />
                           {t}
                         </label>

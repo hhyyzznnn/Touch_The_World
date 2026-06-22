@@ -177,19 +177,25 @@ export default async function NewsDetailPage({
     news.summary ||
     `${format(new Date(news.createdAt), "yyyy년 MM월 dd일")} 게시된 터치더월드 소식입니다.`;
 
+  const isCardNews = news.type === "PROGRAM_CARD_NEWS";
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "홈", item: siteUrl },
-      { "@type": "ListItem", position: 2, name: "카드뉴스", item: `${siteUrl}/news` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: isCardNews ? "프로그램 카드뉴스" : "회사 소식",
+        item: `${siteUrl}${isCardNews ? "/news" : "/company-news"}`,
+      },
       { "@type": "ListItem", position: 3, name: news.title, item: pageUrl },
     ],
   };
 
   // 카드뉴스 타입에 맞는 JSON-LD 구조화 데이터
   const jsonLd =
-    news.type === "PROGRAM_CARD_NEWS"
+    isCardNews
       ? {
           "@context": "https://schema.org",
           "@type": "Article",
@@ -247,7 +253,9 @@ export default async function NewsDetailPage({
       <div className="container mx-auto px-4 py-8 sm:py-12">
         <Breadcrumbs
           items={[
-            { label: "회사 소식", href: "/news" },
+            news.type === "PROGRAM_CARD_NEWS"
+              ? { label: "프로그램 카드뉴스", href: "/news" }
+              : { label: "회사 소식", href: "/company-news" },
             { label: news.title },
           ]}
         />
@@ -312,7 +320,7 @@ export default async function NewsDetailPage({
           )}
 
           {/* 빠른 문의 CTA — 구체적인 프로그램 카드뉴스에만 표시 */}
-          {news.type === "PROGRAM_CARD_NEWS" && isConcreteProgram(news.category) && (
+          {isCardNews && isConcreteProgram(news.category) && (
             <div className="mt-8 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 rounded-full bg-brand-green-primary/15 p-2.5 mt-0.5">
@@ -341,7 +349,9 @@ export default async function NewsDetailPage({
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <Button asChild variant="outline">
-              <Link href="/programs">목록으로</Link>
+              <Link href={news.type === "PROGRAM_CARD_NEWS" ? "/news" : "/company-news"}>
+                목록으로
+              </Link>
             </Button>
           </div>
         </article>

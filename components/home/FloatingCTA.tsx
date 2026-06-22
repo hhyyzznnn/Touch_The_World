@@ -22,11 +22,12 @@ export function FloatingCTA() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="fixed bottom-6 right-4 sm:right-6 z-50"
+          className="fixed right-4 sm:right-6 z-50"
+          style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))" }}
         >
           <Link
             href="/inquiry?type=quick"
-            className="flex items-center gap-2 bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-4 py-3 rounded-full shadow-lg shadow-brand-green-primary/30 transition-all duration-200 hover:shadow-xl hover:shadow-brand-green-primary/40 hover:-translate-y-0.5 text-sm font-medium"
+            className="flex items-center gap-2 bg-brand-green-primary hover:bg-brand-green-primary/90 active:scale-[0.97] text-white px-4 py-3 rounded-full shadow-lg shadow-brand-green-primary/30 transition-all duration-200 hover:shadow-xl hover:shadow-brand-green-primary/40 hover:-translate-y-0.5 text-sm font-medium"
           >
             <Send className="w-4 h-4" />
             <span>빠른 문의</span>

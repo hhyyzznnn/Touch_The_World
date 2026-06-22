@@ -125,11 +125,20 @@ export default function RootLayout({
               address: {
                 "@type": "PostalAddress",
                 streetAddress: COMPANY_INFO.address,
+                addressLocality: "강남구",
+                addressRegion: "서울특별시",
+                postalCode: "06235",
                 addressCountry: "KR",
               },
               areaServed: "KR",
+              foundingDate: "1996",
               knowsAbout: mergeKeywords(CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS),
-              sameAs: socialLinks,
+              sameAs: [
+                COMPANY_INFO.instagram,
+                COMPANY_INFO.facebook,
+                COMPANY_INFO.youtube,
+                COMPANY_INFO.kakaoChannel,
+              ].filter(Boolean),
             }),
           }}
         />
