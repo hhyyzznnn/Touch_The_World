@@ -87,9 +87,9 @@ export default async function CompanyNewsPage() {
         <section>
           <div className="flex items-center gap-2 mb-2">
             <BookOpen className="w-6 h-6 text-brand-green-primary" />
-            <h2 className="text-xl sm:text-2xl font-bold text-text-dark">대표님 추천 도서</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-text-dark">추천 도서</h2>
           </div>
-          <p className="text-text-gray mb-6">교육여행·진로·성장에 관한 대표님의 추천 도서를 소개합니다.</p>
+          <p className="text-text-gray mb-6">교육여행·진로·성장에 관한 추천 도서를 소개합니다.</p>
 
           {books.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-text-gray">
