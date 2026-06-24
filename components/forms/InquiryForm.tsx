@@ -8,6 +8,7 @@ import { ErrorMessage } from "@/components/ErrorMessage";
 import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
 import { CheckCircle2, Bookmark } from "lucide-react";
+import { trackEvent, GA_EVENTS } from "@/lib/gtag";
 
 type SchoolSuggestion = { name: string; level: string; region: string | null };
 
@@ -137,6 +138,7 @@ export function InquiryForm({
         setIsSuccess(true);
         reset();
         toast.success("문의가 접수되었습니다.");
+        trackEvent(GA_EVENTS.INQUIRY_SUBMIT, { school_level: data.schoolLevel });
       } else {
         const data = await response.json().catch(() => ({}));
         const message =

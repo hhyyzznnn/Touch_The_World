@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Phone, MessageCircle, Mail } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { COMPANY_INFO } from "@/lib/constants";
+import { KakaoContactButton, KakaoContactPlaceholder, PhoneLink } from "@/components/tracking/ContactButtons";
 
 export function Footer() {
   const configuredKakaoChannel =
@@ -31,24 +32,9 @@ export function Footer() {
           <div className="flex flex-col items-center">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 w-full">
               {kakaoChannelUrl ? (
-                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
-                  <a
-                    href={kakaoChannelUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    카카오톡 문의
-                  </a>
-                </Button>
+                <KakaoContactButton href={kakaoChannelUrl} />
               ) : (
-                <Button asChild size="lg" className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 w-full sm:w-auto border border-brand-green-primary/30">
-                  <Link href="/inquiry" className="flex items-center justify-center gap-2">
-                    <MessageCircle className="w-5 h-5" />
-                    카카오톡 채널 준비중
-                  </Link>
-                </Button>
+                <KakaoContactPlaceholder />
               )}
               <Button asChild size="lg" variant="outline" className="bg-white border border-text-dark text-text-dark hover:bg-gray-50 px-6 sm:px-8 w-full sm:w-auto">
                 <Link href="/inquiry" className="flex items-center justify-center gap-2">
@@ -69,7 +55,7 @@ export function Footer() {
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-brand-green flex-shrink-0" />
                   <span className="text-sm text-text-gray">대표전화</span>
-                  <span className="text-2xl font-semibold text-text-dark">{COMPANY_INFO.phone}</span>
+                  <PhoneLink phone={COMPANY_INFO.phone} />
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
