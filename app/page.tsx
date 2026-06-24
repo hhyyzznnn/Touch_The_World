@@ -73,7 +73,7 @@ async function getCardNewsForHome() {
   try {
     return await prisma.companyNews.findMany({
       where: { type: "PROGRAM_CARD_NEWS", imageUrl: { not: null } },
-      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      orderBy: { createdAt: "desc" },
       take: CARD_NEWS_TAKE,
       select: {
         id: true, title: true, summary: true, imageUrl: true,
