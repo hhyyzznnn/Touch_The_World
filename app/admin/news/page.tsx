@@ -20,11 +20,13 @@ async function getNews(type?: CompanyNewsType, q?: string) {
 const TYPE_LABEL: Record<CompanyNewsType, string> = {
   COMPANY_NEWS: "회사 소식",
   PROGRAM_CARD_NEWS: "카드뉴스",
+  BOOK_CARD_NEWS: "도서 추천",
 };
 
 const TYPE_COLOR: Record<CompanyNewsType, string> = {
   COMPANY_NEWS: "bg-blue-100 text-blue-700",
   PROGRAM_CARD_NEWS: "bg-green-100 text-green-700",
+  BOOK_CARD_NEWS: "bg-amber-100 text-amber-700",
 };
 
 export default async function AdminNewsPage({

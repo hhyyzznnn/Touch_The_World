@@ -51,7 +51,8 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
   const [hashtagInput, setHashtagInput] = useState("");
   const [isPinned, setIsPinned] = useState(news?.isPinned ?? false);
 
-  const isCardNews = type === CompanyNewsType.PROGRAM_CARD_NEWS;
+  const isCardNews = type === CompanyNewsType.PROGRAM_CARD_NEWS || type === CompanyNewsType.BOOK_CARD_NEWS;
+  const isBookCardNews = type === CompanyNewsType.BOOK_CARD_NEWS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,16 +124,29 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
             />
             <span className="text-sm">프로그램 카드뉴스</span>
           </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="type"
+              value={CompanyNewsType.BOOK_CARD_NEWS}
+              checked={type === CompanyNewsType.BOOK_CARD_NEWS}
+              onChange={() => setType(CompanyNewsType.BOOK_CARD_NEWS)}
+              className="text-brand-green-primary focus:ring-brand-green-primary"
+            />
+            <span className="text-sm">도서 추천 카드뉴스</span>
+          </label>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          {isCardNews
+          {isBookCardNews
+            ? "도서 추천 카드뉴스는 /company-news 페이지 도서 추천 섹션에 노출됩니다."
+            : type === CompanyNewsType.PROGRAM_CARD_NEWS
             ? "프로그램 카드뉴스는 /programs 페이지에 노출됩니다."
             : "회사 소식은 /news 페이지에 노출됩니다."}
         </p>
       </div>
 
-      {/* 카테고리 (카드뉴스 전용) */}
-      {isCardNews && (
+      {/* 카테고리 (프로그램 카드뉴스 전용) */}
+      {type === CompanyNewsType.PROGRAM_CARD_NEWS && (
         <div>
           <label className="block text-sm font-medium mb-2">
             카테고리

@@ -106,8 +106,16 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Quick links */}
+        <div className="border-t border-gray-200 pt-6 mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-text-gray">
+          <Link href="/about" className="hover:text-brand-green transition-colors">회사 소개</Link>
+          <Link href="/company-news" className="hover:text-brand-green transition-colors">회사 소식</Link>
+          <Link href="/faq" className="hover:text-brand-green transition-colors">자주 묻는 질문</Link>
+          <Link href="/inquiry" className="hover:text-brand-green transition-colors">문의하기</Link>
+        </div>
+
         {/* Copyright */}
-        <div className="border-t border-gray-200 pt-6 mt-6 text-center">
+        <div className="pt-4 mt-2 text-center">
           <p className="text-text-gray text-sm">
             © 2025 TouchTheWorld. All rights reserved.
           </p>

@@ -174,6 +174,7 @@ model Achievement {
 enum CompanyNewsType {
   COMPANY_NEWS
   PROGRAM_CARD_NEWS
+  BOOK_CARD_NEWS
 }
 
 model CompanyNews {
