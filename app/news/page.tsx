@@ -35,7 +35,7 @@ async function getCardNews(tag: string) {
 
   return await prisma.companyNews.findMany({
     where,
-    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    orderBy: { createdAt: "desc" },
     select: {
       id: true, title: true, imageUrl: true, link: true,
       category: true, hashtags: true, isPinned: true, createdAt: true,
