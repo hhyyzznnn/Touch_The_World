@@ -9,10 +9,9 @@ import { BookOpen } from "lucide-react";
 export const metadata: Metadata = {
   title: "회사 소식 | 터치더월드",
   description:
-    "터치더월드의 수상 소식, 혜택 안내, 모집 공고 등 최신 소식을 확인하세요.",
-  alternates: {
-    canonical: "/company-news",
-  },
+    "터치더월드의 수상 소식, 혜택 안내, 모집 공고 및 대표 추천 도서를 확인하세요.",
+  keywords: ["터치더월드 소식", "교육여행 뉴스", "수학여행 업체 소식", "추천 도서", "교육여행 전문기업"],
+  alternates: { canonical: "/company-news" },
 };
 
 async function getCompanyNews() {
