@@ -222,7 +222,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
       },
     ],
     relatedLinks: [
-      { label: "국내·외 교직원 연수 카드뉴스", href: "/news/cmn9nw4e300011fdbrgkwo4ja" },
+      { label: "국내·외 교직원 연수 카드뉴스", href: "/news/cardnews_teacher_training_program" },
       { label: "서울·경기 교직원 연수 숙소 7선", href: "/news/cardnews_seoul_gyeonggi_teacher_training_accommodations_2026" },
       { label: "견적 문의", href: "/inquiry" },
     ],
@@ -290,8 +290,8 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     ],
     relatedLinks: [
       { label: "특성화고 글로벌 현장학습 카드뉴스", href: "/news/cardnews_specialized_highschool_global_field_study_2026" },
-      { label: "특성화고 맞춤 진로 프로그램", href: "/news/cmn9nx6sv00031fdbjuq07tbr" },
-      { label: "해외취업·유학 프로그램", href: "/news/cmn9nwop200021fdbfhzjqmnp" },
+      { label: "특성화고 맞춤 진로 프로그램", href: "/news/cardnews_specialized_highschool_career_program" },
+      { label: "해외취업·유학 프로그램", href: "/news/cardnews_overseas_employment_study_abroad" },
     ],
   },
 };

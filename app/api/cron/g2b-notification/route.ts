@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { processG2BNotifications } from "@/lib/g2b-notification";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   // 보안: Vercel은 CRON_SECRET, 프로젝트는 CRON_SECRET_KEY 사용 가능
@@ -24,9 +25,16 @@ export async function GET(request: NextRequest) {
 
   try {
     const result = await processG2BNotifications();
+
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const { count: deleted } = await prisma.g2BNotice.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    });
+
     return NextResponse.json({
       success: true,
       ...result,
+      deleted,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
