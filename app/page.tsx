@@ -215,10 +215,7 @@ export default async function HomePage({
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white to-transparent z-10" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent z-10" />
-              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain">
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)]">
                 <div className="flex snap-x snap-mandatory flex-nowrap items-start gap-3 lg:gap-5 pb-2">
 
               {/* 쇼츠 영상 — 첫 번째 칸 (9:16 전체, 텍스트 영역 없음) */}
@@ -307,7 +304,6 @@ export default async function HomePage({
                 );
               })}
                 </div>
-              </div>
             </div>
           </div>
         </section>
