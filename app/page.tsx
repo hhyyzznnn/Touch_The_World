@@ -215,7 +215,11 @@ export default async function HomePage({
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white to-transparent z-10" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white to-transparent z-10" />
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain">
+                <div className="flex snap-x snap-mandatory flex-nowrap gap-3 sm:gap-4 pb-2">
 
               {/* 쇼츠 영상 — 첫 번째 칸 (9:16 전체, 텍스트 영역 없음) */}
               {SHORTS_VIDEOS[0] && (() => {
@@ -238,8 +242,8 @@ export default async function HomePage({
                   </div>
                 );
                 return video.href
-                  ? <Link key="shorts-video" href={video.href}>{inner}</Link>
-                  : <div key="shorts-video">{inner}</div>;
+                  ? <Link key="shorts-video" href={video.href} className="snap-start flex-shrink-0 w-[44vw] sm:w-44">{inner}</Link>
+                  : <div key="shorts-video" className="snap-start flex-shrink-0 w-[44vw] sm:w-44">{inner}</div>;
               })()}
 
               {cardNewsItems.map((item) => {
@@ -258,7 +262,7 @@ export default async function HomePage({
                     href={href}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
-                    className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                    className="snap-start flex-shrink-0 w-[44vw] sm:w-44 group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
                     {/* 태그 행 — NEW(각짐) + 카테고리(초록) + 지역(회색) */}
                     {showTagRow && (
@@ -302,6 +306,8 @@ export default async function HomePage({
                   </Link>
                 );
               })}
+                </div>
+              </div>
             </div>
           </div>
         </section>
