@@ -150,7 +150,7 @@ export default async function HomePage({
             <div className="w-full max-w-3xl mx-auto">
               {/* 추천 프로그램 버튼 */}
               {cardNewsItems.length > 0 && (
-                <div className="flex flex-wrap items-center justify-start gap-2 pt-4 sm:pt-6 pb-1">
+                <div className="flex flex-wrap items-center justify-start gap-2 pt-4 sm:pt-6 pb-0">
                   {cardNewsItems.slice(0, 3).map((item) => {
                     const href = item.link?.trim() || `/news/${item.id}`;
                     const isExternal = !!item.link?.trim()?.startsWith("http");
