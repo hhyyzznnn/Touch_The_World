@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      { source: "/news", destination: "/programs", permanent: true },
       // CompanyNews slug 정리 (2026-06 이전 랜덤 ID → 정돈된 슬러그)
       { source: "/news/9c58e97d-f25a-4a14-bfe2-f79c27a73f92", destination: "/news/cardnews_fukuoka_culinary_field_trip_2026",         permanent: true },
       { source: "/news/82b1f0b1-444f-4594-a95f-5ac4d1fb307b", destination: "/news/cardnews_fukuoka_specialized_highschool_trip_2026", permanent: true },

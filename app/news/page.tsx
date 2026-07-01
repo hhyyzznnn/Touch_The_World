@@ -5,7 +5,6 @@ import { CompanyNewsType } from "@prisma/client";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
-
 export const metadata: Metadata = {
   title: "프로그램 카드뉴스 | 터치더월드",
   description:
@@ -15,23 +14,48 @@ export const metadata: Metadata = {
   },
 };
 
+// 회색 태그 선택 우선순위
+const LOCATION_PRIORITY = ["#일본", "#오사카", "#후쿠오카", "#교토", "#서울", "#인천", "#포천", "#가평", "#충남", "#경기", "#국내외", "#국내", "#해외"];
+const TARGET_PRIORITY   = ["#특성화고", "#교사", "#교사연수", "#학생", "#초등", "#중등", "#고등", "#외고", "#외국어고"];
+
 const FILTER_TABS = [
-  { label: "전체", value: "all" },
-  { label: "국내", value: "국내" },
-  { label: "해외", value: "해외" },
-  { label: "일본", value: "일본" },
-] as const;
+  { label: "전체",            value: "all" },
+  { label: "국내 교육여행",   value: "국내 교육여행" },
+  { label: "국외 교육여행",   value: "국외 교육여행" },
+  { label: "체험학습",         value: "체험학습" },
+  { label: "수련활동",         value: "수련활동" },
+  { label: "교사 연수",        value: "교사 연수" },
+  { label: "일본 유학",        value: "일본 유학" },
+  { label: "특성화고 프로그램", value: "특성화고 프로그램" },
+  { label: "기타 프로그램",    value: "기타 프로그램" },
+];
 
+// 상위 카테고리 필터 시 하위 카테고리도 함께 포함
+const CATEGORY_INCLUDES: Record<string, string[]> = {
+  "국외 교육여행": ["국외 교육여행", "일본 유학"],
+};
 
-async function getCardNews(tag: string) {
-  const where =
-    tag === "all"
-      ? { type: CompanyNewsType.PROGRAM_CARD_NEWS, imageUrl: { not: null } }
-      : {
-          type: CompanyNewsType.PROGRAM_CARD_NEWS,
-          imageUrl: { not: null },
-          hashtags: { has: `#${tag}` },
-        };
+async function getCardNews(category: string) {
+  if (category === "all") {
+    return prisma.companyNews.findMany({
+      where: { type: CompanyNewsType.PROGRAM_CARD_NEWS, imageUrl: { not: null } },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true, title: true, imageUrl: true, link: true,
+        category: true, hashtags: true, isPinned: true, createdAt: true,
+      },
+    });
+  }
+
+  const categoriesToMatch = CATEGORY_INCLUDES[category] ?? [category];
+  const where = {
+    type: CompanyNewsType.PROGRAM_CARD_NEWS,
+    imageUrl: { not: null } as const,
+    OR: [
+      { category: { in: categoriesToMatch } },
+      { hashtags: { has: `#${category}` } },   // 관리자가 해시태그로 보조 분류 가능
+    ],
+  };
 
   return await prisma.companyNews.findMany({
     where,
@@ -46,12 +70,12 @@ async function getCardNews(tag: string) {
 export default async function NewsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tag?: string }>;
+  searchParams: Promise<{ cat?: string }>;
 }) {
-  const { tag: rawTag } = await searchParams;
-  const activeTag = FILTER_TABS.some((t) => t.value === rawTag) ? rawTag! : "all";
+  const { cat: rawCat } = await searchParams;
+  const activeCat = FILTER_TABS.some((t) => t.value === rawCat) ? rawCat! : "all";
 
-  const cardNews = await getCardNews(activeTag);
+  const cardNews = await getCardNews(activeCat);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,20 +83,20 @@ export default async function NewsPage({
 
         {/* 카드뉴스 섹션 */}
         <section>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex flex-col gap-3 mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-xl sm:text-2xl font-bold text-text-dark">카드뉴스</h2>
               <span className="text-sm text-text-gray">{cardNews.length}건</span>
             </div>
-            {/* 필터 탭 */}
+            {/* 카테고리 필터 탭 */}
             <div className="flex items-center gap-1.5 flex-wrap">
               {FILTER_TABS.map((tab) => {
-                const isActive = activeTag === tab.value;
+                const isActive = activeCat === tab.value;
                 return (
                   <Link
                     key={tab.value}
-                    href={tab.value === "all" ? "/news" : `/news?tag=${tab.value}`}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    href={tab.value === "all" ? "/news" : `/news?cat=${encodeURIComponent(tab.value)}`}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                       isActive
                         ? "bg-brand-green-primary text-white"
                         : "bg-white border border-gray-200 text-text-gray hover:border-brand-green-primary hover:text-brand-green-primary"
@@ -87,7 +111,7 @@ export default async function NewsPage({
 
           {cardNews.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-text-gray">
-              해당 지역 카드뉴스가 없습니다.
+              해당 카테고리 카드뉴스가 없습니다.
             </div>
           ) : (
             <div className="relative">
@@ -101,12 +125,9 @@ export default async function NewsPage({
                   {cardNews.map((item) => {
                     const href = item.link?.trim() || `/news/${item.id}`;
                     const isExternal = href.startsWith("http");
-                    const tags = [
-                      item.category ? `#${item.category}` : null,
-                      item.hashtags.find((t) =>
-                        ["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#국내"].includes(t)
-                      ) ?? null,
-                    ].filter(Boolean) as string[];
+                    const locationTag = item.hashtags.find(t => LOCATION_PRIORITY.includes(t));
+                    const targetTag   = item.hashtags.find(t => TARGET_PRIORITY.includes(t));
+                    const grayTags    = [locationTag, targetTag].filter(Boolean) as string[];
 
                     return (
                       <Link
@@ -116,16 +137,19 @@ export default async function NewsPage({
                         rel={isExternal ? "noopener noreferrer" : undefined}
                         className="group flex-shrink-0 w-[56vw] sm:w-56 md:w-auto"
                       >
-                        {/* 태그 — 이미지 위, 겹침 없음 */}
-                        {tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-1.5">
-                            {tags.map((tag) => (
-                              <span key={tag} className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {/* 카테고리(초록) + 지역·대상 회색 태그 */}
+                        <div className="flex flex-wrap gap-1 mb-1.5">
+                          {item.category && (
+                            <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
+                              {item.category}
+                            </span>
+                          )}
+                          {grayTags.map(tag => (
+                            <span key={tag} className="rounded-full bg-gray-100 text-gray-400 px-2.5 py-0.5 text-xs font-medium">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                         <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-gray-50">
                           <Image
                             src={item.imageUrl!}
