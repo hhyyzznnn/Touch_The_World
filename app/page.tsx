@@ -149,7 +149,7 @@ export default async function HomePage({
 
             {/* 추천 프로그램 버튼 */}
             {cardNewsItems.length > 0 && (
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-4 sm:pt-6">
+              <div className="flex flex-wrap items-center justify-start gap-2 pt-4 sm:pt-6">
                 {cardNewsItems.slice(0, 3).map((item) => {
                   const href = item.link?.trim() || `/news/${item.id}`;
                   const isExternal = !!item.link?.trim()?.startsWith("http");
@@ -169,7 +169,7 @@ export default async function HomePage({
               </div>
             )}
 
-            <div className="pt-3 sm:pt-4">
+            <div className="pt-2">
               <HeroChatInputWrapper category={resolvedSearchParams?.category} greeting={greeting} />
             </div>
 
