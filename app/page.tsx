@@ -147,7 +147,29 @@ export default async function HomePage({
               <span className="block">학습자의 세계를 확장합니다.</span>
             </p>
 
-            <div className="pt-4 sm:pt-6">
+            {/* 추천 프로그램 버튼 */}
+            {cardNewsItems.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-4 sm:pt-6">
+                {cardNewsItems.slice(0, 3).map((item) => {
+                  const href = item.link?.trim() || `/news/${item.id}`;
+                  const isExternal = !!item.link?.trim()?.startsWith("http");
+                  return (
+                    <Link
+                      key={item.id}
+                      href={href}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 text-xs sm:text-sm text-text-gray hover:border-brand-green-primary hover:text-brand-green-primary transition-colors shadow-sm"
+                    >
+                      <span className="line-clamp-1 max-w-[20ch]">{stripBrandFromTitle(item.title)}</span>
+                      <ChevronRight className="w-3 h-3 flex-shrink-0 opacity-50" />
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="pt-3 sm:pt-4">
               <HeroChatInputWrapper category={resolvedSearchParams?.category} greeting={greeting} />
             </div>
 
