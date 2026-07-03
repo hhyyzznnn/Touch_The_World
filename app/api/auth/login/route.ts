@@ -74,6 +74,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 구형 해시(factor > 8)면 로그인 성공 시점에 재해싱
+    const currentRounds = bcrypt.getRounds(user.password);
+    if (currentRounds > 8) {
+      const newHash = await bcrypt.hash(password, 8);
+      await prisma.user.update({ where: { id: user.id }, data: { password: newHash } });
+    }
+
     // 이메일 인증 확인
     if (!user.emailVerified) {
       return NextResponse.json(

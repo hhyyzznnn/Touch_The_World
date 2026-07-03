@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 비밀번호 해싱
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 8);
 
     // 인증 토큰 생성
     const token = crypto.randomBytes(32).toString("hex");

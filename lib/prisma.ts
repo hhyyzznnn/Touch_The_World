@@ -15,43 +15,27 @@ const globalForPrisma = globalThis as unknown as {
  * CLI 명령어는 자동으로 Direct Connection을 사용합니다.
  */
 function getDatabaseUrl(): string {
-  // 런타임 환경에서는 Pooler URL 우선 사용
-  if (process.env.DATABASE_POOLING_URL) {
-    return process.env.DATABASE_POOLING_URL;
-  }
-  
-  // 폴백: DATABASE_URL (Direct URL)
-  if (process.env.DATABASE_URL) {
-    // 경고: 프로덕션에서는 Pooler URL을 사용해야 함
-    if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "⚠️  DATABASE_POOLING_URL이 설정되지 않았습니다. " +
-        "프로덕션 환경에서는 Connection Pooler를 사용해야 합니다."
-      );
-    }
-    return process.env.DATABASE_URL;
+  const base =
+    process.env.DATABASE_POOLING_URL ||
+    process.env.DATABASE_URL ||
+    process.env.DATABASE_DIRECT_URL;
+
+  if (!base) {
+    throw new Error(
+      "DATABASE_URL, DATABASE_POOLING_URL 또는 DATABASE_DIRECT_URL 환경 변수가 설정되지 않았습니다."
+    );
   }
 
-  // 최종 폴백: DATABASE_DIRECT_URL
-  if (process.env.DATABASE_DIRECT_URL) {
-    if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "⚠️  DATABASE_POOLING_URL이 설정되지 않았습니다. " +
-        "프로덕션 환경에서는 Connection Pooler 사용을 권장합니다."
-      );
-    }
-    return process.env.DATABASE_DIRECT_URL;
+  // 서버리스 환경에서 불필요한 커넥션 풀 낭비 방지
+  const url = new URL(base);
+  if (!url.searchParams.has("connection_limit")) {
+    url.searchParams.set("connection_limit", "1");
   }
-  
-  throw new Error(
-    "DATABASE_URL, DATABASE_POOLING_URL 또는 DATABASE_DIRECT_URL 환경 변수가 설정되지 않았습니다."
-  );
+  return url.toString();
 }
 
 export const prisma =
   globalForPrisma.prisma ??
-  new PrismaClient({
+  (globalForPrisma.prisma = new PrismaClient({
     datasourceUrl: getDatabaseUrl(),
-  });
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+  }));

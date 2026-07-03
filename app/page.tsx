@@ -67,7 +67,7 @@ async function getNewsForTicker() {
   }
 }
 
-const CARD_NEWS_TAKE = SHORTS_VIDEOS.length > 0 ? 3 : 4;
+const CARD_NEWS_TAKE = 4;
 
 async function getCardNewsForHome() {
   try {
@@ -239,8 +239,8 @@ export default async function HomePage({
                   </div>
                 );
                 return video.href
-                  ? <Link key="shorts-video" href={video.href} className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] lg:w-[calc(25vw-1.25rem)]">{inner}</Link>
-                  : <div key="shorts-video" className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] lg:w-[calc(25vw-1.25rem)]">{inner}</div>;
+                  ? <Link key="shorts-video" href={video.href} className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)]">{inner}</Link>
+                  : <div key="shorts-video" className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)]">{inner}</div>;
               })()}
 
               {cardNewsItems.map((item) => {
@@ -259,45 +259,45 @@ export default async function HomePage({
                     href={href}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
-                    className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] lg:w-[calc(25vw-1.25rem)] group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                    className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] aspect-[9/16] flex flex-col group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
-                    {/* 태그 행 — NEW(각짐) + 카테고리(초록) + 지역(회색) */}
-                    {showTagRow && (
-                      <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
-                        {isNew && (
-                          <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
-                            NEW
-                          </span>
-                        )}
-                        {categoryTag && (
-                          <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
-                            {categoryTag}
-                          </span>
-                        )}
-                        {regionTag && (
-                          <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
-                            {regionTag}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
+                    <div className="relative flex-1 bg-gray-50 min-h-0">
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
                           alt={item.title}
                           fill
-                          sizes="(max-width: 768px) 50vw, 25vw"
+                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                           className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
                         />
                       ) : (
                         <ImagePlaceholder text="카드뉴스" className="text-xs" />
                       )}
+                      {/* 태그 — 이미지 위 오버레이 */}
+                      {showTagRow && (
+                        <div className="absolute top-2 left-2 flex flex-wrap items-center gap-1">
+                          {isNew && (
+                            <span className="rounded bg-brand-green-primary text-white px-2 py-0.5 text-xs font-bold shadow-sm">
+                              NEW
+                            </span>
+                          )}
+                          {categoryTag && (
+                            <span className="rounded-full bg-white/85 backdrop-blur-sm text-brand-green-primary px-2 py-0.5 text-xs font-medium shadow-sm">
+                              {categoryTag}
+                            </span>
+                          )}
+                          {regionTag && (
+                            <span className="rounded-full bg-white/85 backdrop-blur-sm text-text-gray px-2 py-0.5 text-xs shadow-sm">
+                              {regionTag}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="p-3 sm:p-4">
-                      <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
+                    <div className="flex-shrink-0 p-3">
+                      <p className="text-xs sm:text-sm font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
                       {item.summary && (
-                        <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
+                        <p className="mt-0.5 text-xs text-text-gray line-clamp-1">{item.summary}</p>
                       )}
                     </div>
                   </Link>
