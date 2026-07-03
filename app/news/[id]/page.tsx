@@ -284,73 +284,84 @@ export default async function NewsDetailPage({
             {news.title}
           </h1>
 
-          {news.summary && (
-            <p className="text-lg text-text-gray mb-6 leading-relaxed">
-              {news.summary}
-            </p>
-          )}
-
-          {cardNewsImages.length > 0 && (
-            <div className="mb-8">
-              <CardNewsImageViewer images={cardNewsImages} title={news.title} />
-            </div>
-          )}
-
-          {news.content && (
-            <div className="prose prose-lg max-w-none mb-6 text-text-dark
-              prose-headings:text-text-dark prose-headings:font-bold
-              prose-h2:text-xl prose-h3:text-lg
-              prose-strong:text-text-dark
-              prose-a:text-brand-green-primary prose-a:no-underline hover:prose-a:underline
-              prose-ul:list-disc prose-ol:list-decimal
-              prose-li:my-1
-              prose-hr:border-gray-200">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {news.content}
-              </ReactMarkdown>
-            </div>
-          )}
-
-          {news.hashtags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {news.hashtags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-sm text-brand-green-primary/80 hover:text-brand-green-primary transition-colors"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* 빠른 문의 CTA — 구체적인 프로그램 카드뉴스에만 표시 */}
-          {isCardNews && isConcreteProgram(news.category) && (
-            <div className="mt-8 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 rounded-full bg-brand-green-primary/15 p-2.5 mt-0.5">
-                  <MessageCircle className="w-5 h-5 text-brand-green-primary" />
-                </div>
-                <div>
-                  <p className="text-base font-semibold text-text-dark leading-snug">
-                    이 프로그램에 대해 문의하기
-                  </p>
-                  <p className="text-sm text-text-gray mt-1">
-                    기본 정보가 미리 채워진 문의 화면으로 바로 이동합니다.
-                  </p>
-                </div>
+          {/* 이미지 + 텍스트 2열 (데스크탑) */}
+          <div className={cardNewsImages.length > 0 ? "lg:grid lg:grid-cols-[2fr_3fr] lg:gap-10 lg:items-start" : undefined}>
+            {/* 왼쪽: 이미지 슬라이더 */}
+            {cardNewsImages.length > 0 && (
+              <div className="mb-6 lg:mb-0 lg:sticky lg:top-24">
+                <CardNewsImageViewer
+                  images={cardNewsImages}
+                  title={news.title}
+                  className="max-w-none"
+                />
               </div>
-              <Button
-                asChild
-                className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white gap-2 flex-shrink-0 w-full sm:w-auto"
-              >
-                <Link href={buildInquiryUrl(news)} className="flex items-center gap-2">
-                  빠른 문의
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </Button>
+            )}
+
+            {/* 오른쪽: 요약·본문·태그·CTA */}
+            <div>
+              {news.summary && (
+                <p className="text-lg text-text-gray mb-6 leading-relaxed">
+                  {news.summary}
+                </p>
+              )}
+
+              {news.content && (
+                <div className="prose prose-lg max-w-none mb-6 text-text-dark
+                  prose-headings:text-text-dark prose-headings:font-bold
+                  prose-h2:text-xl prose-h3:text-lg
+                  prose-strong:text-text-dark
+                  prose-a:text-brand-green-primary prose-a:no-underline hover:prose-a:underline
+                  prose-ul:list-disc prose-ol:list-decimal
+                  prose-li:my-1
+                  prose-hr:border-gray-200">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {news.content}
+                  </ReactMarkdown>
+                </div>
+              )}
+
+              {news.hashtags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {news.hashtags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-sm text-brand-green-primary/80 hover:text-brand-green-primary transition-colors"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* 빠른 문의 CTA — 구체적인 프로그램 카드뉴스에만 표시 */}
+              {isCardNews && isConcreteProgram(news.category) && (
+                <div className="mt-8 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 rounded-full bg-brand-green-primary/15 p-2.5 mt-0.5">
+                      <MessageCircle className="w-5 h-5 text-brand-green-primary" />
+                    </div>
+                    <div>
+                      <p className="text-base font-semibold text-text-dark leading-snug">
+                        이 프로그램에 대해 문의하기
+                      </p>
+                      <p className="text-sm text-text-gray mt-1">
+                        기본 정보가 미리 채워진 문의 화면으로 바로 이동합니다.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    asChild
+                    className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white gap-2 flex-shrink-0 w-full sm:w-auto"
+                  >
+                    <Link href={buildInquiryUrl(news)} className="flex items-center gap-2">
+                      빠른 문의
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <Button asChild variant="outline">

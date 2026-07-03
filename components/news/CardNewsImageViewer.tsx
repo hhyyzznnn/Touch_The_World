@@ -6,9 +6,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface Props {
   images: string[];
   title: string;
+  className?: string;
 }
 
-export function CardNewsImageViewer({ images, title }: Props) {
+export function CardNewsImageViewer({ images, title, className }: Props) {
   const [current, setCurrent] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,13 +33,13 @@ export function CardNewsImageViewer({ images, title }: Props) {
       <img
         src={images[0]}
         alt={title}
-        className="mx-auto block w-full max-w-md sm:max-w-lg rounded-xl border bg-gray-100"
+        className={`mx-auto block w-full rounded-xl border bg-gray-100 ${className ?? "max-w-md sm:max-w-lg"}`}
       />
     );
   }
 
   return (
-    <div className="relative select-none mx-auto max-w-md sm:max-w-lg">
+    <div className={`relative select-none mx-auto ${className ?? "max-w-md sm:max-w-lg"}`}>
       {/* 슬라이더 */}
       <div
         ref={containerRef}
