@@ -10,7 +10,17 @@ import { COMPANY_INFO } from "@/lib/constants";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
-import { HeroChatInputWrapper } from "@/components/HeroChatInputWrapper";
+import dynamic from "next/dynamic";
+import { LazyAutoplayVideo } from "@/components/home/LazyAutoplayVideo";
+const HeroChatInputWrapper = dynamic(
+  () => import("@/components/HeroChatInputWrapper").then((m) => ({ default: m.HeroChatInputWrapper })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-12 w-full max-w-3xl mx-auto rounded-xl bg-gray-100 animate-pulse" />
+    ),
+  }
+);
 import { NewsTicker } from "@/components/NewsTicker";
 import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
@@ -223,13 +233,8 @@ export default async function HomePage({
                 const video = SHORTS_VIDEOS[0];
                 const inner = (
                   <div className="group relative aspect-[9/16] overflow-hidden rounded-xl bg-gray-900 border border-gray-200 hover:shadow-md transition-shadow">
-                    <video
+                    <LazyAutoplayVideo
                       src={video.src}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      preload="metadata"
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />

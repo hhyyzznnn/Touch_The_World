@@ -3,7 +3,11 @@ import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
-import { FloatingChatButton } from "@/components/FloatingChatButton";
+import dynamic from "next/dynamic";
+const FloatingChatButton = dynamic(
+  () => import("@/components/FloatingChatButton").then((m) => ({ default: m.FloatingChatButton })),
+  { ssr: false }
+);
 import { ProgramCompare } from "@/components/programs/ProgramCompare";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
@@ -85,6 +89,8 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        {/* jsDelivr CDN 연결 선점 — Pretendard 폰트 로딩 지연 단축 */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           as="style"

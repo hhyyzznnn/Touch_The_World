@@ -1,22 +1,35 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useInView, animate } from "framer-motion";
 
 function AnimatedNumber({ value, format }: { value: number; format?: (n: number) => string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    if (!isInView) return;
-    const controls = animate(0, value, {
-      duration: 2,
-      ease: "easeOut",
-      onUpdate: (v) => setDisplay(Math.floor(v)),
-    });
-    return controls.stop;
-  }, [isInView, value]);
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+
+        const startTime = performance.now();
+        const duration = 1800;
+        const tick = (now: number) => {
+          const p = Math.min((now - startTime) / duration, 1);
+          const ease = 1 - (1 - p) ** 3; // cubic ease-out
+          setDisplay(Math.round(ease * value));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      },
+      { rootMargin: "-80px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value]);
 
   return <span ref={ref}>{format ? format(display) : display.toLocaleString()}</span>;
 }
