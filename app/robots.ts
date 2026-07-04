@@ -13,7 +13,9 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin/",
           "/api/",
-          "/api/auth/callback", // 리디렉션되는 콜백 페이지 차단
+          "/login",
+          "/register",
+          "/verify-email",
         ],
       },
       {
@@ -23,7 +25,9 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin/",
           "/api/",
-          "/api/auth/callback",
+          "/login",
+          "/register",
+          "/verify-email",
         ],
       },
     ],

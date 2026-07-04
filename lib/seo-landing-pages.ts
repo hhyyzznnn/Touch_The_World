@@ -89,7 +89,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     ],
     relatedLinks: [
       { label: "2026 일본 에듀트립 카드뉴스", href: "/news/cardnews_japan_edu_trip_2026" },
-      { label: "일본 교육여행 추천 프로그램", href: "/news/cmn648q9p0000duplif3b6tne" },
+      { label: "일본 교육여행 추천 프로그램", href: "/news/cardnews_japan_recommended_edu_trip_2026" },
       { label: "견적 문의", href: "/inquiry" },
     ],
   },
