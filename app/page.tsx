@@ -12,6 +12,15 @@ import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import dynamic from "next/dynamic";
 import { LazyAutoplayVideo } from "@/components/home/LazyAutoplayVideo";
+import { NewsTicker } from "@/components/NewsTicker";
+import { getPersonalizedGreeting } from "@/lib/greeting";
+import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
+import { StatsSection } from "@/components/home/StatsSection";
+import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
+import { HomePopup } from "@/components/home/HomePopup";
+import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+
 const HeroChatInputWrapper = dynamic(
   () => import("@/components/HeroChatInputWrapper").then((m) => ({ default: m.HeroChatInputWrapper })),
   {
@@ -21,14 +30,6 @@ const HeroChatInputWrapper = dynamic(
     ),
   }
 );
-import { NewsTicker } from "@/components/NewsTicker";
-import { getPersonalizedGreeting } from "@/lib/greeting";
-import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
-import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
-import { StatsSection } from "@/components/home/StatsSection";
-import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
-import { HomePopup } from "@/components/home/HomePopup";
-import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
