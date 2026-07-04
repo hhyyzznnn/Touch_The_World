@@ -8,6 +8,7 @@ import { seoLandingPageList } from "@/lib/seo-landing-pages";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+import { unstable_cache } from "next/cache";
 
 // category/page 파라미터가 있는 URL에서도 canonical이 /programs로 반드시 포함되도록 generateMetadata 사용
 export async function generateMetadata(): Promise<Metadata> {
@@ -59,7 +60,11 @@ async function getProgramCardNews(page: number, category?: string) {
   };
 }
 
-export const dynamic = "force-dynamic";
+const getProgramCardNewsCached = unstable_cache(
+  getProgramCardNews,
+  ["programs-card-news"],
+  { revalidate: 600 },
+);
 
 export default async function ProgramsPage({
   searchParams,
@@ -69,7 +74,7 @@ export default async function ProgramsPage({
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
   const currentCategory = params.category || "";
-  const { items, totalPages } = await getProgramCardNews(currentPage, currentCategory || undefined);
+  const { items, totalPages } = await getProgramCardNewsCached(currentPage, currentCategory || undefined);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">

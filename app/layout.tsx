@@ -15,16 +15,18 @@ import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } fro
 import { ToastProvider } from "@/components/ui/toast";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
-const notoSerif = Noto_Serif_KR({ 
+const notoSerif = Noto_Serif_KR({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-noto-serif",
+  display: "swap",
 });
 
 const bonaNovaSC = Bona_Nova_SC({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-bona-nova",
+  display: "swap",
 });
 
 const siteUrl = getSiteUrl();

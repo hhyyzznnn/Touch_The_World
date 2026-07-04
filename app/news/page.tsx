@@ -67,6 +67,8 @@ async function getCardNews(category: string) {
   });
 }
 
+export const revalidate = 600;
+
 export default async function NewsPage({
   searchParams,
 }: {

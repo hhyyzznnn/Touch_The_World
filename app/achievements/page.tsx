@@ -84,6 +84,8 @@ async function getRecentEvents() {
   }
 }
 
+export const revalidate = 86400;
+
 export default async function AchievementsPage() {
   const { grouped, years, yearLabels } = await getAchievementsByYear();
   const recentEvents = await getRecentEvents();

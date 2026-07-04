@@ -30,6 +30,8 @@ async function getBookCardNews() {
   });
 }
 
+export const revalidate = 3600;
+
 export default async function CompanyNewsPage() {
   const [list, books] = await Promise.all([getCompanyNews(), getBookCardNews()]);
 

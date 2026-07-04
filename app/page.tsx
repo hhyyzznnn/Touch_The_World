@@ -243,7 +243,7 @@ export default async function HomePage({
                   : <div key="shorts-video" className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)]">{inner}</div>;
               })()}
 
-              {cardNewsItems.map((item) => {
+              {cardNewsItems.map((item, cardIndex) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");
                 const isNew = isRecentlyAdded(item.createdAt);
@@ -269,6 +269,7 @@ export default async function HomePage({
                           fill
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                           className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
+                          priority={cardIndex === 0}
                         />
                       ) : (
                         <ImagePlaceholder text="카드뉴스" className="text-xs" />
