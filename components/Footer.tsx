@@ -87,6 +87,20 @@ export function Footer() {
                   <dt className="text-text-gray">업종</dt>
                   <dd className="font-medium text-text-dark break-keep">{COMPANY_INFO.businessType}</dd>
                 </div>
+                <div className="grid grid-cols-[88px_1fr] gap-3 pt-1">
+                  <dt className="text-text-gray">제휴</dt>
+                  <dd>
+                    <a
+                      href="https://ttw.hanatour.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-green-primary hover:underline underline-offset-2"
+                    >
+                      하나투어 공식 페이지
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    </a>
+                  </dd>
+                </div>
               </dl>
             </div>
           </div>
