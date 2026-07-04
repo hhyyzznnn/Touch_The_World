@@ -3,11 +3,7 @@ import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
-import dynamic from "next/dynamic";
-const FloatingChatButton = dynamic(
-  () => import("@/components/FloatingChatButton").then((m) => ({ default: m.FloatingChatButton })),
-  { ssr: false }
-);
+import { DynamicFloatingChat } from "@/components/DynamicFloatingChat";
 import { ProgramCompare } from "@/components/programs/ProgramCompare";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
@@ -178,7 +174,7 @@ export default function RootLayout({
           <div className="print:hidden"><Header /></div>
           <main className="min-h-screen">{children}</main>
           <div className="print:hidden"><ConditionalFooter /></div>
-          <div className="print:hidden"><FloatingChatButton /></div>
+          <div className="print:hidden"><DynamicFloatingChat /></div>
           <ProgramCompare />
         </ToastProvider>
       </body>
