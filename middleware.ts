@@ -3,8 +3,14 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+
+  // 스팸봇·외부 잘못된 링크로 인한 404 URL 홈으로 리디렉션
+  if (pathname === "/$" || pathname === "/&") {
+    return NextResponse.redirect(new URL("/", request.url), { status: 301 });
+  }
+
   const response = NextResponse.next();
-  
+
   // pathname을 헤더에 추가 (ConditionalFooter에서 사용)
   response.headers.set("x-pathname", pathname);
 
