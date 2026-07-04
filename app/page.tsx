@@ -10,8 +10,8 @@ import { COMPANY_INFO } from "@/lib/constants";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
-import dynamic from "next/dynamic";
 import { LazyAutoplayVideo } from "@/components/home/LazyAutoplayVideo";
+import { DynamicHeroChat } from "@/components/home/DynamicHeroChat";
 import { NewsTicker } from "@/components/NewsTicker";
 import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
@@ -20,16 +20,6 @@ import { StatsSection } from "@/components/home/StatsSection";
 import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
 import { HomePopup } from "@/components/home/HomePopup";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
-
-const HeroChatInputWrapper = dynamic(
-  () => import("@/components/HeroChatInputWrapper").then((m) => ({ default: m.HeroChatInputWrapper })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-12 w-full max-w-3xl mx-auto rounded-xl bg-gray-100 animate-pulse" />
-    ),
-  }
-);
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -183,7 +173,7 @@ export default async function HomePage({
             </div>
 
             <div className="pt-0">
-              <HeroChatInputWrapper category={resolvedSearchParams?.category} greeting={greeting} />
+              <DynamicHeroChat category={resolvedSearchParams?.category} greeting={greeting} />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
