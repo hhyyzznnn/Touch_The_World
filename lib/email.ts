@@ -98,18 +98,43 @@ export async function sendVerificationEmail(
 
 export async function sendInquiryNotificationEmail(
   inquiryData: {
+    // 카테고리 1
     schoolName: string;
     contact: string;
+    position?: string | null;
     phone?: string | null;
     email?: string | null;
-    message?: string | null;
-    expectedDate?: string | null;
+    schoolAddress?: string | null;
+    // 카테고리 2
+    departureDate?: string | null;
+    returnDate?: string | null;
     participantCount?: number | null;
+    instructorCount?: number | null;
+    targetGrade?: string | null;
+    // 카테고리 3
+    destination?: string | null;
     purpose?: string | null;
-    hasInstructor?: boolean | null;
     preferredTransport?: string | null;
+    hasInstructor?: boolean | null;
+    localTransport?: string | null;
+    // 카테고리 4
+    accommodation?: string | null;
+    accommodationType?: string | null;
+    roomAssignment?: string | null;
     mealPreference?: string | null;
+    specialDiet?: string | null;
+    // 카테고리 5
+    requiredSites?: string | null;
+    experiencePrograms?: string | null;
+    ownEvents?: string | null;
+    facilityRequirements?: string | null;
+    agentService?: string | null;
+    // 카테고리 6
+    insurance?: string | null;
+    safetyStaff?: boolean | null;
     specialRequests?: string | null;
+    rainPlan?: string | null;
+    message?: string | null;
     estimatedBudget?: number | null;
   }
 ) {
@@ -144,84 +169,71 @@ export async function sendInquiryNotificationEmail(
       to: recipients,
       subject: `[터치더월드] 새로운 문의가 접수되었습니다 - ${inquiryData.schoolName}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto;">
           <h2 style="color: #2E6D45;">새로운 문의가 접수되었습니다</h2>
-          <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333; width: 120px;">학교명:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.schoolName}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">담당자명:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.contact}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">전화번호:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.phone || "미입력"}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">이메일:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.email || "미입력"}</td>
-              </tr>
-              ${inquiryData.expectedDate ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">예상 일정:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.expectedDate}</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.participantCount ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">예상 인원:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.participantCount}명</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.purpose ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">여행 목적:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.purpose}</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.hasInstructor !== null && inquiryData.hasInstructor !== undefined ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">인솔자 필요:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.hasInstructor ? "필요" : "불필요"}</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.preferredTransport ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">선호 이동수단:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.preferredTransport}</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.mealPreference ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">식사 취향:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.mealPreference}</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.estimatedBudget ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333;">예상 예산:</td>
-                <td style="padding: 8px 0; color: #666;">${inquiryData.estimatedBudget.toLocaleString()}원</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.specialRequests ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333; vertical-align: top;">특별 요구사항:</td>
-                <td style="padding: 8px 0; color: #666; white-space: pre-wrap;">${inquiryData.specialRequests}</td>
-              </tr>
-              ` : ''}
-              ${inquiryData.message ? `
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #333; vertical-align: top;">기타 문의 내용:</td>
-                <td style="padding: 8px 0; color: #666; white-space: pre-wrap;">${inquiryData.message}</td>
-              </tr>
-              ` : ''}
-            </table>
-          </div>
+          ${[
+            { title: "1. 기본 정보", rows: [
+              ["학교명", inquiryData.schoolName],
+              ["담당자명", inquiryData.contact],
+              ["직책", inquiryData.position],
+              ["전화번호", inquiryData.phone || "미입력"],
+              ["이메일", inquiryData.email || "미입력"],
+              ["학교 주소", inquiryData.schoolAddress],
+            ]},
+            { title: "2. 일정 및 인원", rows: [
+              ["출발일", inquiryData.departureDate],
+              ["도착일", inquiryData.returnDate],
+              ["학생 수", inquiryData.participantCount ? `${inquiryData.participantCount}명` : null],
+              ["인솔 교사 수", inquiryData.instructorCount ? `${inquiryData.instructorCount}명` : null],
+              ["대상 학년", inquiryData.targetGrade],
+            ]},
+            { title: "3. 여행 형태 및 선호도", rows: [
+              ["여행 지역", inquiryData.destination],
+              ["여행 목적", inquiryData.purpose],
+              ["주 이동수단", inquiryData.preferredTransport],
+              ["인솔자 필요", inquiryData.hasInstructor !== null && inquiryData.hasInstructor !== undefined ? (inquiryData.hasInstructor ? "필요" : "불필요") : null],
+              ["현지 교통", inquiryData.localTransport],
+            ]},
+            { title: "4. 숙박 및 식사", rows: [
+              ["숙박 여부", inquiryData.accommodation],
+              ["숙박 형태", inquiryData.accommodationType],
+              ["객실 배정", inquiryData.roomAssignment],
+              ["식사 취향", inquiryData.mealPreference],
+              ["특이 식단", inquiryData.specialDiet],
+            ]},
+            { title: "5. 교육 및 프로그램", rows: [
+              ["필수 방문지", inquiryData.requiredSites],
+              ["희망 체험 프로그램", inquiryData.experiencePrograms],
+              ["자체 행사", inquiryData.ownEvents],
+              ["시설 요구사항", inquiryData.facilityRequirements],
+              ["섭외 대행 항목", inquiryData.agentService],
+            ]},
+            { title: "6. 안전·행정 및 기타", rows: [
+              ["보험", inquiryData.insurance],
+              ["안전 요원", inquiryData.safetyStaff !== null && inquiryData.safetyStaff !== undefined ? (inquiryData.safetyStaff ? "필요" : "불필요") : null],
+              ["특별 지원 학생", inquiryData.specialRequests],
+              ["우천 대비", inquiryData.rainPlan],
+              ["예상 예산", inquiryData.estimatedBudget ? `${inquiryData.estimatedBudget.toLocaleString()}원` : null],
+              ["기타 문의", inquiryData.message],
+            ]},
+          ].map(section => {
+            const visibleRows = section.rows.filter(([, v]) => v);
+            if (!visibleRows.length) return "";
+            return `
+              <div style="background-color: #f5f5f5; padding: 16px 20px; border-radius: 8px; margin: 16px 0;">
+                <h3 style="color: #2E6D45; margin: 0 0 12px; font-size: 14px;">${section.title}</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  ${visibleRows.map(([label, value]) => `
+                    <tr>
+                      <td style="padding: 5px 0; font-weight: bold; color: #333; width: 140px; vertical-align: top;">${label}:</td>
+                      <td style="padding: 5px 0; color: #666; white-space: pre-wrap;">${value}</td>
+                    </tr>
+                  `).join("")}
+                </table>
+              </div>`;
+          }).join("")}
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${baseUrl}/admin/inquiries" 
+            <a href="${baseUrl}/admin/inquiries"
                style="background-color: #2E6D45; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
               관리자 페이지에서 확인하기
             </a>

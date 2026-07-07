@@ -118,17 +118,42 @@ model Inquiry {
   phone             String
   email             String
   message           String?
-  expectedDate      String?  // 예상 일정
-  participantCount  Int?     // 예상 인원
+  // 카테고리 1: 기본 정보
+  position          String?  // 직책
+  schoolAddress     String?  // 학교 주소
+  // 카테고리 2: 일정 및 인원
+  expectedDate      String?  // 예상 일정 (레거시 호환)
+  departureDate     String?  // 출발일
+  returnDate        String?  // 도착일
+  participantCount  Int?     // 학생 수
+  instructorCount   Int?     // 인솔 교사 수
+  targetGrade       String?  // 대상 학년
+  // 카테고리 3: 여행 형태 및 선호도
+  destination       String?  // 여행 지역
   purpose           String?  // 여행 목적/성격
+  preferredTransport String? // 교통 (주 이동수단)
   hasInstructor     Boolean? // 인솔자 필요 여부
-  preferredTransport String? // 선호 이동수단
-  mealPreference    String?  // 식사 취향/요구사항
-  specialRequests   String?  // 특별 요구사항
+  localTransport    String?  // 현지 교통 수단
+  // 카테고리 4: 숙박 및 식사
+  accommodation     String?  // 숙박 여부/박수
+  accommodationType String?  // 숙박 형태 (콘도/호텔 등)
+  roomAssignment    String?  // 객실 배정 방식
+  mealPreference    String?  // 식사 취향
+  specialDiet       String?  // 특이 식단 (알러지 등)
+  // 카테고리 5: 교육 및 프로그램
+  requiredSites     String?  // 필수 방문지
+  experiencePrograms String? // 희망 체험 프로그램
+  ownEvents         String?  // 자체 행사 여부/내용
+  facilityRequirements String? // 시설 요구사항
+  agentService      String?  // 섭외 대행 필요 항목
+  // 카테고리 6: 안전·행정 및 기타
+  insurance         String?  // 보험 요구사항
+  safetyStaff       Boolean? // 안전 요원 필요 여부
+  specialRequests   String?  // 특별 지원 필요 학생
+  rainPlan          String?  // 우천 대비 계획
+  // 예산
   estimatedBudget   Int?     // 예상 예산 (원)
-  destination       String?  // 여행 목적지
-  schoolLevel       String?  // 학교급/학년
-  accommodation     String?  // 숙박 여부
+  schoolLevel       String?  // 학교급
   status            String   @default("pending") // pending, completed
   reminderSentAt    DateTime? // 24시간 미확인 리마인더 발송 시각
   createdAt         DateTime @default(now())

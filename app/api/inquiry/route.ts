@@ -9,22 +9,53 @@ import { getCurrentUser } from "@/lib/auth-user";
 import { formatInquiryNumber } from "@/lib/inquiry-status";
 
 const inquirySchema = z.object({
+  // 카테고리 1: 기본 정보
   schoolName: z.string().min(1).max(100),
   contact: z.string().min(1).max(50),
+  position: z.string().max(50).optional(),
   phone: z.string().max(20).optional(),
   email: z.string().email().max(100).optional(),
-  expectedDate: z.string().max(100).optional(),
+  schoolAddress: z.string().max(200).optional(),
+
+  // 카테고리 2: 일정 및 인원
+  departureDate: z.string().max(100).optional(),
+  returnDate: z.string().max(100).optional(),
   participantCount: z.number().int().positive().optional(),
-  purpose: z.string().max(200).optional(),
-  hasInstructor: z.boolean().optional(),
-  preferredTransport: z.string().max(50).optional(),
-  mealPreference: z.string().max(200).optional(),
-  specialRequests: z.string().max(1000).optional(),
-  estimatedBudget: z.number().int().nonnegative().optional(),
+  instructorCount: z.number().int().positive().optional(),
+  targetGrade: z.string().max(100).optional(),
+
+  // 카테고리 3: 여행 형태 및 선호도
   destination: z.string().max(50).optional(),
-  schoolLevel: z.string().max(50).optional(),
+  purpose: z.string().max(200).optional(),
+  preferredTransport: z.string().max(50).optional(),
+  hasInstructor: z.boolean().optional(),
+  localTransport: z.string().max(100).optional(),
+
+  // 카테고리 4: 숙박 및 식사
   accommodation: z.string().max(50).optional(),
+  accommodationType: z.string().max(100).optional(),
+  roomAssignment: z.string().max(200).optional(),
+  mealPreference: z.string().max(200).optional(),
+  specialDiet: z.string().max(200).optional(),
+
+  // 카테고리 5: 교육 및 프로그램
+  requiredSites: z.string().max(500).optional(),
+  experiencePrograms: z.string().max(500).optional(),
+  ownEvents: z.string().max(500).optional(),
+  facilityRequirements: z.string().max(500).optional(),
+  agentService: z.string().max(500).optional(),
+
+  // 카테고리 6: 안전·행정 및 기타
+  insurance: z.string().max(200).optional(),
+  safetyStaff: z.boolean().optional(),
+  specialRequests: z.string().max(1000).optional(),
+  rainPlan: z.string().max(500).optional(),
   message: z.string().max(2000).optional(),
+
+  // 예산 및 학교급
+  estimatedBudget: z.number().int().nonnegative().optional(),
+  schoolLevel: z.string().max(50).optional(),
+  expectedDate: z.string().max(100).optional(),
 }).superRefine((value, ctx) => {
   if (!value.phone && !value.email) {
     ctx.addIssue({
@@ -35,8 +66,12 @@ const inquirySchema = z.object({
   }
 });
 
+function sanitizeOpt(value: unknown, maxLength: number) {
+  if (!value || typeof value !== "string") return { valid: true as const, sanitized: null };
+  return validateAndSanitize(value, { maxLength, allowHtml: false });
+}
+
 export async function POST(request: NextRequest) {
-  // Rate Limiting: IP당 1분에 3회 제한
   const clientIP = getClientIP(request);
   const rateLimit = await checkRateLimit(`inquiry:${clientIP}`, 3, 60 * 1000);
 
@@ -61,153 +96,99 @@ export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser();
     const body = await request.json();
-    
-    // 입력 검증 및 정리
-    const schoolNameValidation = validateAndSanitize(body.schoolName || "", {
-      maxLength: 100,
-      minLength: 1,
-      required: true,
-    });
-    if (!schoolNameValidation.valid) {
-      return NextResponse.json(
-        { error: `학교명: ${schoolNameValidation.error}` },
-        { status: 400 }
-      );
-    }
 
-    const contactValidation = validateAndSanitize(body.contact || "", {
-      maxLength: 50,
-      minLength: 1,
-      required: true,
-    });
-    if (!contactValidation.valid) {
-      return NextResponse.json(
-        { error: `담당자명: ${contactValidation.error}` },
-        { status: 400 }
-      );
-    }
+    // 필수 필드 검증
+    const schoolNameV = validateAndSanitize(body.schoolName || "", { maxLength: 100, minLength: 1, required: true });
+    if (!schoolNameV.valid) return NextResponse.json({ error: `학교명: ${schoolNameV.error}` }, { status: 400 });
+
+    const contactV = validateAndSanitize(body.contact || "", { maxLength: 50, minLength: 1, required: true });
+    if (!contactV.valid) return NextResponse.json({ error: `담당자명: ${contactV.error}` }, { status: 400 });
 
     const normalizedPhone = typeof body.phone === "string" ? body.phone.trim() : "";
     const normalizedEmail = typeof body.email === "string" ? body.email.trim() : "";
 
     if (!normalizedPhone && !normalizedEmail) {
-      return NextResponse.json(
-        { error: "연락처를 입력해주세요." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "연락처를 입력해주세요." }, { status: 400 });
     }
-
     if (normalizedEmail && !isValidEmail(normalizedEmail)) {
-      return NextResponse.json(
-        { error: "올바른 이메일 형식이 아닙니다." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "올바른 이메일 형식이 아닙니다." }, { status: 400 });
     }
-
     if (normalizedPhone && !isValidPhone(normalizedPhone)) {
-      return NextResponse.json(
-        { error: "올바른 전화번호 형식이 아닙니다." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "올바른 전화번호 형식이 아닙니다." }, { status: 400 });
     }
 
-    // 선택적 필드 검증
-    const expectedDateValidation = body.expectedDate
-      ? validateAndSanitize(body.expectedDate, {
-          maxLength: 100,
-          allowHtml: false,
-        })
-      : { valid: true, sanitized: null };
-    if (!expectedDateValidation.valid && 'error' in expectedDateValidation) {
-      return NextResponse.json(
-        { error: `예상 일정: ${expectedDateValidation.error}` },
-        { status: 400 }
-      );
+    // 선택 필드 검증 (공통 헬퍼 사용)
+    const fields: Record<string, { result: ReturnType<typeof sanitizeOpt>; label: string }> = {
+      position:             { result: sanitizeOpt(body.position, 50),             label: "직책" },
+      schoolAddress:        { result: sanitizeOpt(body.schoolAddress, 200),        label: "학교 주소" },
+      departureDate:        { result: sanitizeOpt(body.departureDate, 100),        label: "출발일" },
+      returnDate:           { result: sanitizeOpt(body.returnDate, 100),           label: "도착일" },
+      targetGrade:          { result: sanitizeOpt(body.targetGrade, 100),          label: "대상 학년" },
+      purpose:              { result: sanitizeOpt(body.purpose, 200),              label: "여행 목적" },
+      preferredTransport:   { result: sanitizeOpt(body.preferredTransport, 50),    label: "이동수단" },
+      localTransport:       { result: sanitizeOpt(body.localTransport, 100),       label: "현지 교통" },
+      accommodationType:    { result: sanitizeOpt(body.accommodationType, 100),    label: "숙박 형태" },
+      roomAssignment:       { result: sanitizeOpt(body.roomAssignment, 200),       label: "객실 배정" },
+      mealPreference:       { result: sanitizeOpt(body.mealPreference, 200),       label: "식사 취향" },
+      specialDiet:          { result: sanitizeOpt(body.specialDiet, 200),          label: "특이 식단" },
+      requiredSites:        { result: sanitizeOpt(body.requiredSites, 500),        label: "필수 방문지" },
+      experiencePrograms:   { result: sanitizeOpt(body.experiencePrograms, 500),   label: "체험 프로그램" },
+      ownEvents:            { result: sanitizeOpt(body.ownEvents, 500),            label: "자체 행사" },
+      facilityRequirements: { result: sanitizeOpt(body.facilityRequirements, 500), label: "시설 요구사항" },
+      agentService:         { result: sanitizeOpt(body.agentService, 500),         label: "섭외 대행" },
+      insurance:            { result: sanitizeOpt(body.insurance, 200),            label: "보험" },
+      specialRequests:      { result: sanitizeOpt(body.specialRequests, 1000),     label: "특별 지원" },
+      rainPlan:             { result: sanitizeOpt(body.rainPlan, 500),             label: "우천 대비" },
+      message:              { result: sanitizeOpt(body.message, 2000),             label: "문의 내용" },
+      expectedDate:         { result: sanitizeOpt(body.expectedDate, 100),         label: "예상 일정" },
+    };
+
+    for (const [, { result, label }] of Object.entries(fields)) {
+      if (!result.valid && "error" in result) {
+        return NextResponse.json({ error: `${label}: ${result.error}` }, { status: 400 });
+      }
     }
 
-    const purposeValidation = body.purpose
-      ? validateAndSanitize(body.purpose, {
-          maxLength: 200,
-          allowHtml: false,
-        })
-      : { valid: true, sanitized: null };
-    if (!purposeValidation.valid && 'error' in purposeValidation) {
-      return NextResponse.json(
-        { error: `여행 목적: ${purposeValidation.error}` },
-        { status: 400 }
-      );
-    }
+    const s = (key: string) => {
+      const r = fields[key]?.result;
+      return r && "sanitized" in r ? r.sanitized || undefined : undefined;
+    };
 
-    const preferredTransportValidation = body.preferredTransport
-      ? validateAndSanitize(body.preferredTransport, {
-          maxLength: 50,
-          allowHtml: false,
-        })
-      : { valid: true, sanitized: null };
-    if (!preferredTransportValidation.valid && 'error' in preferredTransportValidation) {
-      return NextResponse.json(
-        { error: `선호 이동수단: ${preferredTransportValidation.error}` },
-        { status: 400 }
-      );
-    }
-
-    const mealPreferenceValidation = body.mealPreference
-      ? validateAndSanitize(body.mealPreference, {
-          maxLength: 200,
-          allowHtml: false,
-        })
-      : { valid: true, sanitized: null };
-    if (!mealPreferenceValidation.valid && 'error' in mealPreferenceValidation) {
-      return NextResponse.json(
-        { error: `식사 취향: ${mealPreferenceValidation.error}` },
-        { status: 400 }
-      );
-    }
-
-    const specialRequestsValidation = body.specialRequests
-      ? validateAndSanitize(body.specialRequests, {
-          maxLength: 1000,
-          allowHtml: false,
-        })
-      : { valid: true, sanitized: null };
-    if (!specialRequestsValidation.valid && 'error' in specialRequestsValidation) {
-      return NextResponse.json(
-        { error: `특별 요구사항: ${specialRequestsValidation.error}` },
-        { status: 400 }
-      );
-    }
-
-    const messageValidation = body.message
-      ? validateAndSanitize(body.message, {
-          maxLength: 2000,
-          allowHtml: false,
-        })
-      : { valid: true, sanitized: null };
-    if (!messageValidation.valid && 'error' in messageValidation) {
-      return NextResponse.json(
-        { error: `문의 내용: ${messageValidation.error}` },
-        { status: 400 }
-      );
-    }
-
-    // Zod 스키마 검증
     const data = inquirySchema.parse({
-      schoolName: schoolNameValidation.sanitized || "",
-      contact: contactValidation.sanitized || "",
+      schoolName: schoolNameV.sanitized || "",
+      contact: contactV.sanitized || "",
+      position: s("position"),
       phone: normalizedPhone || undefined,
       email: normalizedEmail || undefined,
-      expectedDate: ('sanitized' in expectedDateValidation && expectedDateValidation.sanitized) || undefined,
+      schoolAddress: s("schoolAddress"),
+      departureDate: s("departureDate"),
+      returnDate: s("returnDate"),
       participantCount: body.participantCount ? parseInt(body.participantCount) : undefined,
-      purpose: ('sanitized' in purposeValidation && purposeValidation.sanitized) || undefined,
-      hasInstructor: body.hasInstructor === "true" ? true : body.hasInstructor === "false" ? false : body.hasInstructor,
-      preferredTransport: ('sanitized' in preferredTransportValidation && preferredTransportValidation.sanitized) || undefined,
-      mealPreference: ('sanitized' in mealPreferenceValidation && mealPreferenceValidation.sanitized) || undefined,
-      specialRequests: ('sanitized' in specialRequestsValidation && specialRequestsValidation.sanitized) || undefined,
-      estimatedBudget: body.estimatedBudget ? parseInt(body.estimatedBudget) : undefined,
+      instructorCount: body.instructorCount ? parseInt(body.instructorCount) : undefined,
+      targetGrade: s("targetGrade"),
       destination: body.destination || undefined,
-      schoolLevel: body.schoolLevel || undefined,
+      purpose: s("purpose"),
+      preferredTransport: s("preferredTransport"),
+      hasInstructor: body.hasInstructor === "true" ? true : body.hasInstructor === "false" ? false : body.hasInstructor,
+      localTransport: s("localTransport"),
       accommodation: body.accommodation || undefined,
-      message: ('sanitized' in messageValidation && messageValidation.sanitized) || undefined,
+      accommodationType: s("accommodationType"),
+      roomAssignment: s("roomAssignment"),
+      mealPreference: s("mealPreference"),
+      specialDiet: s("specialDiet"),
+      requiredSites: s("requiredSites"),
+      experiencePrograms: s("experiencePrograms"),
+      ownEvents: s("ownEvents"),
+      facilityRequirements: s("facilityRequirements"),
+      agentService: s("agentService"),
+      insurance: s("insurance"),
+      safetyStaff: body.safetyStaff === "true" ? true : body.safetyStaff === "false" ? false : body.safetyStaff,
+      specialRequests: s("specialRequests"),
+      rainPlan: s("rainPlan"),
+      message: s("message"),
+      estimatedBudget: body.estimatedBudget ? parseInt(String(body.estimatedBudget).replace(/,/g, "")) : undefined,
+      schoolLevel: body.schoolLevel || undefined,
+      expectedDate: s("expectedDate"),
     });
 
     const inquiry = await prisma.inquiry.create({
@@ -215,31 +196,49 @@ export async function POST(request: NextRequest) {
         userId: currentUser?.id || null,
         schoolName: data.schoolName,
         contact: data.contact,
+        position: data.position ?? null,
         phone: data.phone || "",
         email: data.email || "",
-        expectedDate: data.expectedDate ?? null,
+        schoolAddress: data.schoolAddress ?? null,
+        departureDate: data.departureDate ?? null,
+        returnDate: data.returnDate ?? null,
         participantCount: data.participantCount ?? null,
-        purpose: data.purpose ?? null,
-        hasInstructor: data.hasInstructor ?? null,
-        preferredTransport: data.preferredTransport ?? null,
-        mealPreference: data.mealPreference ?? null,
-        specialRequests: data.specialRequests ?? null,
-        estimatedBudget: data.estimatedBudget ?? null,
+        instructorCount: data.instructorCount ?? null,
+        targetGrade: data.targetGrade ?? null,
         destination: data.destination ?? null,
-        schoolLevel: data.schoolLevel ?? null,
+        purpose: data.purpose ?? null,
+        preferredTransport: data.preferredTransport ?? null,
+        hasInstructor: data.hasInstructor ?? null,
+        localTransport: data.localTransport ?? null,
         accommodation: data.accommodation ?? null,
+        accommodationType: data.accommodationType ?? null,
+        roomAssignment: data.roomAssignment ?? null,
+        mealPreference: data.mealPreference ?? null,
+        specialDiet: data.specialDiet ?? null,
+        requiredSites: data.requiredSites ?? null,
+        experiencePrograms: data.experiencePrograms ?? null,
+        ownEvents: data.ownEvents ?? null,
+        facilityRequirements: data.facilityRequirements ?? null,
+        agentService: data.agentService ?? null,
+        insurance: data.insurance ?? null,
+        safetyStaff: data.safetyStaff ?? null,
+        specialRequests: data.specialRequests ?? null,
+        rainPlan: data.rainPlan ?? null,
         message: data.message ?? null,
+        estimatedBudget: data.estimatedBudget ?? null,
+        schoolLevel: data.schoolLevel ?? null,
+        expectedDate: data.expectedDate ?? data.departureDate ?? null,
       },
     });
 
-    // AI 키워드 요약 생성 후 DB 업데이트 (실패해도 문의 등록은 성공 처리)
+    // AI 요약 (실패해도 문의는 성공)
     try {
       const aiSummary = await generateInquirySummary({
         schoolName: data.schoolName,
         destination: data.destination,
         schoolLevel: data.schoolLevel,
         participantCount: data.participantCount,
-        expectedDate: data.expectedDate,
+        expectedDate: data.departureDate ?? data.expectedDate,
         purpose: data.purpose,
         estimatedBudget: data.estimatedBudget,
         hasInstructor: data.hasInstructor,
@@ -249,31 +248,46 @@ export async function POST(request: NextRequest) {
         specialRequests: data.specialRequests,
       });
       if (aiSummary) {
-        await prisma.inquiry.update({
-          where: { id: inquiry.id },
-          data: { aiSummary },
-        });
+        await prisma.inquiry.update({ where: { id: inquiry.id }, data: { aiSummary } });
       }
     } catch (error) {
       console.error("AI 요약 생성 실패:", error);
     }
 
-    // 이메일 알림 전송 (실패해도 문의 등록은 성공 처리)
-    // Vercel 서버리스: return 전에 await해야 실행 컨텍스트가 살아있음
+    // 이메일 알림 (실패해도 문의는 성공)
     try {
       await sendInquiryNotificationEmail({
         schoolName: data.schoolName,
         contact: data.contact,
+        position: data.position,
         phone: data.phone || null,
         email: data.email || null,
-        message: data.message || null,
-        expectedDate: data.expectedDate || null,
+        schoolAddress: data.schoolAddress,
+        departureDate: data.departureDate,
+        returnDate: data.returnDate,
         participantCount: data.participantCount || null,
+        instructorCount: data.instructorCount,
+        targetGrade: data.targetGrade,
+        destination: data.destination,
         purpose: data.purpose || null,
-        hasInstructor: data.hasInstructor ?? null,
         preferredTransport: data.preferredTransport || null,
+        hasInstructor: data.hasInstructor ?? null,
+        localTransport: data.localTransport,
+        accommodation: data.accommodation,
+        accommodationType: data.accommodationType,
+        roomAssignment: data.roomAssignment,
         mealPreference: data.mealPreference || null,
+        specialDiet: data.specialDiet,
+        requiredSites: data.requiredSites,
+        experiencePrograms: data.experiencePrograms,
+        ownEvents: data.ownEvents,
+        facilityRequirements: data.facilityRequirements,
+        agentService: data.agentService,
+        insurance: data.insurance,
+        safetyStaff: data.safetyStaff ?? null,
         specialRequests: data.specialRequests || null,
+        rainPlan: data.rainPlan,
+        message: data.message || null,
         estimatedBudget: data.estimatedBudget || null,
       });
     } catch (error) {
@@ -303,9 +317,6 @@ export async function POST(request: NextRequest) {
       );
     }
     console.error("Inquiry creation error:", error);
-    return NextResponse.json(
-      { error: "문의 등록에 실패했습니다." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "문의 등록에 실패했습니다." }, { status: 500 });
   }
 }
