@@ -23,7 +23,7 @@ function createSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export function HeroChatInput({ initialCategory, greeting }: HeroChatInputProps) {
+export function HeroChatInput({ initialCategory, greeting: greetingProp }: HeroChatInputProps) {
   const searchParams = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
@@ -32,6 +32,7 @@ export function HeroChatInput({ initialCategory, greeting }: HeroChatInputProps)
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
+  const [greeting, setGreeting] = useState<string | null>(greetingProp ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string>(createSessionId);
@@ -82,6 +83,13 @@ export function HeroChatInput({ initialCategory, greeting }: HeroChatInputProps)
       .finally(() => {
         setAuthLoaded(true);
       });
+
+    fetch("/api/greeting")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.greeting) setGreeting(data.greeting);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

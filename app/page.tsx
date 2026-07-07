@@ -13,7 +13,6 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import { LazyAutoplayVideo } from "@/components/home/LazyAutoplayVideo";
 import { DynamicHeroChat } from "@/components/home/DynamicHeroChat";
 import { NewsTicker } from "@/components/NewsTicker";
-import { getPersonalizedGreeting } from "@/lib/greeting";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
@@ -74,7 +73,7 @@ async function getCardNewsForHome() {
   try {
     return await prisma.companyNews.findMany({
       where: { type: "PROGRAM_CARD_NEWS", imageUrl: { not: null } },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       take: CARD_NEWS_TAKE,
       select: {
         id: true, title: true, summary: true, imageUrl: true,
@@ -90,10 +89,12 @@ async function getRecentEvents() {
   try {
     return await prisma.event.findMany({
       take: 5,
-      include: {
-        school: { select: { id: true, name: true } },
-        program: { select: { id: true, title: true, category: true } },
-        images: { take: 1, orderBy: { createdAt: "asc" } },
+      select: {
+        id: true,
+        date: true,
+        school: { select: { name: true } },
+        program: { select: { title: true, category: true } },
+        images: { take: 1, orderBy: { createdAt: "asc" }, select: { url: true } },
       },
       orderBy: { date: "desc" },
     });
@@ -110,11 +111,10 @@ export default async function HomePage({
   searchParams?: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const [recentEvents, newsTickerItems, cardNewsItems, greeting, popupNews] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems, popupNews] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
     getCardNewsForHome(),
-    getPersonalizedGreeting(),
     getPopupNews(),
   ]);
 
@@ -173,7 +173,7 @@ export default async function HomePage({
             </div>
 
             <div className="pt-0">
-              <DynamicHeroChat category={resolvedSearchParams?.category} greeting={greeting} />
+              <DynamicHeroChat category={resolvedSearchParams?.category} />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
@@ -216,8 +216,8 @@ export default async function HomePage({
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)]">
-                <div className="flex snap-x snap-mandatory flex-nowrap items-start gap-3 lg:gap-5 pb-2">
+            <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] lg:overflow-visible lg:mx-0 lg:px-0 lg:[mask-image:none]">
+                <div className="flex snap-x snap-mandatory flex-nowrap items-start gap-3 lg:gap-5 pb-2 lg:grid lg:grid-cols-4 lg:pb-0">
 
               {/* 쇼츠 영상 — 첫 번째 칸 (9:16 전체, 텍스트 영역 없음) */}
               {SHORTS_VIDEOS[0] && (() => {
@@ -235,8 +235,8 @@ export default async function HomePage({
                   </div>
                 );
                 return video.href
-                  ? <Link key="shorts-video" href={video.href} className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)]">{inner}</Link>
-                  : <div key="shorts-video" className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)]">{inner}</div>;
+                  ? <Link key="shorts-video" href={video.href} className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto">{inner}</Link>
+                  : <div key="shorts-video" className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto">{inner}</div>;
               })()}
 
               {cardNewsItems.map((item, cardIndex) => {
@@ -255,7 +255,7 @@ export default async function HomePage({
                     href={href}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
-                    className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] aspect-[9/16] flex flex-col group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                    className={`snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto aspect-[9/16] flex flex-col group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow${cardIndex === 3 ? " lg:hidden" : ""}`}
                   >
                     <div className="relative flex-1 bg-gray-50 min-h-0">
                       {item.imageUrl ? (

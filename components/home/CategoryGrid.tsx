@@ -10,7 +10,7 @@ const CATEGORY_CARDS = [
     badge: "국내 교육여행",
     title: "국내 곳곳을 누비는\n교육여행",
     description: "제주·경주·포천 등 국내 주요 명소에서 학교 교육 목표에 맞춰 전 일정을 기획·운영합니다.",
-    image: "/images/new/category-domestic-edu.png",
+    image: "/images/new/category-domestic-edu.webp",
   },
   {
     name: "국외 교육여행",
@@ -18,7 +18,7 @@ const CATEGORY_CARDS = [
     badge: "국외 교육여행",
     title: "배움이 넓어지는\n해외 교육여행",
     description: "일본·중국·동남아 등 해외 교육지에서 글로벌 감각을 키우는 맞춤형 수학여행을 기획합니다.",
-    image: "/images/new/category-overseas-edu.png",
+    image: "/images/new/category-overseas-edu.webp",
   },
   {
     name: "체험학습",
@@ -26,7 +26,7 @@ const CATEGORY_CARDS = [
     badge: "체험학습",
     title: "손으로 배우고 몸으로 느끼는\n현장 체험학습",
     description: "교과와 연계된 농촌·과학·문화 체험으로 교실 밖 살아있는 학습을 경험합니다.",
-    image: "/images/new/category-field-learning.png",
+    image: "/images/new/category-field-learning.webp",
   },
   {
     name: "수련활동",
@@ -34,7 +34,7 @@ const CATEGORY_CARDS = [
     badge: "수련활동",
     title: "자연 속에서 단련하는\n협동과 도전의 힘",
     description: "자연환경에서 팀워크와 자립심을 키우는 협동·도전 프로그램입니다.",
-    image: "/images/new/category-training-camp.png",
+    image: "/images/new/category-training-camp.webp",
   },
   {
     name: "교사 연수",
@@ -42,7 +42,7 @@ const CATEGORY_CARDS = [
     badge: "교사 연수",
     title: "선생님의 성장이\n학생의 미래를 바꿉니다",
     description: "현장 연수와 워크숍으로 교원의 전문성을 강화하는 맞춤형 연수입니다.",
-    image: "/images/new/category-teacher-training.png",
+    image: "/images/new/category-teacher-training.webp",
   },
   {
     name: "일본 유학",
@@ -50,7 +50,7 @@ const CATEGORY_CARDS = [
     badge: "일본 유학",
     title: "글로벌 무대로\n나아가는 일본 유학",
     description: "일본 전문학교·대학 입학과 취업 연수로 학생의 글로벌 진로를 지원합니다.",
-    image: "/images/new/category-japan-study.png",
+    image: "/images/new/category-japan-study.webp",
   },
   {
     name: "특성화고 프로그램",
@@ -58,7 +58,7 @@ const CATEGORY_CARDS = [
     badge: "특성화고 프로그램",
     title: "현장에서 완성되는\n나만의 직업 역량",
     description: "AI·반도체·수소에너지 등 산업 현장 실습으로 취업 연계 역량을 완성합니다.",
-    image: "/images/new/category-vocational.png",
+    image: "/images/new/category-vocational.webp",
   },
   {
     name: "기타 프로그램",
@@ -66,7 +66,7 @@ const CATEGORY_CARDS = [
     badge: "기타 프로그램",
     title: "우리 학교만을 위한\n맞춤형 프로그램 설계",
     description: "학교·기관의 특성과 목표에 맞춰 완전히 새로운 프로그램을 제안합니다.",
-    image: "/images/new/category-custom.png",
+    image: "/images/new/category-custom.webp",
   },
 ];
 

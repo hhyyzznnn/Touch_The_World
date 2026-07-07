@@ -5,7 +5,7 @@ export function Logo() {
   return (
     <Link href="/" className="flex items-center h-16 sm:h-24">
       <Image
-        src="/ttw_logo.png"
+        src="/ttw_logo.webp"
         alt="Touch The World"
         width={0}
         height={0}

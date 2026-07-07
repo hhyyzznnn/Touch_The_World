@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
@@ -27,6 +28,13 @@ const bonaNovaSC = Bona_Nova_SC({
   weight: ["400", "700"],
   variable: "--font-bona-nova",
   display: "swap",
+});
+
+const pretendard = localFont({
+  src: "../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
+  variable: "--font-pretendard",
+  display: "swap",
+  weight: "45 920",
 });
 
 const siteUrl = getSiteUrl();
@@ -85,14 +93,6 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
-        {/* jsDelivr CDN 연결 선점 — Pretendard 폰트 로딩 지연 단축 */}
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="anonymous" />
-        <link
-          rel="stylesheet"
-          as="style"
-          crossOrigin="anonymous"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
-        />
         {/* 네이버 검색 최적화를 위한 구조화된 데이터 */}
         <script
           type="application/ld+json"
@@ -165,7 +165,7 @@ export default function RootLayout({
         />
       </head>
       <GoogleAnalytics />
-      <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${notoSerif.variable} ${bonaNovaSC.variable} ${pretendard.variable} font-sans`} suppressHydrationWarning>
         <ToastProvider>
           <KakaoScript />
           <NextSSRPlugin

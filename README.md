@@ -24,7 +24,6 @@
 - Vercel Cron을 통한 정기 실행 (`/api/cron/g2b-notification`)
 
 ## 기술 스택
-
 - 프레임워크: Next.js 15 (App Router), React 19
 - 언어: TypeScript 5
 - 스타일: Tailwind CSS, shadcn/ui
