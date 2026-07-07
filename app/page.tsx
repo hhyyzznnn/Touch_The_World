@@ -19,6 +19,7 @@ import { StatsSection } from "@/components/home/StatsSection";
 import { SHORTS_VIDEOS } from "@/lib/shorts-videos";
 import { HomePopup } from "@/components/home/HomePopup";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+import { CardNewsLink } from "@/components/home/CardNewsLink";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -156,16 +157,16 @@ export default async function HomePage({
                     const href = item.link?.trim() || `/news/${item.id}`;
                     const isExternal = !!item.link?.trim()?.startsWith("http");
                     return (
-                      <Link
+                      <CardNewsLink
                         key={item.id}
                         href={href}
-                        target={isExternal ? "_blank" : undefined}
-                        rel={isExternal ? "noopener noreferrer" : undefined}
+                        title={item.title}
+                        isExternal={isExternal}
                         className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 text-xs sm:text-sm text-text-gray hover:border-brand-green-primary hover:text-brand-green-primary transition-colors shadow-sm"
                       >
                         <span className="line-clamp-1 max-w-[20ch]">{stripBrandFromTitle(item.title)}</span>
                         <ChevronRight className="w-3 h-3 flex-shrink-0 opacity-50" />
-                      </Link>
+                      </CardNewsLink>
                     );
                   })}
                 </div>
@@ -250,11 +251,11 @@ export default async function HomePage({
                 const showTagRow = isNew || !!categoryTag || !!regionTag;
 
                 return (
-                  <Link
+                  <CardNewsLink
                     key={item.id}
                     href={href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    title={item.title}
+                    isExternal={isExternal}
                     className={`snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto aspect-[9/16] flex flex-col group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow${cardIndex === 3 ? " lg:hidden" : ""}`}
                   >
                     <div className="relative flex-1 bg-gray-50 min-h-0">
@@ -297,7 +298,7 @@ export default async function HomePage({
                         <p className="mt-0.5 text-xs text-text-gray line-clamp-1">{item.summary}</p>
                       )}
                     </div>
-                  </Link>
+                  </CardNewsLink>
                 );
               })}
                 </div>

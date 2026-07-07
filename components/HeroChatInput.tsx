@@ -10,6 +10,7 @@ import {
   clearLegacyAnonymousChatMessages,
   ChatMessage,
 } from "@/lib/chat-storage";
+import { trackEvent, GA_EVENTS } from "@/lib/gtag";
 
 interface HeroChatInputProps {
   initialCategory?: string;
@@ -169,6 +170,10 @@ export function HeroChatInput({ initialCategory, greeting: greetingProp }: HeroC
 
   const sendMessage = async (text: string) => {
     if (!authLoaded || isLoading) return;
+
+    if (messages.length === 0) {
+      trackEvent(GA_EVENTS.CHAT_START, { category: landingCategory });
+    }
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),

@@ -14,4 +14,8 @@ export const GA_EVENTS = {
   INQUIRY_SUBMIT: "inquiry_submit",
   KAKAO_CONTACT_CLICK: "kakao_contact_click",
   PHONE_CLICK: "phone_click",
+  CHAT_START: "chat_start",
+  CATEGORY_CLICK: "category_click",
+  CARD_NEWS_CLICK: "card_news_click",
+  PROGRAM_VIEW: "program_view",
 } as const;

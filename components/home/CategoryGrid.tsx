@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { trackEvent, GA_EVENTS } from "@/lib/gtag";
 
 const CATEGORY_CARDS = [
   {
@@ -78,6 +79,7 @@ export function CategoryGrid() {
           key={card.name}
           href={card.href}
           className="group block rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+          onClick={() => trackEvent(GA_EVENTS.CATEGORY_CLICK, { category: card.name })}
         >
           {/* 상단 이미지 */}
           <div className="relative aspect-[3/2] overflow-hidden bg-gray-100">
