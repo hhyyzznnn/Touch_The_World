@@ -106,12 +106,7 @@ async function getRecentEvents() {
 
 export const revalidate = 600;
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ category?: string }>;
-}) {
-  const resolvedSearchParams = await searchParams;
+export default async function HomePage() {
   const [recentEvents, newsTickerItems, cardNewsItems, popupNews] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
@@ -174,7 +169,7 @@ export default async function HomePage({
             </div>
 
             <div className="pt-0">
-              <DynamicHeroChat category={resolvedSearchParams?.category} />
+              <DynamicHeroChat />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">

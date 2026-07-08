@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 
 const HeroChatInputWrapper = dynamic(
   () => import("@/components/HeroChatInputWrapper").then((m) => ({ default: m.HeroChatInputWrapper })),
@@ -12,12 +13,8 @@ const HeroChatInputWrapper = dynamic(
   }
 );
 
-export function DynamicHeroChat({
-  category,
-  greeting,
-}: {
-  category?: string;
-  greeting?: string | null;
-}) {
-  return <HeroChatInputWrapper category={category} greeting={greeting} />;
+export function DynamicHeroChat() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category") ?? undefined;
+  return <HeroChatInputWrapper category={category} />;
 }
