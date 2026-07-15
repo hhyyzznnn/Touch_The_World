@@ -10,8 +10,15 @@ import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 
-// category/page 파라미터가 있는 URL에서도 canonical이 /programs로 반드시 포함되도록 generateMetadata 사용
-export async function generateMetadata(): Promise<Metadata> {
+// category/page 등 쿼리 파라미터가 있는 URL은 /programs와 중복 색인되지 않도록 noindex 처리
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const hasQueryParams = Object.keys(params).length > 0;
+
   return {
     title: "프로그램 카드뉴스 | 터치더월드",
     description:
@@ -20,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/programs",
     },
+    ...(hasQueryParams ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

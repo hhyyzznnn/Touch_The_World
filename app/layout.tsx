@@ -75,7 +75,10 @@ export const metadata: Metadata = {
     siteName: "터치더월드",
     locale: "ko_KR",
     type: "website",
-    images: [{ url: "/images/og_image2.png", width: 1376, height: 768, alt: "터치더월드 | 교육여행 전문" }],
+    images: [
+      { url: "/images/og_image2.png", width: 1376, height: 768, alt: "터치더월드 | 교육여행 전문" },
+      { url: "/images/og_image_1x1.png", width: 1024, height: 1024, alt: "터치더월드 | 교육여행 전문" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
