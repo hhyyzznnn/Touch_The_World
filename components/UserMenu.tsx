@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings, Mail, Star, Heart } from "lucide-react";
+import { User, LogOut, Settings, Mail, Star, Heart, ShieldCheck } from "lucide-react";
 
 interface UserData {
   id: string;
@@ -90,6 +90,16 @@ export function UserMenu() {
                 <p className="text-sm font-medium text-gray-900">{user.name}</p>
                 <p className="text-xs text-gray-500">{user.email}</p>
               </div>
+              {(user.role === "admin" || user.role === "editor") && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-brand-green-primary hover:bg-gray-100 border-b"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  관리자 페이지
+                </Link>
+              )}
               <Link
                 href="/profile"
                 className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
