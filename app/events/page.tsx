@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
@@ -177,11 +178,13 @@ export default async function EventsPage({
         </p>
       </div>
 
-      <EventFilters
-        years={years}
-        categories={categories}
-        locations={locations}
-      />
+      <Suspense fallback={<div className="h-24 rounded-lg bg-gray-100 animate-pulse mb-6" />}>
+        <EventFilters
+          years={years}
+          categories={categories}
+          locations={locations}
+        />
+      </Suspense>
 
       {events.length === 0 ? (
         <div className="text-center py-12 text-text-gray">

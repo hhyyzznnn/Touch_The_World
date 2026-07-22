@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { List, Shield, Lightbulb, Settings, ChevronRight, Play } from "lucide-react";
@@ -168,7 +169,9 @@ export default async function HomePage() {
             </div>
 
             <div className="pt-0">
-              <DynamicHeroChat />
+              <Suspense fallback={<div className="h-12 w-full max-w-3xl mx-auto rounded-xl bg-gray-100 animate-pulse" />}>
+                <DynamicHeroChat />
+              </Suspense>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { ProgramCard } from "@/components/programs/ProgramCard";
 import Link from "next/link";
@@ -317,10 +318,12 @@ export default async function SearchPage({
       </div>
 
       {/* 검색 바 및 필터 */}
-      <div className="mb-8 space-y-4">
-        <SearchBar placeholder="상품, 진행 내역, 학교 검색..." />
-        <AdvancedSearchFilters />
-      </div>
+      <Suspense fallback={<div className="mb-8 h-24 rounded-lg bg-gray-100 animate-pulse" />}>
+        <div className="mb-8 space-y-4">
+          <SearchBar placeholder="상품, 진행 내역, 학교 검색..." />
+          <AdvancedSearchFilters />
+        </div>
+      </Suspense>
 
       {!query && !hasActiveFilters ? (
         <div className="text-center py-12 text-text-gray">
