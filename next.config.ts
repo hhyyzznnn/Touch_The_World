@@ -41,7 +41,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
       { protocol: "https", hostname: "mblogthumb-phinf.pstatic.net", pathname: "/**" },
       { protocol: "https", hostname: "**.pstatic.net", pathname: "/**" },
-      { protocol: "https", hostname: "i.ytimg.com", pathname: "/**" },
     ],
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

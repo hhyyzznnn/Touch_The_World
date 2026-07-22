@@ -9,19 +9,14 @@ export interface ShortsVideo {
 
 export const SHORTS_VIDEOS: ShortsVideo[] = [
   {
-    youtubeUrl: "https://youtube.com/shorts/_Dnz9EDcSYs?si=2b764GJ5O2_F5NpF",
-    title: "인천 교육여행",
+    youtubeUrl: "https://youtube.com/shorts/n5TdhrDEnPc?si=XPr0I6gmq0V7KWjd",
+    title: "2026 인천 교직원연수",
   },
 ];
 
 export function getYouTubeVideoId(url: string): string | null {
   const match = url.match(/(?:shorts\/|watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return match ? match[1] : null;
-}
-
-export function getYouTubeThumbnail(url: string): string | null {
-  const id = getYouTubeVideoId(url);
-  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
 }
 
 export function getYouTubeShortsUrl(url: string): string {

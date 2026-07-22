@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
-import { List, Shield, Lightbulb, Settings, ChevronRight, Play } from "lucide-react";
+import { List, Shield, Lightbulb, Settings, ChevronRight } from "lucide-react";
 import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButton";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
@@ -16,7 +16,8 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
-import { SHORTS_VIDEOS, getYouTubeThumbnail, getYouTubeShortsUrl } from "@/lib/shorts-videos";
+import { SHORTS_VIDEOS, getYouTubeVideoId, getYouTubeShortsUrl } from "@/lib/shorts-videos";
+import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
 import { HomePopup } from "@/components/home/HomePopup";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
@@ -217,10 +218,10 @@ export default async function HomePage() {
             <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] lg:overflow-visible lg:mx-0 lg:px-0 lg:[mask-image:none]">
                 <div className="flex snap-x snap-mandatory flex-nowrap items-start gap-3 lg:gap-5 pb-2 lg:grid lg:grid-cols-4 lg:pb-0">
 
-              {/* 유튜브 쇼츠 — 첫 번째 칸 (9:16 썸네일, 클릭 시 유튜브로 이동) */}
+              {/* 유튜브 쇼츠 — 첫 번째 칸 (9:16, 자동 재생, 클릭 시 유튜브로 이동) */}
               {SHORTS_VIDEOS[0] && (() => {
                 const video = SHORTS_VIDEOS[0];
-                const thumbnail = getYouTubeThumbnail(video.youtubeUrl);
+                const videoId = getYouTubeVideoId(video.youtubeUrl);
                 return (
                   <CardNewsLink
                     key="shorts-video"
@@ -229,21 +230,9 @@ export default async function HomePage() {
                     isExternal
                     className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto group relative block aspect-[9/16] overflow-hidden rounded-xl bg-gray-900 border border-gray-200 hover:shadow-md transition-shadow"
                   >
-                    {thumbnail && (
-                      <Image
-                        src={thumbnail}
-                        alt={video.title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                        className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
-                        priority
-                      />
+                    {videoId && (
+                      <LazyYouTubeEmbed videoId={videoId} title={video.title} className="absolute inset-0" />
                     )}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center group-hover:bg-black/60 transition-colors">
-                        <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white fill-white ml-0.5" />
-                      </div>
-                    </div>
                     <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
                     <p className="absolute inset-x-0 bottom-3 px-3 text-white text-sm font-medium line-clamp-2 leading-snug">
                       {video.title}

@@ -42,7 +42,7 @@ export const COMPANY_INFO = {
   kakaoChannel: "https://pf.kakao.com/_xoxixkPn/chat", // 카카오톡 채널 링크 (채팅 진입 URL)
   instagram: "https://www.instagram.com/touch_tw",
   facebook: "https://www.facebook.com/pjjttw",
-  youtube: "https://www.youtube.com/@%EB%B0%95%EC%A0%95%EC%A3%BC-o4x",
+  youtube: "https://www.youtube.com/@ttw_ai",
 } as const;
 
 export const NAVIGATION_LINKS = [
