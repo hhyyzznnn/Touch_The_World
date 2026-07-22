@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
       content,
       status,
       imageUrls,
+      fromInquiryId,
     } = body;
 
     // 학교 찾기 또는 생성
@@ -52,17 +53,23 @@ export async function POST(request: NextRequest) {
         schoolId: finalSchoolId,
         programId: finalProgramId,
         date: new Date(date),
+        endDate: endDate ? new Date(endDate) : null,
         location: location || "",
         studentCount: studentCount != null && studentCount !== "" ? parseInt(String(studentCount)) : null,
         status: status || "in_progress",
-        notes: endDate 
-          ? `${content || ""}\n기간: ${date} ~ ${endDate}`.trim()
-          : content || null,
+        notes: content || null,
         images: {
           create: imageUrls?.map((url: string) => ({ url })) || [],
         },
       },
     });
+
+    if (fromInquiryId) {
+      await prisma.inquiry.update({
+        where: { id: fromInquiryId },
+        data: { linkedEventId: event.id },
+      });
+    }
 
     return NextResponse.json({ success: true, id: event.id });
   } catch (error) {

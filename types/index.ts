@@ -40,6 +40,9 @@ export interface Inquiry {
   email: string;
   message: string | null;
   expectedDate: string | null;
+  departureDate: Date | null;
+  returnDate: Date | null;
+  linkedEventId: string | null;
   participantCount: number | null;
   purpose: string | null;
   hasInstructor: boolean | null;

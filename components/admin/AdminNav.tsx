@@ -57,6 +57,12 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
             >
               진행 내역
             </Link>
+            <Link
+              href="/admin/calendar"
+              className="text-gray-700 hover:text-brand-green-primary transition text-base"
+            >
+              캘린더
+            </Link>
             {isAdmin && (
               <Link
                 href="/admin/inquiries"
@@ -138,6 +144,13 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                 onClick={() => setIsMenuOpen(false)}
               >
                 진행 내역
+              </Link>
+              <Link
+                href="/admin/calendar"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                캘린더
               </Link>
               {isAdmin && (
                 <Link

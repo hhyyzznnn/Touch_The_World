@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { InquiryDetailModal } from "@/components/inquiry/InquiryDetailModal";
 import { Inquiry } from "@/types";
 import { InquiryStatusValue } from "@/lib/inquiry-status";
 import { useToast } from "@/components/ui/toast";
+import { CalendarPlus, CalendarCheck } from "lucide-react";
 
 interface InquiryActionsProps {
   inquiry: Omit<Inquiry, "status"> & { status: string };
@@ -96,6 +98,23 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
           >
             {isTransitioning ? "처리 중..." : quickAction.label}
           </Button>
+        )}
+        {currentInquiry.linkedEventId ? (
+          <Button asChild size="sm" variant="outline" className="text-brand-green-primary border-brand-green-primary/40">
+            <Link href={`/admin/events/${currentInquiry.linkedEventId}/edit`} className="flex items-center gap-1.5">
+              <CalendarCheck className="w-4 h-4" />
+              일정 등록됨
+            </Link>
+          </Button>
+        ) : (
+          currentInquiry.departureDate && (
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/admin/events/new?fromInquiry=${currentInquiry.id}`} className="flex items-center gap-1.5">
+                <CalendarPlus className="w-4 h-4" />
+                캘린더 등록
+              </Link>
+            </Button>
+          )
         )}
         <Button
           type="button"

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, Mail, CheckCircle } from "lucide-react";
+import { Bell, X, Mail, CheckCircle, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 interface Notification {
   id: string;
-  type: "inquiry" | "event" | "program";
+  type: "inquiry" | "event" | "program" | "upcoming";
   title: string;
   message: string;
   link: string;
@@ -81,6 +81,8 @@ export function AdminNotification() {
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case "program":
         return <CheckCircle className="w-5 h-5 text-purple-500" />;
+      case "upcoming":
+        return <CalendarClock className="w-5 h-5 text-amber-500" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }

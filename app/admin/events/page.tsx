@@ -80,7 +80,9 @@ export default async function AdminEventsPage({
                   {events.map((event) => (
                     <tr key={event.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {format(new Date(event.date), "yyyy-MM-dd")}
+                        {event.endDate
+                          ? `${format(new Date(event.date), "yyyy-MM-dd")} ~ ${format(new Date(event.endDate), "MM-dd")}`
+                          : format(new Date(event.date), "yyyy-MM-dd")}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {event.school.name}

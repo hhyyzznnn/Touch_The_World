@@ -19,7 +19,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "compress": "tsx scripts/compress-images.ts",
-    "upload:card-news": "tsx scripts/upload-card-news.ts"
+    "upload:card-news": "tsx scripts/upload-card-news.ts",
+    "migrate:calendar-schema": "tsx scripts/migrate-calendar-schema.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

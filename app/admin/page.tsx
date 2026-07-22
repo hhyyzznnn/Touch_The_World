@@ -6,6 +6,7 @@ import {
   BarChart2,
   BookOpen,
   Building2,
+  CalendarClock,
   Globe2,
   Mail,
   Plus,
@@ -190,6 +191,22 @@ async function getOngoingPrograms() {
   }
 }
 
+async function getUpcomingEvents() {
+  try {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekLater = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return await prisma.event.findMany({
+      where: { date: { gte: todayStart, lte: weekLater } },
+      include: { school: true, program: true },
+      orderBy: { date: "asc" },
+      take: 5,
+    });
+  } catch {
+    return [];
+  }
+}
+
 async function getRecentActivity() {
   try {
     const [programs, inquiries] = await Promise.all([
@@ -222,6 +239,7 @@ export default async function AdminDashboard() {
   const stats = await getStats();
   const recent = await getRecentActivity();
   const ongoingPrograms = await getOngoingPrograms();
+  const upcomingEvents = await getUpcomingEvents();
   const monthlyStats = await getMonthlyStats();
   const categoryStats = await getCategoryStats();
 
@@ -315,6 +333,43 @@ export default async function AdminDashboard() {
                 </div>
                 <div className="text-xs sm:text-sm text-gray-500">
                   {format(new Date(event.date), "yyyy-MM-dd", { locale: ko })}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 이번 주 예정 행사 */}
+      <div className="bg-white p-4 sm:p-5 rounded-xl border mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+            <CalendarClock className="w-5 h-5 text-brand-green-primary" />
+            이번 주 예정 행사 ({upcomingEvents.length}건)
+          </h2>
+          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+            <Link href="/admin/calendar">캘린더 전체보기</Link>
+          </Button>
+        </div>
+        {upcomingEvents.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">이번 주 예정된 행사가 없습니다.</div>
+        ) : (
+          <div className="space-y-3">
+            {upcomingEvents.map((event) => (
+              <Link
+                key={event.id}
+                href={`/admin/events/${event.id}/edit`}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 border rounded-lg hover:bg-gray-50 transition"
+              >
+                <div className="flex-1">
+                  <div className="font-medium text-sm sm:text-base">
+                    {event.school.name} · {event.program.title}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">{event.location}</div>
+                </div>
+                <div className="text-xs sm:text-sm text-gray-500">
+                  {format(new Date(event.date), "M/d(EEE)", { locale: ko })}
+                  {event.endDate ? ` ~ ${format(new Date(event.endDate), "M/d(EEE)", { locale: ko })}` : ""}
                 </div>
               </Link>
             ))}

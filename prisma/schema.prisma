@@ -73,24 +73,27 @@ model School {
 }
 
 model Event {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   schoolId     String
   programId    String
   date         DateTime
+  endDate      DateTime? // 기간 행사의 종료일 (없으면 단일 날짜 행사)
   location     String
   studentCount Int?
-  status       String   @default("in_progress") // in_progress, completed
+  status       String    @default("in_progress") // in_progress, completed
   notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   school School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
   images EventImage[]
+  sourceInquiry Inquiry?
 
   @@index([schoolId])
   @@index([programId])
   @@index([date])
+  @@index([endDate])
   @@index([status])
 }
 
@@ -122,9 +125,9 @@ model Inquiry {
   position          String?  // 직책
   schoolAddress     String?  // 학교 주소
   // 카테고리 2: 일정 및 인원
-  expectedDate      String?  // 예상 일정 (레거시 호환)
-  departureDate     String?  // 출발일
-  returnDate        String?  // 도착일
+  expectedDate      String?   // 예상 일정 (레거시 호환)
+  departureDate     DateTime? // 출발일
+  returnDate        DateTime? // 도착일
   participantCount  Int?     // 학생 수
   instructorCount   Int?     // 인솔 교사 수
   targetGrade       String?  // 대상 학년
@@ -156,11 +159,13 @@ model Inquiry {
   schoolLevel       String?  // 학교급
   status            String   @default("pending") // pending, completed
   reminderSentAt    DateTime? // 24시간 미확인 리마인더 발송 시각
+  linkedEventId     String?  @unique // 캘린더 진행 내역(Event)으로 전환된 경우 해당 Event ID
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   consultingLog     ConsultingLog? @relation("ConsultingLogInquiry", fields: [consultingLogId], references: [id], onDelete: SetNull)
+  linkedEvent       Event?   @relation(fields: [linkedEventId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([sourceType])
@@ -171,6 +176,7 @@ model Inquiry {
   @@unique([consultingLogId])
   @@index([status])
   @@index([createdAt])
+  @@index([departureDate])
 }
 
 model Document {
@@ -295,6 +301,7 @@ model User {
   notificationLogs        NotificationLog[]
   consultingLogs          ConsultingLog[]
   adminReadNotifications AdminReadNotification[]
+  calendarEntries         CalendarEntry[]
 
   @@index([username])
   @@index([email])
@@ -446,6 +453,25 @@ model Review {
   @@index([userId])
   @@index([createdAt])
   @@index([rating])
+}
+
+model CalendarEntry {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean   @default(true)
+  color       String    @default("gray") // gray, blue, green, amber, red, purple
+  location    String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([startDate])
+  @@index([endDate])
 }
 
 model AdminReadNotification {

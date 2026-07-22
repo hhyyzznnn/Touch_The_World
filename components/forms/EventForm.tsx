@@ -16,53 +16,48 @@ type EventWithRelations = Event & {
   images: EventImage[];
 };
 
-interface EventFormProps {
-  event?: EventWithRelations;
+interface EventPrefill {
+  schoolName?: string;
+  date?: string; // yyyy-MM-dd
+  endDate?: string; // yyyy-MM-dd
+  location?: string;
+  studentCount?: number;
+  fromInquiryId?: string;
 }
 
-export function EventForm({ event }: EventFormProps) {
+interface EventFormProps {
+  event?: EventWithRelations;
+  prefill?: EventPrefill;
+}
+
+export function EventForm({ event, prefill }: EventFormProps) {
   const router = useRouter();
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [programs, setPrograms] = useState<Program[]>([]);
-  const [schoolName, setSchoolName] = useState(event?.school.name || "");
+  const [schoolName, setSchoolName] = useState(event?.school.name || prefill?.schoolName || "");
   const [programId, setProgramId] = useState(event?.programId || "");
   const [programName, setProgramName] = useState(event?.program.title || "");
   const [useCustomProgram, setUseCustomProgram] = useState(!event?.programId);
-  // 기간 정보 파싱 (notes에서 "기간: YYYY-MM-DD ~ YYYY-MM-DD" 형식 추출)
-  const parseDateRange = (notes: string | null) => {
-    if (!notes) return { start: "", end: "" };
-    const match = notes.match(/기간:\s*(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})/);
-    if (match) {
-      return { start: match[1], end: match[2] };
-    }
-    return { start: "", end: "" };
-  };
 
-  const eventDateRange = event?.notes ? parseDateRange(event.notes) : { start: "", end: "" };
-  const hasDateRange = eventDateRange.start && eventDateRange.end;
-  
+  const hasDateRange = !!event?.endDate || !!prefill?.endDate;
   const [dateType, setDateType] = useState<"single" | "range">(hasDateRange ? "range" : "single");
   const [date, setDate] = useState(
-    event ? new Date(event.date).toISOString().split("T")[0] : ""
+    event ? new Date(event.date).toISOString().split("T")[0] : prefill?.date || ""
   );
   const [startDate, setStartDate] = useState(
-    hasDateRange ? eventDateRange.start : (event ? new Date(event.date).toISOString().split("T")[0] : "")
+    event ? new Date(event.date).toISOString().split("T")[0] : prefill?.date || ""
   );
-  const [endDate, setEndDate] = useState(hasDateRange ? eventDateRange.end : "");
-  const [location, setLocation] = useState(event?.location || "");
+  const [endDate, setEndDate] = useState(
+    event?.endDate ? new Date(event.endDate).toISOString().split("T")[0] : prefill?.endDate || ""
+  );
+  const [location, setLocation] = useState(event?.location || prefill?.location || "");
   const [studentCount, setStudentCount] = useState(
-    event?.studentCount?.toString() || ""
+    event?.studentCount?.toString() || prefill?.studentCount?.toString() || ""
   );
-  // content에서 기간 정보 제거
-  const cleanContent = (notes: string | null) => {
-    if (!notes) return "";
-    return notes.replace(/\n기간:\s*\d{4}-\d{2}-\d{2}\s*~\s*\d{4}-\d{2}-\d{2}.*$/, "").trim();
-  };
-
-  const [content, setContent] = useState(cleanContent(event?.notes || null));
+  const [content, setContent] = useState(event?.notes || "");
   const [status, setStatus] = useState<"in_progress" | "completed">(
     (event?.status as "in_progress" | "completed") || "in_progress"
   );
@@ -121,6 +116,7 @@ export function EventForm({ event }: EventFormProps) {
           content,
           status,
           imageUrls: allImageUrls,
+          fromInquiryId: event ? undefined : prefill?.fromInquiryId,
         }),
       });
 
