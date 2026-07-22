@@ -18,7 +18,6 @@ import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
 import { SHORTS_VIDEOS, getYouTubeVideoId, getYouTubeShortsUrl } from "@/lib/shorts-videos";
 import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
-import { HomePopup } from "@/components/home/HomePopup";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
 
@@ -43,18 +42,6 @@ export const metadata: Metadata = {
 
 const EVENT_IMAGE_BLUR_DATA_URL =
   "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q==";
-
-async function getPopupNews() {
-  try {
-    return await prisma.companyNews.findFirst({
-      where: { type: "COMPANY_NEWS", imageUrl: { not: null } },
-      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-      select: { id: true, title: true, summary: true, imageUrl: true, link: true },
-    });
-  } catch {
-    return null;
-  }
-}
 
 async function getNewsForTicker() {
   try {
@@ -108,26 +95,14 @@ async function getRecentEvents() {
 export const revalidate = 600;
 
 export default async function HomePage() {
-  const [recentEvents, newsTickerItems, cardNewsItems, popupNews] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
     getCardNewsForHome(),
-    getPopupNews(),
   ]);
 
   return (
     <div>
-      {/* ── 홈 팝업 ── */}
-      {popupNews?.imageUrl && (
-        <HomePopup
-          id={popupNews.id}
-          title={popupNews.title}
-          summary={popupNews.summary ?? ""}
-          imageUrl={popupNews.imageUrl}
-          link={popupNews.link}
-        />
-      )}
-
       {/* ── Hero ── */}
       <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
