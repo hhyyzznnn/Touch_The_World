@@ -14,15 +14,23 @@ interface HomePopupProps {
 }
 
 export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps) {
+  // dismissed: "오늘 하루 보지 않기"로 완전히 숨김 (localStorage 확인 전까지는 false로 시작해
+  //            이미지가 초기 렌더부터 존재하도록 함 — LCP 프리로드를 위해 중요)
+  const [dismissed, setDismissed] = useState(false);
+  // visible: 오버레이를 시각적으로 드러낼지 여부 (약간의 딜레이를 준 등장 애니메이션용).
+  //          이미지 자체는 dismissed가 아닌 한 항상 DOM에 존재해 초기 로드부터 프리로드된다.
   const [visible, setVisible] = useState(false);
   const storageKey = `home_popup_hidden_until_${id}`;
 
   useEffect(() => {
-    const raw = localStorage.getItem(`home_popup_hidden_until_${id}`);
-    if (raw && Date.now() < parseInt(raw)) return;
-    const t = setTimeout(() => setVisible(true), 600);
+    const raw = localStorage.getItem(storageKey);
+    if (raw && Date.now() < parseInt(raw)) {
+      setDismissed(true);
+      return;
+    }
+    const t = setTimeout(() => setVisible(true), 200);
     return () => clearTimeout(t);
-  }, [id]);
+  }, [id, storageKey]);
 
   const close = () => setVisible(false);
 
@@ -33,18 +41,23 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
     setVisible(false);
   };
 
-  if (!visible) return null;
+  if (dismissed) return null;
 
   const href = link?.trim() || `/news/${id}`;
   const isExternal = href.startsWith("http");
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm"
+      className={`fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm transition-opacity duration-200 ${
+        visible ? "opacity-100" : "opacity-0 pointer-events-none"
+      }`}
       onClick={close}
+      aria-hidden={!visible}
     >
       <div
-        className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+        className={`relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm overflow-hidden transition-transform duration-200 ${
+          visible ? "translate-y-0" : "translate-y-4"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 닫기 버튼 */}

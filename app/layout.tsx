@@ -5,7 +5,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
 import { DynamicFloatingChat } from "@/components/DynamicFloatingChat";
-import { ProgramCompare } from "@/components/programs/ProgramCompare";
+import { DynamicProgramCompare } from "@/components/programs/DynamicProgramCompare";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "@/app/api/uploadthing/core";
@@ -178,7 +178,7 @@ export default function RootLayout({
           <main className="min-h-screen">{children}</main>
           <div className="print:hidden"><ConditionalFooter /></div>
           <div className="print:hidden"><DynamicFloatingChat /></div>
-          <ProgramCompare />
+          <DynamicProgramCompare />
         </ToastProvider>
       </body>
     </html>

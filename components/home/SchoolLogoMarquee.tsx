@@ -38,7 +38,6 @@ export function SchoolLogoMarquee() {
                 fill
                 sizes="64px"
                 className="object-contain"
-                unoptimized
               />
             </div>
             <span className="text-[10px] sm:text-xs text-text-gray whitespace-nowrap">
