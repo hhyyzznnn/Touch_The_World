@@ -157,7 +157,7 @@ Touch_The_World/
 3. Build Command: `npm run build`
 4. `NEXTAUTH_URL`은 실제 배포 도메인으로 설정합니다.
 
-`vercel.json`에는 하루 1회 G2B 크론 작업이 설정되어 있습니다.
+`vercel.json`은 Supabase DB 리전(싱가포르)과 맞춰 함수 리전을 `sin1`으로 고정합니다. G2B 크론 작업은 GitHub Actions(`.github/workflows/g2b-notification.yml`)에서 하루 1회 실행됩니다.
 
 홈페이지는 ISR(`revalidate = 600`)로 운영됩니다. `searchParams` 접근이나 `cookies()` 호출이 페이지 렌더 트리에 포함되면 dynamic rendering으로 전환되어 캐시가 무력화되므로 주의하세요.
 

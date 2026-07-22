@@ -87,8 +87,10 @@ async function getRecentEvents() {
 export const revalidate = 86400;
 
 export default async function AchievementsPage() {
-  const { grouped, years, yearLabels } = await getAchievementsByYear();
-  const recentEvents = await getRecentEvents();
+  const [{ grouped, years, yearLabels }, recentEvents] = await Promise.all([
+    getAchievementsByYear(),
+    getRecentEvents(),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">

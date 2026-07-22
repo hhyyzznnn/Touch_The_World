@@ -161,16 +161,12 @@ export default async function EventsPage({
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
-  const { events, totalPages } = await getEvents(
-    params.year,
-    params.category,
-    params.location,
-    params.q,
-    currentPage
-  );
-  const years = await getYears();
-  const categories = await getCategories();
-  const locations = await getLocations();
+  const [{ events, totalPages }, years, categories, locations] = await Promise.all([
+    getEvents(params.year, params.category, params.location, params.q, currentPage),
+    getYears(),
+    getCategories(),
+    getLocations(),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-12">
