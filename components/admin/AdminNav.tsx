@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { AdminNotification } from "@/components/admin/AdminNotification";
 
 export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -72,28 +73,10 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
               </Link>
             )}
             <Link
-              href="/admin/documents"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
-            >
-              자료실
-            </Link>
-            <Link
-              href="/admin/achievements"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
-            >
-              사업실적
-            </Link>
-            <Link
               href="/admin/news"
               className="text-gray-700 hover:text-brand-green-primary transition text-base"
             >
               회사 소식
-            </Link>
-            <Link
-              href="/admin/clients"
-              className="text-gray-700 hover:text-brand-green-primary transition text-base"
-            >
-              고객사
             </Link>
             {isAdmin && (
               <Link
@@ -103,14 +86,57 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                 나라장터
               </Link>
             )}
-            {isAdmin && (
-              <Link
-                href="/admin/users"
-                className="text-gray-700 hover:text-brand-green-primary transition text-base"
+
+            {/* 기타 기능 드롭다운 */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsMoreOpen(!isMoreOpen)}
+                className="flex items-center gap-1 text-gray-700 hover:text-brand-green-primary transition text-base"
+                aria-expanded={isMoreOpen}
               >
-                사용자
-              </Link>
-            )}
+                기타 기능
+                <ChevronDown className={`w-4 h-4 transition-transform ${isMoreOpen ? "rotate-180" : ""}`} />
+              </button>
+              {isMoreOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsMoreOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50 py-1">
+                    <Link
+                      href="/admin/documents"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-green-primary transition"
+                      onClick={() => setIsMoreOpen(false)}
+                    >
+                      자료실
+                    </Link>
+                    <Link
+                      href="/admin/achievements"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-green-primary transition"
+                      onClick={() => setIsMoreOpen(false)}
+                    >
+                      사업실적
+                    </Link>
+                    <Link
+                      href="/admin/clients"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-green-primary transition"
+                      onClick={() => setIsMoreOpen(false)}
+                    >
+                      고객사
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        href="/admin/users"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-green-primary transition"
+                        onClick={() => setIsMoreOpen(false)}
+                      >
+                        사용자
+                      </Link>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
             {isAdmin && <AdminNotification />}
             <Button type="button" variant="outline" size="default" onClick={handleLogout}>
               로그아웃
@@ -162,32 +188,11 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                 </Link>
               )}
               <Link
-                href="/admin/documents"
-                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                자료실
-              </Link>
-              <Link
-                href="/admin/achievements"
-                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                사업실적
-              </Link>
-              <Link
                 href="/admin/news"
                 className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 회사 소식
-              </Link>
-              <Link
-                href="/admin/clients"
-                className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                고객사
               </Link>
               {isAdmin && (
                 <Link
@@ -198,15 +203,40 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                   나라장터
                 </Link>
               )}
-              {isAdmin && (
+
+              <div className="pt-2 mt-1 border-t">
+                <p className="text-xs font-medium text-gray-400 pt-2 pb-1">기타 기능</p>
                 <Link
-                  href="/admin/users"
-                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                  href="/admin/documents"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2 block"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  사용자
+                  자료실
                 </Link>
-              )}
+                <Link
+                  href="/admin/achievements"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2 block"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  사업실적
+                </Link>
+                <Link
+                  href="/admin/clients"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2 block"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  고객사
+                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin/users"
+                    className="text-gray-700 hover:text-brand-green-primary transition text-base py-2 block"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    사용자
+                  </Link>
+                )}
+              </div>
               <div className="pt-2">
                 <Button
                   type="button"
