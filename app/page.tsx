@@ -411,6 +411,7 @@ export default async function HomePage() {
                             alt={`${event.school.name} 행사`}
                             fill
                             sizes="(max-width: 768px) 80vw, 400px"
+                            quality={65}
                             className="object-cover"
                             loading="lazy"
                             decoding="async"
