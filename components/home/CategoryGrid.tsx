@@ -89,6 +89,7 @@ export function CategoryGrid() {
                 alt={card.name}
                 fill
                 sizes="(max-width: 768px) 50vw, 25vw"
+                quality={65}
                 className="object-cover group-hover:scale-[1.07] transition-transform duration-500 ease-out"
                 priority={index < 4}
               />

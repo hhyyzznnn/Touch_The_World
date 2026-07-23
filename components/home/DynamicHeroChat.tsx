@@ -8,7 +8,7 @@ const HeroChatInputWrapper = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-12 w-full max-w-3xl mx-auto rounded-xl bg-gray-100 animate-pulse" />
+      <div className="h-14 w-full max-w-3xl mx-auto rounded-2xl bg-gray-100 animate-pulse" />
     ),
   }
 );
