@@ -12,15 +12,27 @@ import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } fro
 
 const ITEMS_PER_PAGE = 12;
 
-export const metadata: Metadata = {
-  title: "교육여행 행사 포트폴리오 | 터치더월드",
-  description:
-    "터치더월드가 진행한 교육여행, 수학여행, 체험학습, 교사연수 및 해외연수 행사 포트폴리오를 확인하세요.",
-  keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["행사", "포트폴리오", "사례"]),
-  alternates: {
-    canonical: "/events",
-  },
-};
+// year/category/location/q/page 등 필터 쿼리 파라미터가 있는 URL은 /events와
+// 중복 색인되지 않도록 noindex 처리합니다.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const hasQueryParams = Object.keys(params).length > 0;
+
+  return {
+    title: "교육여행 행사 포트폴리오 | 터치더월드",
+    description:
+      "터치더월드가 진행한 교육여행, 수학여행, 체험학습, 교사연수 및 해외연수 행사 포트폴리오를 확인하세요.",
+    keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["행사", "포트폴리오", "사례"]),
+    alternates: {
+      canonical: "/events",
+    },
+    ...(hasQueryParams ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 async function getEvents(
   year?: string,

@@ -5,12 +5,14 @@ import { CompanyNewsType } from "@prisma/client";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+// 동일한 카드뉴스 목록이 /programs 에도 렌더링되며, GNB·홈페이지 CTA가 모두 /programs를
+// 가리키므로 중복 색인을 피하기 위해 canonical을 /programs로 지정합니다.
 export const metadata: Metadata = {
   title: "프로그램 카드뉴스 | 터치더월드",
   description:
     "터치더월드의 교육여행·수학여행·교사연수 프로그램 카드뉴스를 확인하세요.",
   alternates: {
-    canonical: "/news",
+    canonical: "/programs",
   },
 };
 
