@@ -3,7 +3,7 @@
  * 조달청 나라장터 입찰공고정보서비스 OpenAPI
  * 
  * 서비스 ID: BidPublicInfoService
- * Base URL: http://apis.data.go.kr/1230000/ad/BidPublicInfoService
+ * Base URL: https://apis.data.go.kr/1230000/ad/BidPublicInfoService
  */
 
 interface G2BNoticeItem {
@@ -78,12 +78,11 @@ export async function fetchG2BNotices(
     throw new Error("NARA_BID_SERVICE_KEY가 설정되지 않았습니다.");
   }
 
-  // Base URL: http (https 아님)
   // 검색 API 사용 여부에 따라 엔드포인트 결정
   const endpoint = params.useSearchApi && operation === "Servc"
     ? `getBidPblancListInfo${operation}PPSSrch` // 검색 API (키워드 검색 지원)
     : `getBidPblancListInfo${operation}`; // 기본 목록 API
-  const baseUrl = `http://apis.data.go.kr/1230000/ad/BidPublicInfoService/${endpoint}`;
+  const baseUrl = `https://apis.data.go.kr/1230000/ad/BidPublicInfoService/${endpoint}`;
   
   // inqryDiv 결정: 날짜가 있으면 1, 공고번호가 있으면 2, 없으면 1 (등록일시 기준)
   const inqryDiv = params.inqryDiv || (params.bidNtceNo ? 2 : 1);
