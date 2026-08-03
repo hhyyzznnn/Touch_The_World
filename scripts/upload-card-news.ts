@@ -94,12 +94,19 @@ async function main() {
   const sqlPath = `scripts/sql/upload_${today}.sql`;
   const sqlLines: string[] = [`-- 카드뉴스 CDN 업로드 결과 (${today})\n`];
 
-  for (const item of NEWS_ITEMS) {
+  // NOTE: 여러 건을 한 SQL 파일로 묶어 Supabase SQL Editor에서 한 번에 실행하면
+  // 트랜잭션 내내 NOW()가 동일한 값으로 고정되어 같은 배치의 항목들이
+  // 전부 같은 createdAt을 갖게 되고, 그 결과 최신순 정렬 시 순서가 뒤섞인다.
+  // 이를 막기 위해 항목마다 1초씩 늘어나는 고정 타임스탬프를 명시적으로 부여한다.
+  const runStart = Date.now();
+
+  for (const [index, item] of NEWS_ITEMS.entries()) {
     console.log(`\n▶ ${item.title}`);
     process.stdout.write("  이미지 업로드 중 ");
 
     const urls = await uploadFolder(path.resolve(item.folder));
     const [first] = urls;
+    const itemTimestamp = new Date(runStart + index * 1000).toISOString();
 
     sqlLines.push(`-- ${item.title}`);
     sqlLines.push(`INSERT INTO "CompanyNews" (
@@ -117,7 +124,7 @@ async function main() {
   ${item.link ? `'${item.link}'` : "NULL"},
   ${pgArray(item.hashtags)},
   ${item.isPinned ?? false},
-  NOW(), NOW()
+  '${itemTimestamp}', '${itemTimestamp}'
 )
 ON CONFLICT ("id") DO UPDATE SET
   "title"     = EXCLUDED."title",
@@ -126,7 +133,7 @@ ON CONFLICT ("id") DO UPDATE SET
   "imageUrl"  = EXCLUDED."imageUrl",
   "imageUrls" = EXCLUDED."imageUrls",
   "hashtags"  = EXCLUDED."hashtags",
-  "updatedAt" = NOW();\n`);
+  "updatedAt" = '${itemTimestamp}';\n`);
 
     if (item.deleteLocalAfterUpload) {
       fs.rmSync(path.resolve(item.folder), { recursive: true, force: true });
