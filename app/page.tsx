@@ -20,6 +20,7 @@ import { SHORTS_VIDEOS, getYouTubeVideoId, getYouTubeShortsUrl } from "@/lib/sho
 import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
+import { CategoryQuickNav } from "@/components/home/CategoryQuickNav";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -120,34 +121,15 @@ export default async function HomePage() {
               <span className="block">학습자의 세계를 확장합니다.</span>
             </p>
 
-            <div className="w-full max-w-3xl mx-auto">
-              {/* 추천 프로그램 버튼 */}
-              {cardNewsItems.length > 0 && (
-                <div className="flex flex-wrap items-center justify-start gap-2 pt-4 sm:pt-6 pb-0">
-                  {cardNewsItems.slice(0, 3).map((item) => {
-                    const href = item.link?.trim() || `/news/${item.id}`;
-                    const isExternal = !!item.link?.trim()?.startsWith("http");
-                    return (
-                      <CardNewsLink
-                        key={item.id}
-                        href={href}
-                        title={item.title}
-                        isExternal={isExternal}
-                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 text-xs sm:text-sm text-text-gray hover:border-brand-green-primary hover:text-brand-green-primary transition-colors shadow-sm"
-                      >
-                        <span className="line-clamp-1 max-w-[20ch]">{stripBrandFromTitle(item.title)}</span>
-                        <ChevronRight className="w-3 h-3 flex-shrink-0 opacity-50" />
-                      </CardNewsLink>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="pt-0">
+            <div className="pt-4 sm:pt-6">
               <Suspense fallback={<div className="h-14 w-full max-w-3xl mx-auto rounded-2xl bg-gray-100 animate-pulse" />}>
                 <DynamicHeroChat />
               </Suspense>
+            </div>
+
+            {/* 카테고리 바로가기 */}
+            <div className="pt-4 sm:pt-6">
+              <CategoryQuickNav />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">

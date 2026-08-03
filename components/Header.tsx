@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "./Logo";
-import { PROGRAM_CATEGORIES, COMPANY_INFO } from "@/lib/constants";
+import { PROGRAM_CATEGORIES, PROGRAM_CATEGORY_GROUPS, COMPANY_INFO } from "@/lib/constants";
 import { GlobalSearchBar } from "./GlobalSearchBar";
 import { UserMenu } from "./UserMenu";
 import { Menu, X, ChevronDown, Instagram, Facebook, Youtube } from "lucide-react";
@@ -68,14 +68,21 @@ export function Header() {
               </Link>
               <div className="absolute left-0 top-full pt-2 hidden group-hover:block">
                 <div className="bg-white border border-gray-200 rounded-md shadow-lg py-2 min-w-[200px]">
-                  {PROGRAM_CATEGORIES.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="block px-4 py-2 text-sm text-text-dark hover:text-brand-green hover:bg-gray-50 whitespace-nowrap"
-                    >
-                      {item.name}
-                    </Link>
+                  {PROGRAM_CATEGORY_GROUPS.map((group) => (
+                    <div key={group}>
+                      <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400 whitespace-nowrap">
+                        {group}
+                      </div>
+                      {PROGRAM_CATEGORIES.filter((item) => item.group === group).map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className="block px-4 py-2 text-sm text-text-dark hover:text-brand-green hover:bg-gray-50 whitespace-nowrap"
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -222,15 +229,22 @@ export function Header() {
                     >
                       전체 프로그램
                     </Link>
-                    {PROGRAM_CATEGORIES.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        onClick={closeMenu}
-                        className="block px-4 py-2 text-sm text-text-gray hover:text-brand-green hover:bg-gray-50 rounded-lg transition"
-                      >
-                        {item.name}
-                      </Link>
+                    {PROGRAM_CATEGORY_GROUPS.map((group) => (
+                      <div key={group}>
+                        <div className="px-4 pt-2 pb-1 text-xs font-semibold text-gray-400">
+                          {group}
+                        </div>
+                        {PROGRAM_CATEGORIES.filter((item) => item.group === group).map((item) => (
+                          <Link
+                            key={item.name}
+                            href={item.href}
+                            onClick={closeMenu}
+                            className="block px-4 py-2 text-sm text-text-gray hover:text-brand-green hover:bg-gray-50 rounded-lg transition"
+                          >
+                            {item.name}
+                          </Link>
+                        ))}
+                      </div>
                     ))}
                   </div>
                 )}
