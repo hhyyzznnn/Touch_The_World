@@ -138,13 +138,14 @@ async function getYears() {
 }
 
 async function getCategories() {
-  const events = await prisma.event.findMany({
-    include: { program: { select: { category: true } } },
+  // 전체 행사를 프로그램과 조인해서 가져오는 대신, 행사가 1건 이상 있는
+  // 프로그램의 카테고리만 distinct로 조회 (행사 수가 늘어도 조회량이 커지지 않음)
+  const programs = await prisma.program.findMany({
+    where: { events: { some: {} } },
+    select: { category: true },
+    distinct: ["category"],
   });
-  const categories = new Set(
-    events.map((e) => e.program.category).filter(Boolean)
-  );
-  return Array.from(categories).sort();
+  return programs.map((p) => p.category).filter(Boolean).sort();
 }
 
 async function getLocations() {

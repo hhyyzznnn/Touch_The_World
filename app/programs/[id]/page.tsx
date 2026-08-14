@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +17,8 @@ import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
 import { getSiteUrl } from "@/lib/site-url";
 
-async function getProgram(id: string) {
+// generateMetadata와 페이지 본문이 같은 id로 각각 호출해도 요청당 1회만 DB 조회하도록 캐싱
+const getProgram = cache(async (id: string) => {
   return await prisma.program.findUnique({
     where: { id },
     include: {
@@ -43,7 +45,7 @@ async function getProgram(id: string) {
       },
     },
   });
-}
+});
 
 async function getRelatedPrograms(id: string, category: string) {
   const FIELDS = {
@@ -74,26 +76,13 @@ async function getRelatedPrograms(id: string, category: string) {
   return { programs: any, sameCategory: false };
 }
 
-async function getProgramSeoData(id: string) {
-  return await prisma.program.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      title: true,
-      summary: true,
-      category: true,
-      thumbnailUrl: true,
-    },
-  });
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const program = await getProgramSeoData(id);
+  const program = await getProgram(id);
 
   if (!program) {
     return {

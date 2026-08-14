@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -76,11 +77,12 @@ function isConcreteProgram(category: string | null): boolean {
   return !!category && category !== "기타 프로그램";
 }
 
-async function getNews(id: string) {
+// generateMetadata와 페이지 본문이 같은 id로 각각 호출해도 요청당 1회만 DB 조회하도록 캐싱
+const getNews = cache(async (id: string) => {
   return await prisma.companyNews.findUnique({
     where: { id },
   });
-}
+});
 
 async function getRelatedCardNews(id: string, category: string | null, type: CompanyNewsType) {
   if (!category) return [];
@@ -101,20 +103,6 @@ async function getRelatedCardNews(id: string, category: string | null, type: Com
   });
 }
 
-async function getNewsSeoData(id: string) {
-  return await prisma.companyNews.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      title: true,
-      summary: true,
-      createdAt: true,
-      isPinned: true,
-      imageUrl: true,
-    },
-  });
-}
-
 export const revalidate = 86400;
 
 export async function generateMetadata({
@@ -123,7 +111,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const news = await getNewsSeoData(id);
+  const news = await getNews(id);
 
   if (!news) {
     return {

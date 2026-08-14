@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -8,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site-url";
 
-async function getEvent(id: string) {
+// generateMetadata와 페이지 본문이 같은 id로 각각 호출해도 요청당 1회만 DB 조회하도록 캐싱
+const getEvent = cache(async (id: string) => {
   return await prisma.event.findUnique({
     where: { id },
     include: {
@@ -26,32 +28,7 @@ async function getEvent(id: string) {
       },
     },
   });
-}
-
-async function getEventSeoData(id: string) {
-  return await prisma.event.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      date: true,
-      location: true,
-      school: {
-        select: { name: true },
-      },
-      program: {
-        select: {
-          title: true,
-          category: true,
-        },
-      },
-      images: {
-        take: 1,
-        orderBy: { createdAt: "asc" },
-        select: { url: true },
-      },
-    },
-  });
-}
+});
 
 export const revalidate = 86400;
 
@@ -61,7 +38,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const event = await getEventSeoData(id);
+  const event = await getEvent(id);
 
   if (!event) {
     return {

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -5,7 +6,8 @@ import Image from "next/image";
 import { format } from "date-fns";
 import type { Metadata } from "next";
 
-async function getSchool(id: string) {
+// generateMetadata와 페이지 본문이 같은 id로 각각 호출해도 요청당 1회만 DB 조회하도록 캐싱
+const getSchool = cache(async (id: string) => {
   return await prisma.school.findUnique({
     where: { id },
     include: {
@@ -28,23 +30,7 @@ async function getSchool(id: string) {
       },
     },
   });
-}
-
-async function getSchoolSeoData(id: string) {
-  return await prisma.school.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      name: true,
-      logoUrl: true,
-      _count: {
-        select: {
-          events: true,
-        },
-      },
-    },
-  });
-}
+});
 
 export async function generateMetadata({
   params,
@@ -52,7 +38,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const school = await getSchoolSeoData(id);
+  const school = await getSchool(id);
 
   if (!school) {
     return {
@@ -64,7 +50,7 @@ export async function generateMetadata({
     };
   }
 
-  const description = `${school.name}와 함께 진행한 교육여행 및 체험학습 행사 ${school._count.events}건을 확인하세요.`;
+  const description = `${school.name}와 함께 진행한 교육여행 및 체험학습 행사 ${school.events.length}건을 확인하세요.`;
 
   return {
     title: `${school.name} 행사 이력 | 터치더월드`,
