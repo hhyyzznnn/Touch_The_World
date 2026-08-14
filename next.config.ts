@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
       // CompanyNews slug 정리 (2026-06 이전 랜덤 ID → 정돈된 슬러그)
       { source: "/news/9c58e97d-f25a-4a14-bfe2-f79c27a73f92", destination: "/news/cardnews_fukuoka_culinary_field_trip_2026",         permanent: true },
       { source: "/news/82b1f0b1-444f-4594-a95f-5ac4d1fb307b", destination: "/news/cardnews_fukuoka_specialized_highschool_trip_2026", permanent: true },
-      { source: "/news/138f6429-2c4c-4e88-ace4-a02c9c34f71c", destination: "/news/cardnews_waego_book_2026",                          permanent: true },
+      { source: "/news/138f6429-2c4c-4e88-ace4-a02c9c34f71c", destination: "/news/67b389d7-1e7e-4127-86ff-533d54b953f7",              permanent: true },
+      { source: "/news/cardnews_waego_book_2026",             destination: "/news/67b389d7-1e7e-4127-86ff-533d54b953f7",              permanent: true },
       { source: "/news/cmq7ohg8x0001pnsb4qe9p1yl",            destination: "/news/cardnews_aso_popculture_webtoon_japan_2026",        permanent: true },
       { source: "/news/cmq7ofyqo0000pnsbj9wokakx",            destination: "/news/cardnews_seo_seoul_science_fukuoka_2026",           permanent: true },
       { source: "/news/cmq5zzlqs0000iej77nmeb3aa",            destination: "/news/cardnews_pocheon_bus_subsidy_2026",                 permanent: true },

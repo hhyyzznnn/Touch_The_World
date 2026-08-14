@@ -5,21 +5,23 @@
  *   1. public/company-news/<폴더명>/ 에 이미지 넣기
  *   2. 아래 NEWS_ITEMS 배열에 항목 추가 (Claude가 작성)
  *   3. npx tsx scripts/upload-card-news.ts 실행
- *   4. 생성된 scripts/sql/upload_YYYYMMDD.sql 을 Supabase SQL Editor에서 실행
- *   5. 로컬 이미지 폴더는 스크립트가 자동 삭제
+ *      → UploadThing 업로드 + DB 반영(Pooling URL, 6543)까지 이 스크립트가 직접 처리합니다.
+ *      → scripts/sql/upload_YYYYMMDD.sql은 기록용 로그로만 남습니다 (실행 불필요).
+ *   4. 로컬 이미지 폴더는 스크립트가 자동 삭제
  *
- * 필수 환경변수: UPLOADTHING_TOKEN
+ * 필수 환경변수: UPLOADTHING_TOKEN, DATABASE_URL
  */
 
 import { config } from "dotenv";
 config({ path: ".env" });
 
 import { UTApi } from "uploadthing/server";
-import { CompanyNewsType } from "@prisma/client";
+import { CompanyNewsType, PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 
 const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
+const prisma = new PrismaClient();
 
 interface NewsItem {
   folder: string;               // public/company-news/폴더명
@@ -76,12 +78,42 @@ async function uploadFolder(folderPath: string): Promise<string[]> {
 }
 
 function pgLiteral(value: string): string {
-  // PostgreSQL dollar-quoting으로 이스케이프 없이 긴 문자열 처리
   return `$pgtag$${value}$pgtag$`;
 }
 
 function pgArray(arr: string[]): string {
   return `ARRAY[${arr.map((s) => `'${s.replace(/'/g, "''")}'`).join(", ")}]`;
+}
+
+/** 실행한 내용을 나중에 대조할 수 있도록 기록용 SQL 로그만 남긴다 (실행용 아님) */
+function buildLogSql(item: NewsItem, urls: string[], timestamp: string): string {
+  return `-- ${item.title}
+INSERT INTO "CompanyNews" (
+  "id","type","category","title","summary","content",
+  "imageUrl","imageUrls","link","hashtags","isPinned","createdAt","updatedAt"
+) VALUES (
+  '${item.id}',
+  '${item.type}',
+  '${item.category.replace(/'/g, "''")}',
+  ${pgLiteral(item.title)},
+  ${pgLiteral(item.summary)},
+  ${pgLiteral(item.content)},
+  '${urls[0]}',
+  ${pgArray(urls)},
+  ${item.link ? `'${item.link}'` : "NULL"},
+  ${pgArray(item.hashtags)},
+  ${item.isPinned ?? false},
+  '${timestamp}', '${timestamp}'
+)
+ON CONFLICT ("id") DO UPDATE SET
+  "title"     = EXCLUDED."title",
+  "summary"   = EXCLUDED."summary",
+  "content"   = EXCLUDED."content",
+  "imageUrl"  = EXCLUDED."imageUrl",
+  "imageUrls" = EXCLUDED."imageUrls",
+  "hashtags"  = EXCLUDED."hashtags",
+  "updatedAt" = '${timestamp}';
+`;
 }
 
 async function main() {
@@ -92,12 +124,10 @@ async function main() {
 
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const sqlPath = `scripts/sql/upload_${today}.sql`;
-  const sqlLines: string[] = [`-- 카드뉴스 CDN 업로드 결과 (${today})\n`];
+  const sqlLines: string[] = [`-- 카드뉴스 CDN 업로드 결과 (${today}) — 기록용 로그, DB에는 이 스크립트가 직접 반영함\n`];
 
-  // NOTE: 여러 건을 한 SQL 파일로 묶어 Supabase SQL Editor에서 한 번에 실행하면
-  // 트랜잭션 내내 NOW()가 동일한 값으로 고정되어 같은 배치의 항목들이
-  // 전부 같은 createdAt을 갖게 되고, 그 결과 최신순 정렬 시 순서가 뒤섞인다.
-  // 이를 막기 위해 항목마다 1초씩 늘어나는 고정 타임스탬프를 명시적으로 부여한다.
+  // NOTE: 여러 건을 순차 반영하면서 항목마다 1초씩 늘어나는 타임스탬프를 명시적으로 부여해,
+  // 최신순 정렬 시 등록 순서가 뒤섞이지 않도록 한다 (2026-08-02 발견된 버그의 재발 방지).
   const runStart = Date.now();
 
   for (const [index, item] of NEWS_ITEMS.entries()) {
@@ -105,35 +135,39 @@ async function main() {
     process.stdout.write("  이미지 업로드 중 ");
 
     const urls = await uploadFolder(path.resolve(item.folder));
-    const [first] = urls;
-    const itemTimestamp = new Date(runStart + index * 1000).toISOString();
+    const itemTimestamp = new Date(runStart + index * 1000);
 
-    sqlLines.push(`-- ${item.title}`);
-    sqlLines.push(`INSERT INTO "CompanyNews" (
-  "id","type","category","title","summary","content",
-  "imageUrl","imageUrls","link","hashtags","isPinned","createdAt","updatedAt"
-) VALUES (
-  '${item.id}',
-  '${item.type}',
-  '${item.category.replace(/'/g, "''")}',
-  ${pgLiteral(item.title)},
-  ${pgLiteral(item.summary)},
-  ${pgLiteral(item.content)},
-  '${first}',
-  ${pgArray(urls)},
-  ${item.link ? `'${item.link}'` : "NULL"},
-  ${pgArray(item.hashtags)},
-  ${item.isPinned ?? false},
-  '${itemTimestamp}', '${itemTimestamp}'
-)
-ON CONFLICT ("id") DO UPDATE SET
-  "title"     = EXCLUDED."title",
-  "summary"   = EXCLUDED."summary",
-  "content"   = EXCLUDED."content",
-  "imageUrl"  = EXCLUDED."imageUrl",
-  "imageUrls" = EXCLUDED."imageUrls",
-  "hashtags"  = EXCLUDED."hashtags",
-  "updatedAt" = '${itemTimestamp}';\n`);
+    console.log("  DB 반영 중...");
+    await prisma.companyNews.upsert({
+      where: { id: item.id },
+      create: {
+        id: item.id,
+        type: item.type,
+        category: item.category,
+        title: item.title,
+        summary: item.summary,
+        content: item.content,
+        imageUrl: urls[0],
+        imageUrls: urls,
+        link: item.link ?? null,
+        hashtags: item.hashtags,
+        isPinned: item.isPinned ?? false,
+        createdAt: itemTimestamp,
+        updatedAt: itemTimestamp,
+      },
+      update: {
+        title: item.title,
+        summary: item.summary,
+        content: item.content,
+        imageUrl: urls[0],
+        imageUrls: urls,
+        hashtags: item.hashtags,
+        updatedAt: itemTimestamp,
+      },
+    });
+    console.log("  ✓ DB 반영 완료");
+
+    sqlLines.push(buildLogSql(item, urls, itemTimestamp.toISOString()));
 
     if (item.deleteLocalAfterUpload) {
       fs.rmSync(path.resolve(item.folder), { recursive: true, force: true });
@@ -143,11 +177,12 @@ ON CONFLICT ("id") DO UPDATE SET
 
   if (!fs.existsSync("scripts/sql")) fs.mkdirSync("scripts/sql", { recursive: true });
   fs.writeFileSync(sqlPath, sqlLines.join("\n"), "utf-8");
-  console.log(`\n✅ SQL 생성 완료: ${sqlPath}`);
-  console.log("→ Supabase SQL Editor에서 위 파일 내용을 실행하세요.");
+  console.log(`\n✅ 전체 완료 — DB 반영 끝, 기록 로그: ${sqlPath}`);
 }
 
-main().catch((e) => {
-  console.error("❌ 오류:", e);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error("❌ 오류:", e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());
