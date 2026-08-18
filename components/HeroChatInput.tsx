@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Send, X } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import {
@@ -14,17 +15,23 @@ import { trackEvent, GA_EVENTS } from "@/lib/gtag";
 
 interface HeroChatInputProps {
   initialCategory?: string;
-  greeting?: string | null;
 }
 
 const LOGIN_HISTORY_NOTICE =
   "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
 
+// 지금 확인하면 좋은 혜택성 프로그램 — 필요해지면 이 목록만 갱신하면 됩니다.
+const BENEFIT_HIGHLIGHTS = [
+  { label: "포천 버스비 전액 지원", href: "/news/cardnews_pocheon_bus_subsidy_2026" },
+  { label: "하나투어 교직원 혜택", href: "/news/cardnews_hanatour_teacher_benefits_2026" },
+  { label: "인천 교육여행 지원사업", href: "/news/cardnews_incheon_edu_trip_support_2026" },
+] as const;
+
 function createSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export function HeroChatInput({ initialCategory, greeting: greetingProp }: HeroChatInputProps) {
+export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   const searchParams = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
@@ -33,7 +40,6 @@ export function HeroChatInput({ initialCategory, greeting: greetingProp }: HeroC
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
-  const [greeting, setGreeting] = useState<string | null>(greetingProp ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string>(createSessionId);
@@ -84,13 +90,6 @@ export function HeroChatInput({ initialCategory, greeting: greetingProp }: HeroC
       .finally(() => {
         setAuthLoaded(true);
       });
-
-    fetch("/api/greeting")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.greeting) setGreeting(data.greeting);
-      })
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -481,15 +480,17 @@ export function HeroChatInput({ initialCategory, greeting: greetingProp }: HeroC
           )}
         </div>
       </form>
-      {greeting && authLoaded && !isExpanded && (
-        <div className="mt-3 flex justify-center">
-          <button
-            type="button"
-            onClick={() => sendMessage(greeting)}
-            className="rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors"
-          >
-            {greeting}
-          </button>
+      {!isExpanded && (
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {BENEFIT_HIGHLIGHTS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm font-medium text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
       )}
       {!userId && authLoaded && (

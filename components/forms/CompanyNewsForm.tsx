@@ -9,7 +9,7 @@ import { X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import type { CompanyNews } from "@prisma/client";
 import { CompanyNewsType } from "@prisma/client";
-import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
+import { PROGRAM_CATEGORIES, HASHTAG_POOL } from "@/lib/news-constants";
 
 type CompanyNewsWithImages = CompanyNews & {
   imageUrls?: string[];
@@ -312,12 +312,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
         <label className="block text-sm font-medium mb-2">해시태그</label>
         {/* 카테고리 빠른 선택 */}
         <div className="flex flex-wrap gap-2 mb-3">
-          {[
-            "국내 교육여행", "국외 교육여행", "체험학습", "수련활동",
-            "교사 연수", "일본 유학", "특성화고 프로그램", "기타 프로그램",
-            "서울", "인천", "포천", "가평", "충남", "일본", "해외",
-            "초등", "중등", "고등", "특성화고",
-          ].map((tag) => {
+          {[...PROGRAM_CATEGORIES, ...HASHTAG_POOL].map((tag) => {
             const val = `#${tag}`;
             const active = hashtags.includes(val);
             return (

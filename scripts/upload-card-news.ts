@@ -48,7 +48,7 @@ const NEWS_ITEMS: NewsItem[] = [
   //   title: "제목",
   //   summary: "한 줄 요약",
   //   content: `## 본문 마크다운`,
-  //   hashtags: ["#국내", "#지역명"],
+  //   hashtags: ["#일본", "#특성화고"], // lib/news-constants.ts의 HASHTAG_POOL에서만 골라 쓸 것 (지역 1개 + 대상 1~2개, 총 3개 안팎)
   //   deleteLocalAfterUpload: true,
   // },
 ];
