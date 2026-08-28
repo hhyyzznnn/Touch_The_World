@@ -5,9 +5,11 @@
  *   1. public/company-news/<폴더명>/ 에 이미지 넣기
  *   2. 아래 NEWS_ITEMS 배열에 항목 추가 (Claude가 작성)
  *   3. npx tsx scripts/upload-card-news.ts 실행
- *      → UploadThing 업로드 + DB 반영(Pooling URL, 6543)까지 이 스크립트가 직접 처리합니다.
+ *      → UploadThing 업로드 + DB 반영까지 이 스크립트가 직접 처리합니다.
  *      → scripts/sql/upload_YYYYMMDD.sql은 기록용 로그로만 남습니다 (실행 불필요).
- *   4. 로컬 이미지 폴더는 스크립트가 자동 삭제
+ *   4. 로컬 이미지 폴더는 삭제 전, 형제 디렉터리에 ../cardnews-shorts가 있으면
+ *      그쪽 input/<폴더명>/에 먼저 복사해둡니다 — 나중에 유튜브 영상 파이프라인을 돌릴 때
+ *      CDN에서 이미지를 다시 받아올 필요 없이 바로 이어서 쓸 수 있습니다.
  *
  * 필수 환경변수: UPLOADTHING_TOKEN, DATABASE_URL
  */
@@ -53,6 +55,22 @@ const NEWS_ITEMS: NewsItem[] = [
   // },
 ];
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * ../cardnews-shorts (형제 저장소)가 로컬에 있으면, 삭제 전 이미지 폴더를 그쪽 input/에 복사해둔다.
+ * 없으면(다른 환경이거나 아직 클론 안 했으면) 조용히 건너뛴다 — 필수 의존성이 아님.
+ */
+function copyToCardnewsShortsInput(sourceFolder: string): void {
+  // sourceFolder = <repo>/public/company-news/<폴더명> → 4단계 위가 형제 저장소들이 모인 디렉터리
+  const targetRoot = path.resolve(sourceFolder, "..", "..", "..", "..", "cardnews-shorts", "input");
+  if (!fs.existsSync(targetRoot)) return;
+
+  const targetFolder = path.join(targetRoot, path.basename(sourceFolder));
+  if (fs.existsSync(targetFolder)) return; // 이미 있으면 덮어쓰지 않음
+
+  fs.cpSync(sourceFolder, targetFolder, { recursive: true });
+  console.log(`  📁 cardnews-shorts/input/${path.basename(sourceFolder)}/ 로 사본 저장 (유튜브 파이프라인용)`);
+}
 
 async function uploadFolder(folderPath: string): Promise<string[]> {
   const files = fs
@@ -170,6 +188,7 @@ async function main() {
     sqlLines.push(buildLogSql(item, urls, itemTimestamp.toISOString()));
 
     if (item.deleteLocalAfterUpload) {
+      copyToCardnewsShortsInput(path.resolve(item.folder));
       fs.rmSync(path.resolve(item.folder), { recursive: true, force: true });
       console.log(`  로컬 폴더 삭제 완료: ${item.folder}`);
     }
