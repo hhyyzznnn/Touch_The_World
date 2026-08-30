@@ -47,7 +47,11 @@ const NEWS_ITEMS: NewsItem[] = [
   //   id: "cardnews_새폴더이름_2026",
   //   type: CompanyNewsType.PROGRAM_CARD_NEWS,
   //   category: "국내외 교육여행",
-  //   title: "제목",
+  //   title: "제목", // 검색용 키워드(연도·지역·프로그램 종류)를 항상 맨 앞에, 후킹 문구는 " — " 뒤로.
+  //                  // 예: "2026 후쿠오카 글로벌 현장학습 — 학교는 안심하고, 학생은 성장하는" (O)
+  //                  //     "학교는 안심하고, 학생은 성장하는 — 2026 후쿠오카 글로벌 현장학습" (X, 검색 노출에 불리)
+  //                  // (title이 페이지 <title>·OG·구조화 데이터 headline에 그대로 쓰이므로 SEO에 직결됨.
+  //                  //  단, BOOK_CARD_NEWS는 "책 제목 — 저자 저" 형식 유지)
   //   summary: "한 줄 요약",
   //   content: `## 본문 마크다운`,
   //   hashtags: ["#일본", "#특성화고"], // lib/news-constants.ts의 HASHTAG_POOL에서만 골라 쓸 것 (지역 1개 + 대상 1~2개, 총 3개 안팎)
