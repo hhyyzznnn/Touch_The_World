@@ -21,6 +21,7 @@ import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
 import { CategoryQuickNav } from "@/components/home/CategoryQuickNav";
+import { HomePopup } from "@/components/home/HomePopup";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -93,17 +94,41 @@ async function getRecentEvents() {
   }
 }
 
+async function getPopupNews() {
+  try {
+    return await prisma.companyNews.findFirst({
+      where: { type: "COMPANY_NEWS", imageUrl: { not: null } },
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      select: { id: true, title: true, summary: true, imageUrl: true, link: true },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export const revalidate = 600;
 
 export default async function HomePage() {
-  const [recentEvents, newsTickerItems, cardNewsItems] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems, popupNews] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
     getCardNewsForHome(),
+    getPopupNews(),
   ]);
 
   return (
     <div>
+      {/* ── 홈 팝업 ── */}
+      {popupNews?.imageUrl && (
+        <HomePopup
+          id={popupNews.id}
+          title={popupNews.title}
+          summary={popupNews.summary ?? ""}
+          imageUrl={popupNews.imageUrl}
+          link={popupNews.link}
+        />
+      )}
+
       {/* ── Hero ── */}
       <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
