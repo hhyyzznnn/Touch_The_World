@@ -13,7 +13,8 @@ interface SeoLandingPageProps {
 export function SeoLandingPage({ page }: SeoLandingPageProps) {
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}${page.path}`;
-  const imageUrl = `${siteUrl}${page.image}`;
+  // page.image는 CDN 절대 URL(https://...)이거나 /public 상대 경로일 수 있음
+  const imageUrl = page.image.startsWith("http") ? page.image : `${siteUrl}${page.image}`;
 
   const serviceJsonLd = {
     "@context": "https://schema.org",

@@ -9,7 +9,7 @@ export function KakaoScript() {
 
   return (
     <Script
-      src="https://t1.kakaocdn.net/kakao_engine_sdk/3.0.9/sdk-v1.min.js"
+      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.5/kakao.min.js"
       strategy="afterInteractive"
       onLoad={() => {
         if (typeof window !== "undefined" && (window as unknown as { Kakao?: { init: (key: string) => void } }).Kakao) {

@@ -44,7 +44,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     eyebrow: "중고등학교 맞춤형 해외 교육여행",
     lead:
       "도쿄·오사카·교토·나라·후쿠오카 등 일본 주요 지역을 학교의 교육 목표에 맞춰 설계합니다. 역사·문화·미래 산업·학교 교류를 한 일정 안에 연결해 학생이 직접 배우는 해외 교육여행을 만듭니다.",
-    image: "/company-news/japan-edu-trip-2026/01.webp",
+    image: "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUm8BvCqWVlRfzJYOHE5SByLtIgToQP6FxsZhk",
     stats: [
       { label: "운영 경험", value: `${YEARS_OF_EXPERIENCE}년` },
       { label: "추천 일정", value: "3박4일-5박6일" },
@@ -111,7 +111,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     eyebrow: "학교 단체 맞춤형 교육여행 파트너",
     lead:
       "터치더월드는 가격표형 여행이 아니라 학교의 교육 목표, 학생 특성, 예산, 안전 기준을 먼저 이해한 뒤 국내외 수학여행과 체험학습을 맞춤 설계합니다.",
-    image: "/company-news/touch-the-world-company-introduction-2026/01.webp",
+    image: "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUeXnRgqQG3zbOUuihwXK7ra6SM04NDWAYkBPZ",
     stats: [
       { label: "협력 학교", value: "1,800+" },
       { label: "교육여행 노하우", value: `${YEARS_OF_EXPERIENCE}년` },
@@ -178,7 +178,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     eyebrow: "학교 변화를 만드는 경험 중심 연수",
     lead:
       "형식적인 견학이 아니라 교사의 수업과 학교 운영에 다시 연결되는 연수를 설계합니다. 국내외 기관 탐방, AI 미래교육, 워크숍, 힐링형 프로그램을 목적에 맞게 조합합니다.",
-    image: "/company-news/teacher-training-domestic-overseas-program/01.webp",
+    image: "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUdXzwPA3ASMsE152yTOf7qthwRuCYraJilVxz",
     stats: [
       { label: "연수 유형", value: "국내·해외" },
       { label: "운영 방식", value: "맞춤형" },
@@ -245,7 +245,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     eyebrow: "취업과 진로를 연결하는 전공 맞춤 교육여행",
     lead:
       "특성화고 학생에게 필요한 것은 단순 견학이 아니라 전공과 산업 현장, 대학·직업전문학교, 취업 가능성을 연결하는 경험입니다. 터치더월드는 학교 전공에 맞춰 현장 중심 글로벌 프로그램을 설계합니다.",
-    image: "/company-news/specialized-highschool-global-field-study-2026/01.webp",
+    image: "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUQ3orSRsbAgdxsk6pRLel1vjPhUQ3NrwfaSXy",
     stats: [
       { label: "핵심 방향", value: "진로·취업" },
       { label: "추천 지역", value: "일본 후쿠오카" },
