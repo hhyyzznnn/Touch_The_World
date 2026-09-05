@@ -1,4 +1,5 @@
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+import { YEARS_OF_EXPERIENCE } from "@/lib/constants";
 
 export type SeoLandingPageKey =
   | "japan-edu-trip"
@@ -45,7 +46,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
       "도쿄·오사카·교토·나라·후쿠오카 등 일본 주요 지역을 학교의 교육 목표에 맞춰 설계합니다. 역사·문화·미래 산업·학교 교류를 한 일정 안에 연결해 학생이 직접 배우는 해외 교육여행을 만듭니다.",
     image: "/company-news/japan-edu-trip-2026/01.webp",
     stats: [
-      { label: "운영 경험", value: "28년" },
+      { label: "운영 경험", value: `${YEARS_OF_EXPERIENCE}년` },
       { label: "추천 일정", value: "3박4일-5박6일" },
       { label: "주요 지역", value: "도쿄·오사카·후쿠오카" },
     ],
@@ -113,7 +114,7 @@ export const seoLandingPages: Record<SeoLandingPageKey, SeoLandingPageData> = {
     image: "/company-news/touch-the-world-company-introduction-2026/01.webp",
     stats: [
       { label: "협력 학교", value: "1,800+" },
-      { label: "교육여행 노하우", value: "28년" },
+      { label: "교육여행 노하우", value: `${YEARS_OF_EXPERIENCE}년` },
       { label: "상담", value: "맞춤 견적" },
     ],
     sections: [

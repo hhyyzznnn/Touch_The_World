@@ -24,7 +24,7 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COMPANY_INFO } from "@/lib/constants";
+import { COMPANY_INFO, YEARS_OF_EXPERIENCE } from "@/lib/constants";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -47,7 +47,7 @@ const CONTACT = {
   englishName: "Touch The World",
   message: "학생이 세상과 연결되는 교육",
   phone: "1800-8078",
-  email: "syh2123@naver.com",
+  email: COMPANY_INFO.email,
   website: "www.touchtheworld.co.kr",
 };
 
@@ -110,7 +110,7 @@ const services = [
 
 const strengths = [
   {
-    title: "28년의 신뢰와 경험",
+    title: `${YEARS_OF_EXPERIENCE}년의 신뢰와 경험`,
     description: "장기 운영 경험을 바탕으로 현장 리스크를 선제적으로 관리합니다.",
     icon: Shield,
   },
@@ -143,7 +143,7 @@ const strengths = [
 
 const trustStats = [
   { label: "누적 협력 학교", value: "1,800+" },
-  { label: "교육여행 노하우", value: "28 Years" },
+  { label: "교육여행 노하우", value: `${YEARS_OF_EXPERIENCE} Years` },
   { label: "수상", value: "2025 인천시장상" },
   { label: "설립", value: "1996" },
 ];

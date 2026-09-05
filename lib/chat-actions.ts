@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
 import { sendPersonalizedRecommendationsIfOptedIn } from "./personalized-recommendations";
 import { getCategoryDetailKey, getCategoryKey } from "./category-utils";
+import { COMPANY_INFO } from "./constants";
 import type { Prisma } from "@prisma/client";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -199,7 +200,7 @@ export async function sendConsultingSummaryEmail(summary: ConsultingSummary) {
     }
 
     const adminEmail =
-      process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || "syh2123@naver.com";
+      process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || COMPANY_INFO.email;
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const adminConsultingUrl = `${baseUrl}/admin`;
     const adminInquiriesUrl = `${baseUrl}/admin/inquiries`;

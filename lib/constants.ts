@@ -31,6 +31,11 @@ export const PROGRAM_CATEGORIES: ProgramCategory[] = [
   { name: "기타 프로그램",          icon: MoreHorizontal,href: "/programs?category=%EA%B8%B0%ED%83%80%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8", group: "국내외 교육여행" },
 ];
 
+// 창립연도 기준 업력(연차). 화면 곳곳(About, 홈 통계, SEO 랜딩페이지)에서 하드코딩된
+// 숫자("28년" 등)가 해마다 그대로 남아 실제 연차와 어긋나는 걸 막기 위해 여기서 한 번만 계산한다.
+export const FOUNDED_YEAR = 1996;
+export const YEARS_OF_EXPERIENCE = new Date().getFullYear() - FOUNDED_YEAR;
+
 export const COMPANY_INFO = {
   name: "주식회사 터치더월드",
   englishName: "Touch The World",

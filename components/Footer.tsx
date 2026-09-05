@@ -117,7 +117,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="pt-4 mt-2 text-center">
           <p className="text-text-gray text-sm">
-            © 2025 TouchTheWorld. All rights reserved.
+            © {new Date().getFullYear()} TouchTheWorld. All rights reserved.
           </p>
         </div>
       </div>

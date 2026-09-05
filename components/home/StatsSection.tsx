@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { YEARS_OF_EXPERIENCE } from "@/lib/constants";
 
 function AnimatedNumber({ value, format }: { value: number; format?: (n: number) => string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -36,7 +37,7 @@ function AnimatedNumber({ value, format }: { value: number; format?: (n: number)
 
 const STATS = [
   {
-    value: 30,
+    value: YEARS_OF_EXPERIENCE,
     suffix: "년+",
     label: "교육여행 업력",
     sub: "1996년 창립",
