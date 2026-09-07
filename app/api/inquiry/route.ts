@@ -71,6 +71,15 @@ function sanitizeOpt(value: unknown, maxLength: number) {
   return validateAndSanitize(value, { maxLength, allowHtml: false });
 }
 
+// 폼에서는 departureDate/returnDate를 "YYYY-MM-DD" 문자열로 보내지만
+// Prisma 스키마에서는 DateTime 컬럼이라, 그대로 넘기면
+// "premature end of input. Expected ISO-8601 DateTime." 오류로 상세 문의 등록이 매번 실패했다.
+function toDateOrNull(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
 export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
   const rateLimit = await checkRateLimit(`inquiry:${clientIP}`, 3, 60 * 1000);
@@ -200,8 +209,8 @@ export async function POST(request: NextRequest) {
         phone: data.phone || "",
         email: data.email || "",
         schoolAddress: data.schoolAddress ?? null,
-        departureDate: data.departureDate ?? null,
-        returnDate: data.returnDate ?? null,
+        departureDate: toDateOrNull(data.departureDate),
+        returnDate: toDateOrNull(data.returnDate),
         participantCount: data.participantCount ?? null,
         instructorCount: data.instructorCount ?? null,
         targetGrade: data.targetGrade ?? null,
