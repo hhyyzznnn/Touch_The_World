@@ -4,9 +4,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Pagination } from "@/components/Pagination";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
-import { seoLandingPageList } from "@/lib/seo-landing-pages";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
+import { CATEGORY_COLORS } from "@/lib/news-constants";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 
@@ -112,24 +112,10 @@ export default async function ProgramsPage({
               className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 currentCategory === cat
                   ? "bg-brand-green-primary text-white"
-                  : "bg-gray-100 text-text-gray hover:bg-gray-200"
+                  : `${CATEGORY_COLORS[cat]} hover:brightness-95`
               }`}
             >
               {cat}
-            </Link>
-          ))}
-        </div>
-
-        {/* SEO 랜딩 페이지 링크 */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <span className="text-xs text-gray-400">관련</span>
-          {seoLandingPageList.map((page) => (
-            <Link
-              key={page.path}
-              href={page.path}
-              className="text-xs text-gray-400 hover:text-brand-green-primary transition-colors"
-            >
-              {page.title}
             </Link>
           ))}
         </div>
@@ -171,7 +157,12 @@ export default async function ProgramsPage({
                         </span>
                       )}
                       {categoryTag && (
-                        <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            CATEGORY_COLORS[categoryTag as keyof typeof CATEGORY_COLORS] ??
+                            "bg-brand-green-primary/10 text-brand-green-primary"
+                          }`}
+                        >
                           #{categoryTag}
                         </span>
                       )}

@@ -5,6 +5,7 @@ import { CompanyNewsType } from "@prisma/client";
 import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+import { CATEGORY_COLORS } from "@/lib/news-constants";
 // 동일한 카드뉴스 목록이 /programs 에도 렌더링되며, GNB·홈페이지 CTA가 모두 /programs를
 // 가리키므로 중복 색인을 피하기 위해 canonical을 /programs로 지정합니다.
 export const metadata: Metadata = {
@@ -144,7 +145,12 @@ export default async function NewsPage({
                         {/* 카테고리(초록) + 지역·대상 회색 태그 */}
                         <div className="flex flex-wrap gap-1 mb-1.5">
                           {item.category && (
-                            <span className="rounded-full bg-brand-green-primary/10 text-brand-green-primary px-2.5 py-0.5 text-xs font-medium">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                CATEGORY_COLORS[item.category as keyof typeof CATEGORY_COLORS] ??
+                                "bg-brand-green-primary/10 text-brand-green-primary"
+                              }`}
+                            >
                               {item.category}
                             </span>
                           )}
