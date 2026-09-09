@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   async redirects() {
     return [
+      // 2026-09 삭제한 SEO 랜딩페이지 4개(japan-edu-trip 등)의 리다이렉트는 목적지 쿼리에
+      // 한글 카테고리명이 들어가는데, Next.js의 redirects() 설정이 비-ASCII 목적지를
+      // 처리할 때 Location 헤더에 원문 UTF-8을 그대로 넣으려다 500을 내는 문제가 있어
+      // (raw든 percent-encoded든 동일하게 실패) middleware.ts에서 직접 처리한다.
+
       // CompanyNews slug 정리 (2026-06 이전 랜덤 ID → 정돈된 슬러그)
       { source: "/news/9c58e97d-f25a-4a14-bfe2-f79c27a73f92", destination: "/news/cardnews_fukuoka_culinary_field_trip_2026",         permanent: true },
       { source: "/news/82b1f0b1-444f-4594-a95f-5ac4d1fb307b", destination: "/news/cardnews_fukuoka_specialized_highschool_trip_2026", permanent: true },
