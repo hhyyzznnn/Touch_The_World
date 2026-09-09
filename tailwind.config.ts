@@ -7,6 +7,10 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    // lib/ 안에 Tailwind 클래스 문자열을 담은 상수(예: CATEGORY_COLORS)가 있는데
+    // 여기가 스캔 대상에서 빠져있어서 해당 클래스들이 전부 생성이 안 되고 있었음
+    // (다른 곳에서 우연히 같은 클래스를 쓴 색상만 "우연히" 적용되는 것처럼 보였음).
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

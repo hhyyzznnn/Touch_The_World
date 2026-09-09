@@ -148,7 +148,7 @@ export default async function NewsPage({
                             <span
                               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                 CATEGORY_COLORS[item.category as keyof typeof CATEGORY_COLORS] ??
-                                "bg-brand-green-primary/10 text-brand-green-primary"
+                                "bg-[#64748B] text-white"
                               }`}
                             >
                               {item.category}

@@ -99,7 +99,7 @@ export default async function ProgramsPage({
             href="/programs"
             className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
               !currentCategory
-                ? "bg-brand-green-primary text-white"
+                ? "bg-gray-900 text-white shadow-sm"
                 : "bg-gray-100 text-text-gray hover:bg-gray-200"
             }`}
           >
@@ -111,8 +111,8 @@ export default async function ProgramsPage({
               href={`/programs?category=${encodeURIComponent(cat)}`}
               className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
                 currentCategory === cat
-                  ? "bg-brand-green-primary text-white"
-                  : `${CATEGORY_COLORS[cat]} hover:brightness-95`
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : `${CATEGORY_COLORS[cat]} hover:brightness-110`
               }`}
             >
               {cat}
@@ -160,7 +160,7 @@ export default async function ProgramsPage({
                         <span
                           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                             CATEGORY_COLORS[categoryTag as keyof typeof CATEGORY_COLORS] ??
-                            "bg-brand-green-primary/10 text-brand-green-primary"
+                            "bg-[#64748B] text-white"
                           }`}
                         >
                           #{categoryTag}
