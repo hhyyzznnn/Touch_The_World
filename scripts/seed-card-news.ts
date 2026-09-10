@@ -37,7 +37,7 @@ const items = [
   },
   {
     type: CompanyNewsType.PROGRAM_CARD_NEWS,
-    category: "해외",
+    categories: ["해외"],
     title: "전국 조리과·제과제빵과 학생을 위한 후쿠오카 체험학습",
     summary:
       "맛있는 꿈을 찾아 떠나는 후쿠오카 체험학습! 일본 최고의 요리학교 체험부터 히요코·명란 산업체 방문까지, 미식·문화·진로를 한 번에 경험합니다.",
@@ -70,7 +70,7 @@ const items = [
   },
   {
     type: CompanyNewsType.PROGRAM_CARD_NEWS,
-    category: "해외",
+    categories: ["해외"],
     title: "대한민국 특성화고를 위한 일본 후쿠오카 수학여행 프로그램",
     summary:
       "국내 수학여행 예산으로 일본 수학여행을! 공업계·상업계 특성화고 특화 코스로 자동차 공장·스타트업·스마트 물류까지, 미래 직업 현장을 직접 경험합니다.",

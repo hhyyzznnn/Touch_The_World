@@ -38,7 +38,7 @@ async function getProgramCardNews(page: number, category?: string) {
 
   const where = {
     type: CompanyNewsType.PROGRAM_CARD_NEWS,
-    ...(category ? { category } : {}),
+    ...(category ? { categories: { has: category } } : {}),
   };
 
   const [items, total] = await Promise.all([
@@ -51,7 +51,7 @@ async function getProgramCardNews(page: number, category?: string) {
         id: true,
         title: true,
         summary: true,
-        category: true,
+        categories: true,
         imageUrl: true,
         hashtags: true,
         createdAt: true,
@@ -134,11 +134,10 @@ export default async function ProgramsPage({
               const href = item.link?.trim() || `/news/${item.id}`;
               const isExternal = !!item.link?.trim()?.startsWith("http");
               const isNew = isRecentlyAdded(item.createdAt);
-              const categoryTag = item.category ?? null;
               const regionTag = item.hashtags.find((t) =>
                 ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"].includes(t)
               ) ?? null;
-              const showTagRow = isNew || categoryTag || regionTag;
+              const showTagRow = isNew || item.categories.length > 0 || regionTag;
 
               return (
                 <Link
@@ -156,16 +155,17 @@ export default async function ProgramsPage({
                           NEW
                         </span>
                       )}
-                      {categoryTag && (
+                      {item.categories.map((cat) => (
                         <span
+                          key={cat}
                           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            CATEGORY_COLORS[categoryTag as keyof typeof CATEGORY_COLORS] ??
+                            CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] ??
                             "bg-[#64748B] text-white"
                           }`}
                         >
-                          #{categoryTag}
+                          #{cat}
                         </span>
-                      )}
+                      ))}
                       {regionTag && (
                         <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
                           {regionTag}

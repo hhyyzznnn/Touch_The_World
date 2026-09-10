@@ -14,7 +14,7 @@ export async function PUT(
 
   try {
     const { id } = await params;
-    const { type, category, title, summary, content, imageUrl, imageUrls, hashtags, link, isPinned } = await parseAdminNewsRequest(request);
+    const { type, categories, title, summary, content, imageUrl, imageUrls, hashtags, link, isPinned } = await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력하세요." }, { status: 400 });
@@ -24,7 +24,7 @@ export async function PUT(
       where: { id },
       data: {
         type,
-        category: category || null,
+        categories,
         title: title.trim(),
         summary: summary?.trim() ?? undefined,
         content: content?.trim() ?? undefined,

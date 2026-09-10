@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { type, category, title, summary, content, imageUrl, imageUrls, hashtags, link, isPinned } =
+    const { type, categories, title, summary, content, imageUrl, imageUrls, hashtags, link, isPinned } =
       await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const news = await prisma.companyNews.create({
       data: {
         type,
-        category: category || null,
+        categories,
         title: title.trim(),
         summary: summary?.trim() || null,
         content: content?.trim() || null,

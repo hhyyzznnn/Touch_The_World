@@ -40,7 +40,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
   const [type, setType] = useState<CompanyNewsType>(
     (news?.type as CompanyNewsType) ?? CompanyNewsType.COMPANY_NEWS
   );
-  const [category, setCategory] = useState(news?.category ?? "");
+  const [categories, setCategories] = useState<string[]>(news?.categories ?? []);
   const [title, setTitle] = useState(news?.title ?? "");
   const [summary, setSummary] = useState(news?.summary ?? "");
   const [content, setContent] = useState(news?.content ?? "");
@@ -69,7 +69,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type,
-          category: isCardNews ? (category || null) : null,
+          categories: isCardNews ? categories : [],
           title,
           summary: summary || undefined,
           content: content || undefined,
@@ -145,22 +145,35 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
         </p>
       </div>
 
-      {/* 카테고리 (프로그램 카드뉴스 전용) */}
+      {/* 카테고리 (프로그램 카드뉴스 전용, 복수 선택 가능) */}
       {type === CompanyNewsType.PROGRAM_CARD_NEWS && (
         <div>
           <label className="block text-sm font-medium mb-2">
-            카테고리
+            카테고리 <span className="text-xs font-normal text-gray-400">(2개 이상 걸치는 프로그램은 복수 선택)</span>
           </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary bg-white"
-          >
-            <option value="">카테고리 없음</option>
-            {PROGRAM_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {PROGRAM_CATEGORIES.map((cat) => {
+              const active = categories.includes(cat);
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() =>
+                    setCategories((prev) =>
+                      active ? prev.filter((c) => c !== cat) : [...prev, cat]
+                    )
+                  }
+                  className={`text-xs px-3 py-1.5 rounded-full border transition ${
+                    active
+                      ? "bg-brand-green-primary text-white border-brand-green-primary"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-brand-green-primary"
+                  }`}
+                >
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
           <p className="text-xs text-gray-500 mt-1">/programs?category=... 필터에 사용됩니다.</p>
         </div>
       )}

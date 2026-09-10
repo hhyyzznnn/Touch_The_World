@@ -19,13 +19,13 @@ export async function GET(request: NextRequest) {
   const list = await prisma.companyNews.findMany({
     where: {
       type: CompanyNewsType.PROGRAM_CARD_NEWS,
-      ...(category ? { category } : {}),
+      ...(category ? { categories: { has: category } } : {}),
     },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
       title: true,
-      category: true,
+      categories: true,
       imageUrl: true,
       imageUrls: true,
       isPinned: true,
@@ -41,8 +41,9 @@ export async function GET(request: NextRequest) {
  * 카드뉴스 게시물 생성 (이미지는 이미 업로드된 URL 목록으로 전달)
  *
  * Request body (JSON):
- *   title       string  required
- *   category    string  optional  (예: "교사연수")
+ *   title       string    required
+ *   categories  string[]  optional  (예: ["교사 연수", "특성화고 프로그램"], 복수 가능)
+ *   category    string    optional  (레거시 호환용 단일 필드, categories가 없을 때만 사용)
  *   summary     string  optional
  *   content     string  optional
  *   link        string  optional
@@ -74,10 +75,16 @@ export async function POST(request: NextRequest) {
 
     const thumbnailUrl = String(body.imageUrl || body.thumbnail || "").trim() || imageUrls[0] || null;
 
+    const categories: string[] = Array.isArray(body.categories)
+      ? body.categories.map((c: unknown) => String(c).trim()).filter(Boolean)
+      : String(body.category || "").trim()
+        ? [String(body.category).trim()]
+        : [];
+
     const news = await prisma.companyNews.create({
       data: {
         type: CompanyNewsType.PROGRAM_CARD_NEWS,
-        category: String(body.category || "").trim() || null,
+        categories,
         title,
         summary: String(body.summary || "").trim() || null,
         content: String(body.content || "").trim() || null,

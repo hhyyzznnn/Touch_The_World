@@ -128,8 +128,8 @@ export default async function AdminNewsPage({
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-medium block">{item.title}</span>
-                      {item.category && (
-                        <span className="text-xs text-text-gray mt-0.5 block">{item.category}</span>
+                      {item.categories.length > 0 && (
+                        <span className="text-xs text-text-gray mt-0.5 block">{item.categories.join(", ")}</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

@@ -45,7 +45,7 @@ async function getCardNews(category: string) {
       orderBy: { createdAt: "desc" },
       select: {
         id: true, title: true, imageUrl: true, link: true,
-        category: true, hashtags: true, isPinned: true, createdAt: true,
+        categories: true, hashtags: true, isPinned: true, createdAt: true,
       },
     });
   }
@@ -55,7 +55,7 @@ async function getCardNews(category: string) {
     type: CompanyNewsType.PROGRAM_CARD_NEWS,
     imageUrl: { not: null } as const,
     OR: [
-      { category: { in: categoriesToMatch } },
+      { categories: { hasSome: categoriesToMatch } },
       { hashtags: { has: `#${category}` } },   // 관리자가 해시태그로 보조 분류 가능
     ],
   };
@@ -65,7 +65,7 @@ async function getCardNews(category: string) {
     orderBy: { createdAt: "desc" },
     select: {
       id: true, title: true, imageUrl: true, link: true,
-      category: true, hashtags: true, isPinned: true, createdAt: true,
+      categories: true, hashtags: true, isPinned: true, createdAt: true,
     },
   });
 }
@@ -144,16 +144,17 @@ export default async function NewsPage({
                       >
                         {/* 카테고리(초록) + 지역·대상 회색 태그 */}
                         <div className="flex flex-wrap gap-1 mb-1.5">
-                          {item.category && (
+                          {item.categories.map((cat) => (
                             <span
+                              key={cat}
                               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                CATEGORY_COLORS[item.category as keyof typeof CATEGORY_COLORS] ??
+                                CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] ??
                                 "bg-[#64748B] text-white"
                               }`}
                             >
-                              {item.category}
+                              {cat}
                             </span>
-                          )}
+                          ))}
                           {grayTags.map(tag => (
                             <span key={tag} className="rounded-full bg-gray-100 text-gray-400 px-2.5 py-0.5 text-xs font-medium">
                               {tag}

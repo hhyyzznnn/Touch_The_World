@@ -11,7 +11,7 @@ const IMAGE_FIELD_NAMES = ["images", "image", "file", "thumbnail", "cardNewsImag
 
 export interface AdminNewsRequestData {
   type: CompanyNewsType;
-  category: string | null;
+  categories: string[];
   title: string;
   summary: string;
   content: string;
@@ -90,9 +90,12 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     }
 
     const type = parseType(formData.get("type"));
-    const category = type === CompanyNewsType.PROGRAM_CARD_NEWS
-      ? String(formData.get("category") || "").trim() || null
-      : null;
+    const categories = type === CompanyNewsType.PROGRAM_CARD_NEWS
+      ? [
+          ...formData.getAll("categories").flatMap((v) => normalizeStringList(v)),
+          ...formData.getAll("categories[]").flatMap((v) => normalizeStringList(v)),
+        ]
+      : [];
 
     const hashtags = [
       ...formData.getAll("hashtags").flatMap((v) => normalizeStringList(v)),
@@ -101,7 +104,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
 
     return {
       type,
-      category,
+      categories,
       title: String(formData.get("title") || "").trim(),
       summary: String(formData.get("summary") || "").trim(),
       content: String(formData.get("content") || "").trim(),
@@ -115,7 +118,8 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
 
   const body = await parseRequestBody<{
     type?: string;
-    category?: string | null;
+    categories?: string[];
+    category?: string | null; // 레거시 호환(단일 문자열) — categories로 정규화
     title: string;
     summary?: string;
     content?: string;
@@ -128,15 +132,17 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
   const imageUrls = normalizeStringList(body.imageUrls);
   const imageUrl = body.imageUrl?.trim() || imageUrls[0] || "";
   const type = parseType(body.type);
-  const category = type === CompanyNewsType.PROGRAM_CARD_NEWS
-    ? body.category?.trim() || null
-    : null;
+  const categories = type === CompanyNewsType.PROGRAM_CARD_NEWS
+    ? (Array.isArray(body.categories) && body.categories.length > 0
+        ? normalizeStringList(body.categories)
+        : normalizeStringList(body.category ?? []))
+    : [];
   const hashtags = normalizeStringList(body.hashtags)
     .map((t) => t.startsWith("#") ? t : `#${t}`);
 
   return {
     type,
-    category,
+    categories,
     title: body.title?.trim() || "",
     summary: body.summary?.trim() || "",
     content: body.content?.trim() || "",

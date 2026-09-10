@@ -68,7 +68,7 @@ async function getCardNewsForHome() {
       take: CARD_NEWS_TAKE,
       select: {
         id: true, title: true, summary: true, imageUrl: true,
-        link: true, isPinned: true, createdAt: true, category: true, hashtags: true,
+        link: true, isPinned: true, createdAt: true, categories: true, hashtags: true,
       },
     });
   } catch {
@@ -227,11 +227,10 @@ export default async function HomePage() {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");
                 const isNew = isRecentlyAdded(item.createdAt);
-                const categoryTag = item.category ? `#${item.category}` : null;
                 const regionTag = item.hashtags.find((t) =>
                   ["#서울","#인천","#포천","#가평","#충남","#일본","#해외","#국내"].includes(t)
                 ) ?? null;
-                const showTagRow = isNew || !!categoryTag || !!regionTag;
+                const showTagRow = isNew || item.categories.length > 0 || !!regionTag;
 
                 return (
                   <CardNewsLink
@@ -262,11 +261,11 @@ export default async function HomePage() {
                               NEW
                             </span>
                           )}
-                          {categoryTag && (
-                            <span className="rounded-full bg-white/85 backdrop-blur-sm text-brand-green-primary px-2 py-0.5 text-xs font-medium shadow-sm">
-                              {categoryTag}
+                          {item.categories.slice(0, 2).map((cat) => (
+                            <span key={cat} className="rounded-full bg-white/85 backdrop-blur-sm text-brand-green-primary px-2 py-0.5 text-xs font-medium shadow-sm">
+                              #{cat}
                             </span>
-                          )}
+                          ))}
                           {regionTag && (
                             <span className="rounded-full bg-white/85 backdrop-blur-sm text-text-gray px-2 py-0.5 text-xs shadow-sm">
                               {regionTag}

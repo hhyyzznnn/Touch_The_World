@@ -29,7 +29,7 @@ interface NewsItem {
   folder: string;               // public/company-news/폴더명
   id: string;                   // DB 고유 ID (cardnews_xxx_yyyy)
   type: CompanyNewsType;
-  category: string;
+  categories: string[];         // 2개 이상 카테고리에 걸치면 복수 지정 가능
   title: string;
   summary: string;
   content: string;
@@ -46,7 +46,7 @@ const NEWS_ITEMS: NewsItem[] = [
   //   folder: "public/company-news/새폴더이름",
   //   id: "cardnews_새폴더이름_2026",
   //   type: CompanyNewsType.PROGRAM_CARD_NEWS,
-  //   category: "국내외 교육여행",
+  //   categories: ["국내외 교육여행"], // 2개 이상 카테고리에 걸치면 배열에 추가로 나열
   //   title: "제목", // 검색용 키워드(연도·지역·프로그램 종류)를 항상 맨 앞에, 후킹 문구는 " — " 뒤로.
   //                  // 예: "2026 후쿠오카 글로벌 현장학습 — 학교는 안심하고, 학생은 성장하는" (O)
   //                  //     "학교는 안심하고, 학생은 성장하는 — 2026 후쿠오카 글로벌 현장학습" (X, 검색 노출에 불리)
@@ -111,12 +111,12 @@ function pgArray(arr: string[]): string {
 function buildLogSql(item: NewsItem, urls: string[], timestamp: string): string {
   return `-- ${item.title}
 INSERT INTO "CompanyNews" (
-  "id","type","category","title","summary","content",
+  "id","type","categories","title","summary","content",
   "imageUrl","imageUrls","link","hashtags","isPinned","createdAt","updatedAt"
 ) VALUES (
   '${item.id}',
   '${item.type}',
-  '${item.category.replace(/'/g, "''")}',
+  ${pgArray(item.categories)},
   ${pgLiteral(item.title)},
   ${pgLiteral(item.summary)},
   ${pgLiteral(item.content)},
@@ -165,7 +165,7 @@ async function main() {
       create: {
         id: item.id,
         type: item.type,
-        category: item.category,
+        categories: item.categories,
         title: item.title,
         summary: item.summary,
         content: item.content,

@@ -50,7 +50,7 @@ const CATEGORY_SCHOOL_LEVEL_MAP: Record<string, string> = {
 
 function buildInquiryUrl(news: {
   title: string;
-  category: string | null;
+  categories: string[];
   hashtags: string[];
 }): string {
   const params = new URLSearchParams();
@@ -62,19 +62,20 @@ function buildInquiryUrl(news: {
     if (dest) { params.set("destination", dest); break; }
   }
 
-  // 카테고리에서 학교급 추출
-  if (news.category) {
-    const level = CATEGORY_SCHOOL_LEVEL_MAP[news.category];
+  // 카테고리(첫 번째)에서 학교급 추출
+  const primaryCategory = news.categories[0];
+  if (primaryCategory) {
+    const level = CATEGORY_SCHOOL_LEVEL_MAP[primaryCategory];
     if (level) params.set("schoolLevel", level);
-    params.set("purpose", news.category);
+    params.set("purpose", primaryCategory);
   }
 
   return `/inquiry?${params.toString()}`;
 }
 
-/** 구체적인 프로그램 카드뉴스인지 판별 (추상적인 기타 프로그램 제외) */
-function isConcreteProgram(category: string | null): boolean {
-  return !!category && category !== "기타 프로그램";
+/** 구체적인 프로그램 카드뉴스인지 판별 (추상적인 기타 프로그램만인 경우 제외) */
+function isConcreteProgram(categories: string[]): boolean {
+  return categories.some((c) => c !== "기타 프로그램");
 }
 
 // generateMetadata와 페이지 본문이 같은 id로 각각 호출해도 요청당 1회만 DB 조회하도록 캐싱
@@ -84,10 +85,10 @@ const getNews = cache(async (id: string) => {
   });
 });
 
-async function getRelatedCardNews(id: string, category: string | null, type: CompanyNewsType) {
-  if (!category) return [];
+async function getRelatedCardNews(id: string, categories: string[], type: CompanyNewsType) {
+  if (categories.length === 0) return [];
   return await prisma.companyNews.findMany({
-    where: { id: { not: id }, type, category },
+    where: { id: { not: id }, type, categories: { hasSome: categories } },
     take: 4,
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     select: {
@@ -95,7 +96,7 @@ async function getRelatedCardNews(id: string, category: string | null, type: Com
       title: true,
       summary: true,
       imageUrl: true,
-      category: true,
+      categories: true,
       hashtags: true,
       createdAt: true,
       link: true,
@@ -156,7 +157,7 @@ export default async function NewsDetailPage({
     notFound();
   }
 
-  const relatedNews = await getRelatedCardNews(id, news.category, news.type);
+  const relatedNews = await getRelatedCardNews(id, news.categories, news.type);
   const cardNewsImages =
     news.imageUrls.length > 0
       ? news.imageUrls
@@ -210,7 +211,7 @@ export default async function NewsDetailPage({
             })),
           }),
           keywords: [
-            ...(news.category ? [news.category] : []),
+            ...news.categories,
             ...news.hashtags,
             "교육여행", "터치더월드",
           ].join(", "),
@@ -322,7 +323,7 @@ export default async function NewsDetailPage({
               )}
 
               {/* 빠른 문의 CTA — 구체적인 프로그램 카드뉴스에만 표시 */}
-              {isCardNews && isConcreteProgram(news.category) && (
+              {isCardNews && isConcreteProgram(news.categories) && (
                 <div className="mt-8 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 rounded-full bg-brand-green-primary/15 p-2.5 mt-0.5">
@@ -366,9 +367,9 @@ export default async function NewsDetailPage({
               <h2 className="text-base sm:text-lg font-semibold text-text-dark">
                 같은 카테고리 다른 카드뉴스
               </h2>
-              {news.category && (
+              {news.categories[0] && (
                 <Link
-                  href={`/programs?category=${encodeURIComponent(news.category)}`}
+                  href={`/programs?category=${encodeURIComponent(news.categories[0])}`}
                   className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
                 >
                   전체 보기

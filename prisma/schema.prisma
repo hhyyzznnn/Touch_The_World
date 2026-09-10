@@ -209,22 +209,23 @@ enum CompanyNewsType {
 }
 
 model CompanyNews {
-  id        String          @id @default(cuid())
-  type      CompanyNewsType @default(COMPANY_NEWS)
-  category  String?         // PROGRAM_CARD_NEWS 전용: 프로그램 카테고리
-  title     String
-  summary   String?
-  content   String?
-  imageUrl  String?
-  imageUrls String[]        @default([])
-  hashtags  String[]        @default([]) // #태그 목록 (카테고리·지역·테마 등)
-  link      String?
-  isPinned  Boolean         @default(false)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id         String          @id @default(cuid())
+  type       CompanyNewsType @default(COMPANY_NEWS)
+  categories String[]        @default([]) // PROGRAM_CARD_NEWS 전용: 프로그램 카테고리(복수 가능).
+                                           // 2026-09 category(단일 문자열) → categories(배열)로 변경 —
+                                           // 하나의 프로그램이 여러 카테고리에 걸치는 경우(예: 일본 유학 + 특성화고 프로그램)를 지원.
+  title      String
+  summary    String?
+  content    String?
+  imageUrl   String?
+  imageUrls  String[]        @default([])
+  hashtags   String[]        @default([]) // #태그 목록 (카테고리·지역·테마 등)
+  link       String?
+  isPinned   Boolean         @default(false)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
   @@index([type])
-  @@index([type, category])
   @@index([isPinned])
   @@index([createdAt])
 }
