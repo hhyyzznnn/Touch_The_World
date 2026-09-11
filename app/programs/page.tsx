@@ -32,6 +32,32 @@ export async function generateMetadata({
 }
 
 const ITEMS_PER_PAGE = 12;
+// "전체" 탭에서 카테고리별 한 줄에 미리보기로 보여줄 최대 개수 — 그 이상은 "전체 보기"로 유도
+const GROUP_PREVIEW_LIMIT = 6;
+
+const CARD_SELECT = {
+  id: true,
+  title: true,
+  summary: true,
+  categories: true,
+  imageUrl: true,
+  hashtags: true,
+  createdAt: true,
+  isPinned: true,
+  link: true,
+} as const;
+
+type CardNewsItem = {
+  id: string;
+  title: string;
+  summary: string | null;
+  categories: string[];
+  imageUrl: string | null;
+  hashtags: string[];
+  createdAt: Date;
+  isPinned: boolean;
+  link: string | null;
+};
 
 async function getProgramCardNews(page: number, category?: string) {
   const skip = (page - 1) * ITEMS_PER_PAGE;
@@ -47,17 +73,7 @@ async function getProgramCardNews(page: number, category?: string) {
       orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
       skip,
       take: ITEMS_PER_PAGE,
-      select: {
-        id: true,
-        title: true,
-        summary: true,
-        categories: true,
-        imageUrl: true,
-        hashtags: true,
-        createdAt: true,
-        isPinned: true,
-        link: true,
-      },
+      select: CARD_SELECT,
     }),
     prisma.companyNews.count({ where }),
   ]);
@@ -74,6 +90,95 @@ const getProgramCardNewsCached = unstable_cache(
   { revalidate: 600 },
 );
 
+// "전체" 탭 전용: 카테고리 8개 순서대로 한 줄씩 묶어서 보여주기 위한 그룹핑.
+// 카드 한 건이 여러 카테고리에 걸칠 수 있어(예: 특성화고 프로그램 + 국외 교육여행),
+// 같은 카드가 해당하는 모든 줄에 각각 노출될 수 있다 — 의도된 동작.
+async function getProgramCardNewsGrouped() {
+  const items = await prisma.companyNews.findMany({
+    where: { type: CompanyNewsType.PROGRAM_CARD_NEWS },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    select: CARD_SELECT,
+  });
+
+  return PROGRAM_CATEGORIES.map((cat) => {
+    const matched = items.filter((item) => item.categories.includes(cat));
+    return {
+      category: cat,
+      items: matched.slice(0, GROUP_PREVIEW_LIMIT),
+      total: matched.length,
+    };
+  }).filter((group) => group.items.length > 0);
+}
+
+const getProgramCardNewsGroupedCached = unstable_cache(
+  getProgramCardNewsGrouped,
+  ["programs-card-news-grouped"],
+  { revalidate: 600 },
+);
+
+const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"];
+
+function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?: string }) {
+  const href = item.link?.trim() || `/news/${item.id}`;
+  const isExternal = !!item.link?.trim()?.startsWith("http");
+  const isNew = isRecentlyAdded(item.createdAt);
+  const regionTag = item.hashtags.find((t) => REGION_TAGS.includes(t)) ?? null;
+  const showTagRow = isNew || item.categories.length > 0 || regionTag;
+
+  return (
+    <Link
+      href={href}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      className={`group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow ${className}`}
+    >
+      {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
+      {showTagRow && (
+        <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
+          {isNew && (
+            <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
+              NEW
+            </span>
+          )}
+          {item.categories.map((cat) => (
+            <span
+              key={cat}
+              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] ??
+                "bg-[#64748B] text-white"
+              }`}
+            >
+              #{cat}
+            </span>
+          ))}
+          {regionTag && (
+            <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
+              {regionTag}
+            </span>
+          )}
+        </div>
+      )}
+      <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
+        {item.imageUrl ? (
+          <Image
+            src={item.imageUrl}
+            alt={item.title}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
+          />
+        ) : null}
+      </div>
+      <div className="p-3 sm:p-4">
+        <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
+        {item.summary && (
+          <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
+        )}
+      </div>
+    </Link>
+  );
+}
+
 export default async function ProgramsPage({
   searchParams,
 }: {
@@ -82,7 +187,15 @@ export default async function ProgramsPage({
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
   const currentCategory = params.category || "";
-  const { items, totalPages } = await getProgramCardNewsCached(currentPage, currentCategory || undefined);
+
+  const flat = currentCategory
+    ? await getProgramCardNewsCached(currentPage, currentCategory)
+    : null;
+  const groupedSections = currentCategory
+    ? null
+    : await getProgramCardNewsGroupedCached();
+
+  const isEmpty = currentCategory ? flat!.items.length === 0 : groupedSections!.length === 0;
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">
@@ -121,87 +234,62 @@ export default async function ProgramsPage({
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {isEmpty ? (
         <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
           {currentCategory
             ? `'${currentCategory}' 카테고리에 등록된 카드뉴스가 없습니다.`
             : "등록된 카드뉴스가 없습니다."}
         </div>
-      ) : (
+      ) : currentCategory ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-            {items.map((item) => {
-              const href = item.link?.trim() || `/news/${item.id}`;
-              const isExternal = !!item.link?.trim()?.startsWith("http");
-              const isNew = isRecentlyAdded(item.createdAt);
-              const regionTag = item.hashtags.find((t) =>
-                ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"].includes(t)
-              ) ?? null;
-              const showTagRow = isNew || item.categories.length > 0 || regionTag;
-
-              return (
-                <Link
-                  key={item.id}
-                  href={href}
-                  target={isExternal ? "_blank" : undefined}
-                  rel={isExternal ? "noopener noreferrer" : undefined}
-                  className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
-                >
-                  {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
-                  {showTagRow && (
-                    <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
-                      {isNew && (
-                        <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
-                          NEW
-                        </span>
-                      )}
-                      {item.categories.map((cat) => (
-                        <span
-                          key={cat}
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] ??
-                            "bg-[#64748B] text-white"
-                          }`}
-                        >
-                          #{cat}
-                        </span>
-                      ))}
-                      {regionTag && (
-                        <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
-                          {regionTag}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="p-3 sm:p-4">
-                    <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
-                    {item.summary && (
-                      <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
+            {flat!.items.map((item) => (
+              <ProgramCard key={item.id} item={item} />
+            ))}
           </div>
 
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages}
+            totalPages={flat!.totalPages}
             baseUrl="/programs"
             searchParams={{ ...params, page: undefined }}
           />
         </>
+      ) : (
+        <div className="space-y-10">
+          {groupedSections!.map((section) => (
+            <section key={section.category}>
+              <div className="flex items-center justify-between mb-3">
+                <h2
+                  className={`inline-flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold ${CATEGORY_COLORS[section.category]}`}
+                >
+                  {section.category}
+                </h2>
+                {section.total > section.items.length && (
+                  <Link
+                    href={`/programs?category=${encodeURIComponent(section.category)}`}
+                    className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
+                  >
+                    전체 {section.total}개 보기
+                  </Link>
+                )}
+              </div>
+
+              {/* 모바일: 가로 스크롤 / 데스크탑: 그리드 */}
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
+                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:pb-0">
+                  {section.items.map((item) => (
+                    <ProgramCard
+                      key={item.id}
+                      item={item}
+                      className="w-[42vw] sm:w-52 md:w-auto flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          ))}
+        </div>
       )}
     </div>
   );
