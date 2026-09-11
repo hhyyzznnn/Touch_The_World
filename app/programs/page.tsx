@@ -33,7 +33,7 @@ export async function generateMetadata({
 
 const ITEMS_PER_PAGE = 12;
 // "전체" 탭에서 카테고리별 한 줄에 미리보기로 보여줄 최대 개수 — 그 이상은 "전체 보기"로 유도
-const GROUP_PREVIEW_LIMIT = 6;
+const GROUP_PREVIEW_LIMIT = 4;
 
 const CARD_SELECT = {
   id: true,
@@ -277,7 +277,7 @@ export default async function ProgramsPage({
 
               {/* 모바일: 가로 스크롤 / 데스크탑: 그리드 */}
               <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
-                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 md:pb-0">
+                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-2 lg:grid-cols-4 md:pb-0">
                   {section.items.map((item) => (
                     <ProgramCard
                       key={item.id}
