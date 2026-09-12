@@ -94,11 +94,14 @@ async function getRecentEvents() {
   }
 }
 
+// 홈 팝업은 혜택 안내 위주의 1장짜리 홍보 카드뉴스만 노출하는 자리라, "최신 COMPANY_NEWS 아무거나"가
+// 아니라 관리자가 명시적으로 "메인 페이지에 노출"(isPinned) 체크한 것만 후보로 삼는다.
+// (예전엔 이 조건이 없어서 인문학 콘텐츠 같은 일반 카드뉴스도 최신이면 그대로 팝업을 가로챘었음)
 async function getPopupNews() {
   try {
     return await prisma.companyNews.findFirst({
-      where: { type: "COMPANY_NEWS", imageUrl: { not: null } },
-      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      where: { type: "COMPANY_NEWS", imageUrl: { not: null }, isPinned: true },
+      orderBy: { createdAt: "desc" },
       select: { id: true, title: true, summary: true, imageUrl: true, link: true },
     });
   } catch {
