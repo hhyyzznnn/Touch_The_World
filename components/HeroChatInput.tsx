@@ -481,7 +481,11 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
         </div>
       </form>
       {!isExpanded && (
-        <div className="mt-3 flex flex-wrap justify-center gap-2">
+        <div className="mt-3">
+          <p className="mb-2 text-center text-xs font-semibold text-brand-green-primary">
+            🎁 터치더월드가 단독 제공하는 혜택
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
           {BENEFIT_HIGHLIGHTS.map((item) => (
             <Link
               key={item.href}
@@ -491,6 +495,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
               {item.label}
             </Link>
           ))}
+          </div>
         </div>
       )}
       {!userId && authLoaded && (
