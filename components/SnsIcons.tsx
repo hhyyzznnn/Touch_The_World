@@ -27,7 +27,15 @@ export function FacebookTile({ href, onClick, className = "" }: SnsTileProps) {
 
 export function YoutubeTile({ href, onClick, className = "" }: SnsTileProps) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" onClick={onClick} aria-label="YouTube" className={`${TILE_BASE} ${className}`}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={onClick}
+      aria-label="YouTube"
+      // 아이콘 자체가 흰 배경이라 헤더 배경과 구분이 안 돼서 얇은 테두리로 경계만 표시
+      className={`${TILE_BASE} rounded-[7px] border border-gray-200 ${className}`}
+    >
       <Image src="/logos/sns-youtube.png" alt="YouTube" width={32} height={32} className="w-full h-full object-contain" />
     </a>
   );
