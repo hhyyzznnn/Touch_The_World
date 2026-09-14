@@ -49,3 +49,4 @@ next-env.d.ts
 
 # 보고서 (로컬 전용)
 /reports/
+.env*
