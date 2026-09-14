@@ -15,6 +15,7 @@ import { COMPANY_INFO } from "@/lib/constants";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { ToastProvider } from "@/components/ui/toast";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { MicrosoftClarity } from "@/components/MicrosoftClarity";
 
 const notoSerif = Noto_Serif_KR({
   subsets: ["latin"],
@@ -168,6 +169,7 @@ export default function RootLayout({
         />
       </head>
       <GoogleAnalytics />
+      <MicrosoftClarity />
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} ${pretendard.variable} font-sans`} suppressHydrationWarning>
         <ToastProvider>
           <KakaoScript />
