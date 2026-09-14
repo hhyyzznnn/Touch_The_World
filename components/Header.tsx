@@ -117,7 +117,7 @@ export function Header() {
                     href={COMPANY_INFO.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gradient-to-br from-[#FEDA75] via-[#D62976] to-[#4F5BD5] text-white shadow-sm hover:brightness-110 hover:scale-105 active:scale-95 transition-all"
                     aria-label="Instagram"
                   >
                     <Instagram className="w-4 h-4" />
@@ -128,7 +128,7 @@ export function Header() {
                     href={COMPANY_INFO.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#1877F2] text-white shadow-sm hover:brightness-110 hover:scale-105 active:scale-95 transition-all"
                     aria-label="Facebook"
                   >
                     <Facebook className="w-4 h-4" />
@@ -139,7 +139,7 @@ export function Header() {
                     href={COMPANY_INFO.youtube}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-md bg-[#FF0000] text-white shadow-sm hover:brightness-110 hover:scale-105 active:scale-95 transition-all"
                     aria-label="YouTube"
                   >
                     <Youtube className="w-4 h-4" />
@@ -283,7 +283,7 @@ export function Header() {
                       href={COMPANY_INFO.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gradient-to-br from-[#FEDA75] via-[#D62976] to-[#4F5BD5] text-white shadow-sm hover:brightness-110 active:scale-95 transition-all"
                       aria-label="Instagram"
                       onClick={closeMenu}
                     >
@@ -295,7 +295,7 @@ export function Header() {
                       href={COMPANY_INFO.facebook}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-[#1877F2] text-white shadow-sm hover:brightness-110 active:scale-95 transition-all"
                       aria-label="Facebook"
                       onClick={closeMenu}
                     >
@@ -307,7 +307,7 @@ export function Header() {
                       href={COMPANY_INFO.youtube}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-400 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 rounded-md bg-[#FF0000] text-white shadow-sm hover:brightness-110 active:scale-95 transition-all"
                       aria-label="YouTube"
                       onClick={closeMenu}
                     >

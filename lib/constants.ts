@@ -50,7 +50,7 @@ export const COMPANY_INFO = {
   businessHours: "평일 09:00 - 18:00 (점심시간 12:00 - 13:00)",
   kakaoChannel: "https://pf.kakao.com/_xoxixkPn/chat", // 카카오톡 채널 링크 (채팅 진입 URL)
   instagram: "https://www.instagram.com/touch_tw_ai",
-  facebook: "https://www.facebook.com/pjjttw",
+  facebook: "https://www.facebook.com/profile.php?id=61594076981446", // 터치더월드 공식 페이지(2026.09 신규 개설)
   youtube: "https://www.youtube.com/@ttw_ai",
 } as const;
 
