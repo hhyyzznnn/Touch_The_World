@@ -7,7 +7,8 @@ import { Logo } from "./Logo";
 import { PROGRAM_CATEGORIES, PROGRAM_CATEGORY_GROUPS, COMPANY_INFO } from "@/lib/constants";
 import { GlobalSearchBar } from "./GlobalSearchBar";
 import { UserMenu } from "./UserMenu";
-import { Menu, X, ChevronDown, Instagram, Facebook, Youtube } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
+import { InstagramTile, FacebookTile, YoutubeTile } from "./SnsIcons";
 
 export function Header() {
   const pathname = usePathname();
@@ -112,39 +113,9 @@ export function Header() {
             {/* SNS 버튼 */}
             {(COMPANY_INFO.instagram || COMPANY_INFO.facebook || COMPANY_INFO.youtube) && (
               <div className="flex items-center gap-2">
-                {COMPANY_INFO.instagram && (
-                  <a
-                    href={COMPANY_INFO.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-white border border-gray-200 text-[#E4405F] shadow-sm hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all"
-                    aria-label="Instagram"
-                  >
-                    <Instagram className="w-4 h-4" />
-                  </a>
-                )}
-                {COMPANY_INFO.facebook && (
-                  <a
-                    href={COMPANY_INFO.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-white border border-gray-200 text-[#1877F2] shadow-sm hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all"
-                    aria-label="Facebook"
-                  >
-                    <Facebook className="w-4 h-4" />
-                  </a>
-                )}
-                {COMPANY_INFO.youtube && (
-                  <a
-                    href={COMPANY_INFO.youtube}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center w-8 h-8 rounded-md bg-white border border-gray-200 text-[#FF0000] shadow-sm hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all"
-                    aria-label="YouTube"
-                  >
-                    <Youtube className="w-4 h-4" />
-                  </a>
-                )}
+                {COMPANY_INFO.instagram && <InstagramTile href={COMPANY_INFO.instagram} />}
+                {COMPANY_INFO.facebook && <FacebookTile href={COMPANY_INFO.facebook} />}
+                {COMPANY_INFO.youtube && <YoutubeTile href={COMPANY_INFO.youtube} />}
               </div>
             )}
             <UserMenu />
@@ -278,42 +249,9 @@ export function Header() {
               {/* 모바일 SNS 버튼 */}
               {(COMPANY_INFO.instagram || COMPANY_INFO.facebook || COMPANY_INFO.youtube) && (
                 <div className="flex items-center gap-2 mb-4">
-                  {COMPANY_INFO.instagram && (
-                    <a
-                      href={COMPANY_INFO.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-white border border-gray-200 text-[#E4405F] shadow-sm hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all"
-                      aria-label="Instagram"
-                      onClick={closeMenu}
-                    >
-                      <Instagram className="w-4 h-4" />
-                    </a>
-                  )}
-                  {COMPANY_INFO.facebook && (
-                    <a
-                      href={COMPANY_INFO.facebook}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-white border border-gray-200 text-[#1877F2] shadow-sm hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all"
-                      aria-label="Facebook"
-                      onClick={closeMenu}
-                    >
-                      <Facebook className="w-4 h-4" />
-                    </a>
-                  )}
-                  {COMPANY_INFO.youtube && (
-                    <a
-                      href={COMPANY_INFO.youtube}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center w-8 h-8 rounded-md bg-white border border-gray-200 text-[#FF0000] shadow-sm hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all"
-                      aria-label="YouTube"
-                      onClick={closeMenu}
-                    >
-                      <Youtube className="w-4 h-4" />
-                    </a>
-                  )}
+                  {COMPANY_INFO.instagram && <InstagramTile href={COMPANY_INFO.instagram} onClick={closeMenu} />}
+                  {COMPANY_INFO.facebook && <FacebookTile href={COMPANY_INFO.facebook} onClick={closeMenu} />}
+                  {COMPANY_INFO.youtube && <YoutubeTile href={COMPANY_INFO.youtube} onClick={closeMenu} />}
                 </div>
               )}
               <UserMenu />
