@@ -45,18 +45,26 @@ export function CardNewsImageViewer({ images, title, className }: Props) {
         ref={containerRef}
         onScroll={onScroll}
         className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory rounded-xl"
-        style={{ scrollSnapType: "x mandatory" }}
+        // overflow-anchor: none — 슬라이드 크기가 고정돼 있지 않으면, 뒤쪽(지연 로딩) 이미지가
+        // 나중에 로드되며 레이아웃이 흔들릴 때 브라우저가 스크롤 위치를 자기 멋대로 보정(스크롤
+        // 앵커링)해서 카드뉴스가 중간 슬라이드부터 보이는 것처럼 튀는 문제가 있었음. 슬라이드마다
+        // 고정 비율 박스(아래 aspect-[3/4])를 주고, 이 속성으로 브라우저의 자동 보정도 꺼버린다.
+        style={{ scrollSnapType: "x mandatory", overflowAnchor: "none" }}
       >
         {images.map((url, i) => (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
+          <div
             key={`${url}-${i}`}
-            src={url}
-            alt={`${title} ${i + 1}/${images.length}`}
-            loading={i === 0 ? "eager" : "lazy"}
-            className="w-full flex-shrink-0 snap-center object-contain bg-gray-100"
+            className="relative w-full flex-shrink-0 snap-center aspect-[3/4] bg-gray-100"
             style={{ scrollSnapAlign: "center" }}
-          />
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={url}
+              alt={`${title} ${i + 1}/${images.length}`}
+              loading={i === 0 ? "eager" : "lazy"}
+              className="absolute inset-0 h-full w-full object-contain"
+            />
+          </div>
         ))}
       </div>
 
