@@ -300,7 +300,7 @@ export default async function HomePage() {
               교육여행·수학여행·교사연수·해외연수 전문, 터치더월드
             </h2>
             <p className="mx-auto max-w-4xl text-sm sm:text-base text-text-gray leading-relaxed break-keep">
-              터치더월드(Touch The World, touchtheworld)는 학교와 지자체의 교육 목표에 맞춰
+              터치더월드(Touch The World, touchtheworld)는 학교와 지자체의 교육 목표에 맞춰{" "}
               <br className="hidden sm:block" />
               체험학습, 수학여행, 교사연수, 해외연수를 설계·운영하는 교육여행 전문 여행사입니다.
             </p>

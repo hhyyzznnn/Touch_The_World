@@ -21,7 +21,6 @@ import {
   Settings,
   Shield,
   Sparkles,
-  UserRound,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -196,7 +195,9 @@ export default function AboutPage() {
               </p>
               <h1 className="mt-5 break-keep text-3xl font-semibold leading-tight text-text-dark sm:text-5xl">
                 {CONTACT.name}
-                <br className="hidden sm:block" />
+                {/* 모바일에서만 숨겨져 있어서 "터치더월드학생이"처럼 띄어쓰기 없이 붙어 보이던 버그 —
+                    화면 크기와 무관하게 항상 줄바꿈 */}
+                <br />
                 <span className="text-brand-green-primary">{CONTACT.message}</span>
               </h1>
               <p className="mt-5 max-w-2xl break-keep text-sm leading-relaxed text-text-gray sm:text-lg">
@@ -301,11 +302,14 @@ export default function AboutPage() {
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-2xl border border-gray-200 bg-white p-6">
-              <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50">
-                <div className="text-center text-text-gray">
-                  <UserRound className="mx-auto h-12 w-12 text-brand-green/60" />
-                  <p className="mt-3 text-sm">대표이사 사진 영역</p>
-                </div>
+              <div className="relative h-64 overflow-hidden rounded-xl bg-gray-50">
+                <Image
+                  src="https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUPcb8pGDLK5zYIDMjgva0ZRyACSolUQ39ePwx"
+                  alt={`${ceo.name} ${ceo.title}`}
+                  fill
+                  sizes="(max-width: 1024px) 90vw, 400px"
+                  className="object-cover object-top"
+                />
               </div>
               <p className="mt-4 text-sm text-text-gray">{ceo.name} | {ceo.title}</p>
               <p className="mt-1 break-keep text-sm font-medium text-text-dark">{ceo.tagline}</p>
@@ -479,7 +483,7 @@ export default function AboutPage() {
               <div>
                 <p className="text-sm font-semibold text-brand-green">Final CTA</p>
                 <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">
-                  학교와 기관의 다음 프로그램,
+                  학교와 기관의 다음 프로그램,{" "}
                   <br className="hidden sm:block" />
                   터치더월드와 함께 준비하세요.
                 </h2>
