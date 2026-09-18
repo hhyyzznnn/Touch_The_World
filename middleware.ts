@@ -14,6 +14,15 @@ const DELETED_LANDING_PAGE_REDIRECTS: Record<string, string | null> = {
   "/programs/specialized-highschool": "특성화고 프로그램",
 };
 
+// 2026-09 겹치던 회사소개 카드뉴스 6건 중 콘텐츠 결함(플레이스홀더 문구 노출, 엉뚱한
+// 캐릭터 삽입, 표지만 있고 본문 없음)이 있던 3건을 삭제하고 완전판 1건으로 통합.
+// 검색·외부 링크로 들어오는 유입은 완전판으로 이어받는다.
+const DELETED_NEWS_REDIRECTS: Record<string, string> = {
+  "/news/cardnews_touchtheworld_brand_intro_2026": "/news/cardnews_touchtheworld_company_profile_2026",
+  "/news/cardnews_company_introduction_2026": "/news/cardnews_touchtheworld_company_profile_2026",
+  "/news/cardnews_touchtheworld_9_differentiators": "/news/cardnews_touchtheworld_company_profile_2026",
+};
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -27,6 +36,10 @@ export async function middleware(request: NextRequest) {
     const target = new URL("/programs", request.url);
     if (category) target.searchParams.set("category", category);
     return NextResponse.redirect(target, { status: 308 });
+  }
+
+  if (pathname in DELETED_NEWS_REDIRECTS) {
+    return NextResponse.redirect(new URL(DELETED_NEWS_REDIRECTS[pathname], request.url), { status: 308 });
   }
 
   const response = NextResponse.next();
