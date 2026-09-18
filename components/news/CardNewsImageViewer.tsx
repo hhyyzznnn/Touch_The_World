@@ -68,11 +68,13 @@ export function CardNewsImageViewer({ images, title, className }: Props) {
         ))}
       </div>
 
-      {/* 이전/다음 버튼 (데스크탑) */}
+      {/* 이전/다음 버튼 — 예전엔 데스크탑에만 보여서(hidden sm:flex) 모바일에서 이미지를
+          눌러도 아무 반응이 없었고, Clarity 집계 데이터에서 이 페이지들에 dead click이
+          몰리는 것으로 확인됨. 모바일에도 보이도록 변경. */}
       {current > 0 && (
         <button
           onClick={() => scrollTo(current - 1)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-white/80 shadow hover:bg-white transition"
+          className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 shadow hover:bg-white transition"
           aria-label="이전 이미지"
         >
           <ChevronLeft className="w-5 h-5 text-text-dark" />
@@ -81,7 +83,7 @@ export function CardNewsImageViewer({ images, title, className }: Props) {
       {current < images.length - 1 && (
         <button
           onClick={() => scrollTo(current + 1)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-white/80 shadow hover:bg-white transition"
+          className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-9 h-9 rounded-full bg-white/80 shadow hover:bg-white transition"
           aria-label="다음 이미지"
         >
           <ChevronRight className="w-5 h-5 text-text-dark" />
