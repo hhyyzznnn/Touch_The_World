@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import {
   ArrowRight,
@@ -82,18 +83,22 @@ const missions = [
   {
     title: "성장과 진로 탐색",
     description: "청소년의 올바른 성장과 미래 진로 탐색을 돕는 교육 프로그램을 개발합니다.",
+    image: "/images/image8_2.png",
   },
   {
     title: "다채로운 교육 경험",
     description: "국내외 수학여행, AI 교육, 국제교류 등 폭넓고 다양한 교육 기회를 제공합니다.",
+    image: "/images/image3.png",
   },
   {
     title: "전문적 운영 시스템",
     description: "검증된 운영 시스템과 전문 인력을 통해 안정적이고 효과적인 교육 환경을 구축합니다.",
+    image: "/images/image6.png",
   },
   {
     title: "맞춤형 솔루션",
     description: "학교와 학생, 기관의 요구를 반영한 최적화된 맞춤형 교육 솔루션을 제공합니다.",
+    image: "/images/image4.png",
   },
 ];
 
@@ -251,6 +256,21 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="py-8 sm:py-10">
+        <div className="container mx-auto px-4">
+          <div className="relative aspect-[21/9] overflow-hidden rounded-2xl sm:aspect-[3/1]">
+            <Image
+              src="/images/image2.png"
+              alt="터치더월드와 함께하는 학생들"
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </section>
+
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
@@ -356,9 +376,20 @@ export default function AboutPage() {
           />
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {missions.map((mission) => (
-              <div key={mission.title} className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
-                <h3 className="text-lg font-semibold text-text-dark">{mission.title}</h3>
-                <p className="mt-2 break-keep text-sm leading-relaxed text-text-gray sm:text-base">{mission.description}</p>
+              <div key={mission.title} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                <div className="relative aspect-[16/9]">
+                  <Image
+                    src={mission.image}
+                    alt={mission.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-5 sm:p-6">
+                  <h3 className="text-lg font-semibold text-text-dark">{mission.title}</h3>
+                  <p className="mt-2 break-keep text-sm leading-relaxed text-text-gray sm:text-base">{mission.description}</p>
+                </div>
               </div>
             ))}
           </div>
