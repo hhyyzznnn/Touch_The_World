@@ -288,6 +288,12 @@ export default async function NewsDetailPage({
 
             {/* 오른쪽: 요약·본문·태그·CTA */}
             <div>
+              {isCardNews && cardNewsImages.length > 0 && (
+                <p className="mb-4 flex items-start gap-1.5 rounded-lg bg-brand-green-primary/[0.06] px-3 py-2 text-xs text-brand-green-primary sm:text-sm">
+                  <span aria-hidden>💡</span>
+                  <span>카드뉴스를 통해 핵심 내용을 빠르게 파악하실 수 있습니다.</span>
+                </p>
+              )}
               {news.summary && (
                 <p className="text-lg text-text-gray mb-6 leading-relaxed">
                   {news.summary}
