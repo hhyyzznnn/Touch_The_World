@@ -116,9 +116,34 @@ const getProgramCardNewsGroupedCached = unstable_cache(
   { revalidate: 600 },
 );
 
+// 2026-09 Clarity 세션 녹화 분석 결과 확인된 최다 클릭 프로그램 3건(클릭 순).
+// 방문자가 실제로 가장 많이 찾는 프로그램이라 "전체" 탭 맨 위에 별도로 부각한다.
+const POPULAR_PROGRAM_IDS = [
+  "cardnews_chungnam_teacher_training_2026", // 충청남도 교직원 연수
+  "cmr1zqvlc0001h5bslj8c23o6", // 후쿠오카 국외연수
+  "cardnews_specialized_highschool_job_camp_2026", // 특성화고 취업 두드림 캠프
+];
+
+async function getPopularPrograms() {
+  const items = await prisma.companyNews.findMany({
+    where: { id: { in: POPULAR_PROGRAM_IDS }, type: CompanyNewsType.PROGRAM_CARD_NEWS },
+    select: CARD_SELECT,
+  });
+  // DB 조회 순서가 아니라 클릭 순위 그대로 정렬
+  return POPULAR_PROGRAM_IDS.map((id) => items.find((item) => item.id === id)).filter(
+    (item): item is CardNewsItem => !!item
+  );
+}
+
+const getPopularProgramsCached = unstable_cache(
+  getPopularPrograms,
+  ["programs-popular"],
+  { revalidate: 600 },
+);
+
 const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"];
 
-function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?: string }) {
+function ProgramCard({ item, className = "", rank }: { item: CardNewsItem; className?: string; rank?: number }) {
   const href = item.link?.trim() || `/news/${item.id}`;
   const isExternal = !!item.link?.trim()?.startsWith("http");
   const isNew = isRecentlyAdded(item.createdAt);
@@ -130,8 +155,13 @@ function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?:
       href={href}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className={`group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow ${className}`}
+      className={`group relative overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow ${className}`}
     >
+      {rank && (
+        <span className="absolute left-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white shadow">
+          {rank}
+        </span>
+      )}
       {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
       {showTagRow && (
         <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
@@ -194,6 +224,7 @@ export default async function ProgramsPage({
   const groupedSections = currentCategory
     ? null
     : await getProgramCardNewsGroupedCached();
+  const popularPrograms = currentCategory ? null : await getPopularProgramsCached();
 
   const isEmpty = currentCategory ? flat!.items.length === 0 : groupedSections!.length === 0;
 
@@ -257,6 +288,26 @@ export default async function ProgramsPage({
         </>
       ) : (
         <div className="space-y-10">
+          {popularPrograms!.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center gap-2">
+                <span aria-hidden>🔥</span>
+                <h2 className="text-lg font-bold text-text-dark">지금 가장 많이 찾는 프로그램</h2>
+              </div>
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
+                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-3 md:pb-0">
+                  {popularPrograms!.map((item, i) => (
+                    <ProgramCard
+                      key={item.id}
+                      item={item}
+                      rank={i + 1}
+                      className="w-[42vw] sm:w-52 md:w-auto flex-shrink-0"
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
           {groupedSections!.map((section) => (
             <section key={section.category}>
               <div className="flex items-center justify-between mb-3">
