@@ -226,11 +226,42 @@ export default async function ProgramDetailPage({
     ],
   };
 
+  // 후기가 있는 프로그램만 별점 rich snippet 노출 (Google 가이드라인상 페이지에
+  // 실제로 보이는 후기·평점에 대해서만 AggregateRating을 넣어야 함)
+  const serviceJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: program.title,
+    description: program.summary || `터치더월드의 ${getCategoryDisplayName(program.category)} 프로그램`,
+    provider: {
+      "@type": "Organization",
+      name: "터치더월드",
+      url: siteUrl,
+    },
+    url: `${siteUrl}/programs/${program.id}`,
+    ...(parsedThumbnail.imageUrl ? { image: parsedThumbnail.imageUrl } : {}),
+    ...(program.reviewCount > 0 && program.rating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: program.rating,
+            reviewCount: program.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
       <Breadcrumbs
         items={[
