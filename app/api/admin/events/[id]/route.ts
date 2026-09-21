@@ -26,6 +26,8 @@ export async function PUT(
       content,
       reviewContent,
       reviewAuthor,
+      summaryCardUrl,
+      cardNewsId,
       status,
       imageUrls,
     } = body;
@@ -72,6 +74,8 @@ export async function PUT(
         notes: content || null,
         reviewContent: reviewContent?.trim() || null,
         reviewAuthor: reviewContent?.trim() ? reviewAuthor?.trim() || null : null,
+        summaryCardUrl: summaryCardUrl?.trim() || null,
+        cardNewsId: cardNewsId?.trim() || null,
         images: {
           create: imageUrls?.map((url: string) => ({ url })) || [],
         },

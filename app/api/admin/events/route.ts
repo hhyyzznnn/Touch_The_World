@@ -22,6 +22,8 @@ export async function POST(request: NextRequest) {
       content,
       reviewContent,
       reviewAuthor,
+      summaryCardUrl,
+      cardNewsId,
       status,
       imageUrls,
       fromInquiryId,
@@ -63,6 +65,8 @@ export async function POST(request: NextRequest) {
         notes: content || null,
         reviewContent: reviewContent?.trim() || null,
         reviewAuthor: reviewContent?.trim() ? reviewAuthor?.trim() || null : null,
+        summaryCardUrl: summaryCardUrl?.trim() || null,
+        cardNewsId: cardNewsId?.trim() || null,
         images: {
           create: imageUrls?.map((url: string) => ({ url })) || [],
         },

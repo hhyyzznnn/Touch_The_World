@@ -84,6 +84,8 @@ model Event {
   notes        String?
   reviewContent String?  // 학교 담당자 후기 본문 (없으면 후기 영역 미노출)
   reviewAuthor  String?  // 후기 작성자 표기 (예: "안양외고 부장교사")
+  summaryCardUrl String? // 행사 요약 카드(실제 행사 대표 사진 + 프로그램 간략 소개 포스터) 이미지 URL
+  cardNewsId    String?  // 이 행사를 다룬 카드뉴스(CompanyNews) ID — 상세 페이지에서 카드뉴스 전체 보기로 연결
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

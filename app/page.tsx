@@ -7,6 +7,7 @@ import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButto
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
+import { getEventThumbnailUrl, getEventThumbnailPosition } from "@/lib/event-utils";
 import { COMPANY_INFO } from "@/lib/constants";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
@@ -85,6 +86,7 @@ async function getRecentEvents() {
         date: true,
         school: { select: { name: true } },
         program: { select: { title: true, category: true } },
+        summaryCardUrl: true,
         images: { take: 1, orderBy: { createdAt: "asc" }, select: { url: true } },
       },
       orderBy: { date: "desc" },
@@ -413,15 +415,15 @@ export default async function HomePage() {
                       className="snap-start border-2 border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white min-w-[82vw] sm:min-w-[360px] md:min-w-[400px] max-w-[400px] flex-shrink-0"
                       aria-label={`${event.school.name} 최근 행사 보기`}
                     >
-                      {event.images[0] ? (
+                      {getEventThumbnailUrl(event) ? (
                         <div className="relative w-full h-36 sm:h-48 bg-gray-100">
                           <Image
-                            src={event.images[0].url}
+                            src={getEventThumbnailUrl(event)!}
                             alt={`${event.school.name} 행사`}
                             fill
                             sizes="(max-width: 768px) 80vw, 400px"
                             quality={65}
-                            className="object-cover"
+                            className={`object-cover ${getEventThumbnailPosition(event)}`}
                             loading="lazy"
                             decoding="async"
                             placeholder="blur"

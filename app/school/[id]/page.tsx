@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { getEventThumbnailUrl, getEventThumbnailPosition } from "@/lib/event-utils";
 import { format } from "date-fns";
 import type { Metadata } from "next";
 
@@ -129,13 +130,14 @@ export default async function SchoolPage({
                       href={`/events/${event.id}`}
                       className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                     >
-                      {event.images[0] && (
+                      {getEventThumbnailUrl(event) && (
                         <div className="relative w-full h-48 bg-gray-100">
                           <Image
-                            src={event.images[0].url}
+                            src={getEventThumbnailUrl(event)!}
                             alt={`${school.name} 행사`}
                             fill
-                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className={`object-cover ${getEventThumbnailPosition(event)}`}
                           />
                         </div>
                       )}

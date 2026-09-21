@@ -8,7 +8,12 @@ import { Calendar, ChevronLeft, ChevronRight, MapPin, Quote, Star, Users } from 
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { getCategoryDisplayName } from "@/lib/category-utils";
-import { formatEventPeriod, getEventStatusLabel } from "@/lib/event-utils";
+import {
+  formatEventPeriod,
+  getEventStatusLabel,
+  getEventThumbnailPosition,
+  getEventThumbnailUrl,
+} from "@/lib/event-utils";
 import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site-url";
@@ -65,6 +70,14 @@ async function getNeighborEvents(event: NonNullable<Awaited<ReturnType<typeof ge
     prisma.event.findFirst({ where: { date: { gt: event.date } }, orderBy: { date: "asc" }, select }),
   ]);
   return { older, newer };
+}
+
+async function getLinkedCardNews(cardNewsId: string | null) {
+  if (!cardNewsId) return null;
+  return await prisma.companyNews.findUnique({
+    where: { id: cardNewsId },
+    select: { id: true, title: true, imageUrls: true },
+  });
 }
 
 async function getProgramReviews(programId: string) {
@@ -137,7 +150,7 @@ export async function generateMetadata({
       description,
       url: `/events/${event.id}`,
       type: "article",
-      images: event.images[0]?.url ? [event.images[0].url] : undefined,
+      images: getEventThumbnailUrl(event) ? [getEventThumbnailUrl(event)!] : undefined,
     },
   };
 }
@@ -169,18 +182,22 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  const [relatedEvents, { older, newer }, programReviews, relatedPrograms] = await Promise.all([
+  const [relatedEvents, { older, newer }, programReviews, relatedPrograms, linkedCardNews] = await Promise.all([
     getRelatedEvents(event),
     getNeighborEvents(event),
     getProgramReviews(event.programId),
     getRelatedPrograms(event.programId, event.program.category),
+    getLinkedCardNews(event.cardNewsId),
   ]);
+  const thumbnailUrl = getEventThumbnailUrl(event);
 
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/events/${event.id}`;
   const period = formatEventPeriod(event.date, event.endDate);
   const programThumb = parseThumbnailFocus(event.program.thumbnailUrl);
-  const programImageUrl = event.program.images[0]?.url || programThumb.imageUrl;
+  // 프로그램 대표 이미지가 위에 크게 보여주는 요약 카드와 같은 이미지면 중복 노출하지 않는다
+  const candidateProgramImage = event.program.images[0]?.url || programThumb.imageUrl;
+  const programImageUrl = candidateProgramImage === event.summaryCardUrl ? null : candidateProgramImage;
 
   const eventJsonLd = {
     "@context": "https://schema.org",
@@ -200,7 +217,7 @@ export default async function EventDetailPage({
       url: siteUrl,
     },
     url: pageUrl,
-    ...(event.images[0]?.url ? { image: event.images[0].url } : {}),
+    ...(thumbnailUrl ? { image: thumbnailUrl } : {}),
     ...(event.reviewContent
       ? {
           review: {
@@ -261,6 +278,47 @@ export default async function EventDetailPage({
         </ul>
       </header>
 
+      <div
+        className={
+          event.summaryCardUrl
+            ? "lg:grid lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:gap-10 lg:items-start"
+            : ""
+        }
+      >
+        {event.summaryCardUrl && (
+          <aside className="mb-10 lg:mb-0 lg:sticky lg:top-24" aria-label="행사 요약 카드">
+            <a
+              href={event.summaryCardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="행사 요약 카드 크게 보기"
+              className="block overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+            >
+              <Image
+                src={event.summaryCardUrl}
+                alt={`${event.school.name} ${event.program.title} 행사 요약 카드`}
+                width={1536}
+                height={2304}
+                sizes="(max-width: 1024px) 100vw, 384px"
+                className="w-full h-auto"
+                priority
+              />
+            </a>
+            {linkedCardNews && (
+              <Link
+                href={`/news/${linkedCardNews.id}`}
+                className="mt-3 flex items-center justify-between rounded-xl border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-3 text-sm font-medium text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors"
+              >
+                <span>
+                  카드뉴스로 자세히 보기
+                  {linkedCardNews.imageUrls.length > 1 ? ` (${linkedCardNews.imageUrls.length}장)` : ""}
+                </span>
+                <ChevronRight className="w-4 h-4" aria-hidden />
+              </Link>
+            )}
+          </aside>
+        )}
+        <div className="min-w-0">
       {event.images.length > 0 && (
         <section className="mb-10" aria-label="행사 사진">
           <div
@@ -364,6 +422,9 @@ export default async function EventDetailPage({
         </div>
       </section>
 
+        </div>
+      </div>
+
       {programReviews.latest.length > 0 && (
         <section className="mb-10" aria-label="프로그램 후기">
           <div className="flex items-center justify-between mb-3">
@@ -405,13 +466,13 @@ export default async function EventDetailPage({
                 className="group flex flex-col rounded-xl border border-gray-200 bg-white overflow-hidden hover:border-brand-green-primary hover:shadow-md transition-all"
               >
                 <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-                  {rel.images[0] ? (
+                  {getEventThumbnailUrl(rel) ? (
                     <Image
-                      src={rel.images[0].url}
+                      src={getEventThumbnailUrl(rel)!}
                       alt={`${rel.school.name} 행사`}
                       fill
                       sizes="(max-width: 640px) 100vw, 33vw"
-                      className="object-cover group-hover:scale-[1.03] transition-transform duration-200"
+                      className={`object-cover ${getEventThumbnailPosition(rel)} group-hover:scale-[1.03] transition-transform duration-200`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">

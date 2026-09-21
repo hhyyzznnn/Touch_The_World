@@ -4,7 +4,7 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { formatEventPeriod } from "@/lib/event-utils";
+import { formatEventPeriod, getEventThumbnailUrl, getEventThumbnailPosition } from "@/lib/event-utils";
 import { MessageSquareQuote } from "lucide-react";
 import { EventFilters } from "@/components/EventFilters";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
@@ -219,14 +219,14 @@ export default async function EventsPage({
                 href={`/events/${event.id}`}
                 className="group border-2 border-gray-200 rounded-lg overflow-hidden hover:border-brand-green-primary hover:shadow-lg transition-all bg-white"
               >
-                {event.images[0] ? (
+                {getEventThumbnailUrl(event) ? (
                   <div className="relative w-full h-48 bg-gray-100">
                     <Image
-                      src={event.images[0].url}
+                      src={getEventThumbnailUrl(event)!}
                       alt={`${event.school.name} 행사`}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-200"
+                      className={`object-cover ${getEventThumbnailPosition(event)} group-hover:scale-105 transition-transform duration-200`}
                       loading="lazy"
                       decoding="async"
                       placeholder="blur"

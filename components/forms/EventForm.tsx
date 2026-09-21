@@ -58,6 +58,8 @@ export function EventForm({ event, prefill }: EventFormProps) {
     event?.studentCount?.toString() || prefill?.studentCount?.toString() || ""
   );
   const [content, setContent] = useState(event?.notes || "");
+  const [summaryCardUrl, setSummaryCardUrl] = useState(event?.summaryCardUrl || "");
+  const [cardNewsId, setCardNewsId] = useState(event?.cardNewsId || "");
   const [reviewContent, setReviewContent] = useState(event?.reviewContent || "");
   const [reviewAuthor, setReviewAuthor] = useState(event?.reviewAuthor || "");
   const [status, setStatus] = useState<"in_progress" | "completed">(
@@ -118,6 +120,8 @@ export function EventForm({ event, prefill }: EventFormProps) {
           content,
           reviewContent,
           reviewAuthor,
+          summaryCardUrl,
+          cardNewsId,
           status,
           imageUrls: allImageUrls,
           fromInquiryId: event ? undefined : prefill?.fromInquiryId,
@@ -386,6 +390,64 @@ export function EventForm({ event, prefill }: EventFormProps) {
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary resize-none"
           placeholder="진행 내역에 대한 내용을 작성하세요 (행사 상세 페이지의 '행사 소개'에 그대로 노출됩니다)"
         />
+      </div>
+
+      <div className="rounded-lg border border-brand-green-primary/30 bg-brand-green-primary/5 p-4 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold">행사 요약 카드 (선택)</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            실제 행사 대표 사진과 프로그램 소개를 담은 요약 카드뉴스 이미지입니다. 등록하면 행사 상세 페이지 상단과
+            목록·메인의 대표 이미지로 사용됩니다.
+          </p>
+        </div>
+        <div className="flex gap-3 items-start">
+          <input
+            type="url"
+            value={summaryCardUrl}
+            onChange={(e) => setSummaryCardUrl(e.target.value)}
+            className="flex-1 px-4 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+            placeholder="https://... (이미지 주소 또는 오른쪽에서 파일 업로드)"
+          />
+          <div className="w-[140px] shrink-0">
+            <UploadButton
+              endpoint="imageUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res.length > 0) setSummaryCardUrl(res[0].url);
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`업로드 실패: ${error.message}`);
+              }}
+              appearance={{
+                button: "w-full h-[42px] ut-ready:bg-brand-green-primary ut-uploading:cursor-not-allowed bg-brand-green-primary rounded-md text-white after:bg-brand-green-primary/80",
+                allowedContent: "hidden",
+              }}
+              content={{
+                button() {
+                  return "파일 선택";
+                },
+              }}
+            />
+          </div>
+        </div>
+        {summaryCardUrl && (
+          <div className="flex items-start gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={summaryCardUrl} alt="요약 카드 미리보기" className="h-40 w-auto rounded border" />
+            <Button type="button" variant="outline" size="sm" onClick={() => setSummaryCardUrl("")}>
+              삭제
+            </Button>
+          </div>
+        )}
+        <div>
+          <label className="block text-sm font-medium mb-2">연결할 카드뉴스 ID</label>
+          <input
+            type="text"
+            value={cardNewsId}
+            onChange={(e) => setCardNewsId(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+            placeholder="예) cardnews_anyang_munhwa_osaka_global_training_2026 (주소 /news/ 뒤의 값)"
+          />
+        </div>
       </div>
 
       <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 space-y-4">
