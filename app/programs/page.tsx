@@ -143,7 +143,7 @@ const getPopularProgramsCached = unstable_cache(
 
 const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"];
 
-function ProgramCard({ item, className = "", rank }: { item: CardNewsItem; className?: string; rank?: number }) {
+function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?: string }) {
   const href = item.link?.trim() || `/news/${item.id}`;
   const isExternal = !!item.link?.trim()?.startsWith("http");
   const isNew = isRecentlyAdded(item.createdAt);
@@ -155,13 +155,8 @@ function ProgramCard({ item, className = "", rank }: { item: CardNewsItem; class
       href={href}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className={`group relative overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow ${className}`}
+      className={`group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow ${className}`}
     >
-      {rank && (
-        <span className="absolute left-2.5 top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white shadow">
-          {rank}
-        </span>
-      )}
       {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
       {showTagRow && (
         <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
@@ -296,11 +291,10 @@ export default async function ProgramsPage({
               </div>
               <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
                 <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-3 md:pb-0">
-                  {popularPrograms!.map((item, i) => (
+                  {popularPrograms!.map((item) => (
                     <ProgramCard
                       key={item.id}
                       item={item}
-                      rank={i + 1}
                       className="w-[42vw] sm:w-52 md:w-auto flex-shrink-0"
                     />
                   ))}
