@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Star, Edit2, Trash2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ export function ReviewSection({
   const toast = useToast();
   const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [isWriting, setIsWriting] = useState(false);
   const [rating, setRating] = useState(0);
   const [content, setContent] = useState("");
@@ -73,7 +75,8 @@ export function ReviewSection({
           setUser(data.user);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setAuthChecking(false));
 
     // 후기 목록 새로고침
     fetchReviews();
@@ -157,7 +160,7 @@ export function ReviewSection({
   const myReview = reviews.find((r) => r.user.id === user?.id);
 
   return (
-    <div className="mt-12 pt-8 border-t">
+    <div id="reviews" className="mt-12 pt-8 border-t scroll-mt-24">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl sm:text-2xl font-semibold mb-2">후기</h2>
@@ -186,6 +189,11 @@ export function ReviewSection({
         {user && !myReview && !isWriting && (
           <Button onClick={() => setIsWriting(true)} size="sm">
             후기 작성
+          </Button>
+        )}
+        {!user && !authChecking && (
+          <Button asChild size="sm" variant="outline">
+            <Link href="/login">로그인하고 후기 남기기</Link>
           </Button>
         )}
       </div>

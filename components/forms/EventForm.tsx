@@ -58,6 +58,8 @@ export function EventForm({ event, prefill }: EventFormProps) {
     event?.studentCount?.toString() || prefill?.studentCount?.toString() || ""
   );
   const [content, setContent] = useState(event?.notes || "");
+  const [reviewContent, setReviewContent] = useState(event?.reviewContent || "");
+  const [reviewAuthor, setReviewAuthor] = useState(event?.reviewAuthor || "");
   const [status, setStatus] = useState<"in_progress" | "completed">(
     (event?.status as "in_progress" | "completed") || "in_progress"
   );
@@ -114,6 +116,8 @@ export function EventForm({ event, prefill }: EventFormProps) {
           location,
           studentCount: studentCount ? parseInt(studentCount) : null,
           content,
+          reviewContent,
+          reviewAuthor,
           status,
           imageUrls: allImageUrls,
           fromInquiryId: event ? undefined : prefill?.fromInquiryId,
@@ -380,8 +384,37 @@ export function EventForm({ event, prefill }: EventFormProps) {
           onChange={(e) => setContent(e.target.value)}
           rows={6}
           className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary resize-none"
-          placeholder="진행 내역에 대한 내용을 작성하세요"
+          placeholder="진행 내역에 대한 내용을 작성하세요 (행사 상세 페이지의 '행사 소개'에 그대로 노출됩니다)"
         />
+      </div>
+
+      <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold">학교 담당자 후기 (선택)</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            비워두면 후기 영역이 노출되지 않습니다. 학교 담당자에게 받은 실제 후기만 입력해주세요.
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">후기 내용</label>
+          <textarea
+            value={reviewContent}
+            onChange={(e) => setReviewContent(e.target.value)}
+            rows={4}
+            className="w-full px-4 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary resize-none"
+            placeholder="예) 사전 안내가 체계적이고 현장 운영이 안정적이었습니다."
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">작성자 표기</label>
+          <input
+            type="text"
+            value={reviewAuthor}
+            onChange={(e) => setReviewAuthor(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
+            placeholder="예) 안양외고 부장교사 (비워두면 '학교 담당자'로 표시)"
+          />
+        </div>
       </div>
 
       <div>

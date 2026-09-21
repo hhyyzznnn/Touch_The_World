@@ -4,9 +4,9 @@ import { AchievementAccordion } from "@/components/AchievementAccordion";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { format } from "date-fns";
+import { formatEventPeriod } from "@/lib/event-utils";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MessageSquareQuote } from "lucide-react";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -84,7 +84,7 @@ async function getRecentEvents() {
   }
 }
 
-export const revalidate = 86400;
+export const revalidate = 600;
 
 export default async function AchievementsPage() {
   const [{ grouped, years, yearLabels }, recentEvents] = await Promise.all([
@@ -142,8 +142,14 @@ export default async function AchievementsPage() {
                       {getCategoryDisplayName(event.program.category)}
                     </span>
                     <span className="text-xs text-text-gray">
-                      {format(new Date(event.date), "yyyy.MM.dd")}
+                      {formatEventPeriod(event.date, event.endDate)}
                     </span>
+                    {event.reviewContent && (
+                      <span className="ml-auto inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 rounded-full px-2 py-1 font-medium">
+                        <MessageSquareQuote className="w-3 h-3" aria-hidden />
+                        후기
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-base font-semibold text-text-dark mb-0.5 line-clamp-1">
                     {event.school.name}
@@ -151,6 +157,9 @@ export default async function AchievementsPage() {
                   <div className="text-sm text-text-gray mb-2 line-clamp-1">
                     {event.program.title}
                   </div>
+                  {event.notes && (
+                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-2">{event.notes}</p>
+                  )}
                   <div className="flex items-center gap-2 text-xs text-text-gray">
                     <span>{event.location}</span>
                     {event.studentCount != null && (

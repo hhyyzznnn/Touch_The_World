@@ -4,7 +4,8 @@ import { getCategoryDisplayName } from "@/lib/category-utils";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { format } from "date-fns";
+import { formatEventPeriod } from "@/lib/event-utils";
+import { MessageSquareQuote } from "lucide-react";
 import { EventFilters } from "@/components/EventFilters";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { Pagination } from "@/components/Pagination";
@@ -175,7 +176,7 @@ export default async function EventsPage({
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
-  const [{ events, totalPages }, years, categories, locations] = await Promise.all([
+  const [{ events, total, totalPages }, years, categories, locations] = await Promise.all([
     getEvents(params.year, params.category, params.location, params.q, currentPage),
     getYears(),
     getCategories(),
@@ -209,7 +210,7 @@ export default async function EventsPage({
       ) : (
         <>
           <div className="mb-4 text-sm text-text-gray">
-            총 {events.length}개의 행사
+            총 {total}개의 행사
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {events.map((event) => (
@@ -241,8 +242,14 @@ export default async function EventsPage({
                       {getCategoryDisplayName(event.program.category)}
                     </span>
                     <span className="text-xs text-text-gray">
-                      {format(new Date(event.date), "yyyy.MM.dd")}
+                      {formatEventPeriod(event.date, event.endDate)}
                     </span>
+                    {event.reviewContent && (
+                      <span className="ml-auto inline-flex items-center gap-1 text-xs text-amber-700 bg-amber-50 rounded-full px-2 py-1 font-medium">
+                        <MessageSquareQuote className="w-3 h-3" aria-hidden />
+                        후기
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-lg font-semibold text-text-dark mb-0.5 line-clamp-1">
                     {event.school.name}
@@ -250,6 +257,9 @@ export default async function EventsPage({
                   <div className="text-sm text-text-gray mb-2 line-clamp-1">
                     {event.program.title}
                   </div>
+                  {event.notes && (
+                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-3">{event.notes}</p>
+                  )}
                   <div className="flex items-center gap-3 text-xs text-text-gray">
                     <span>{event.location}</span>
                     {event.studentCount != null && (

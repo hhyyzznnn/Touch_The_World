@@ -82,6 +82,8 @@ model Event {
   studentCount Int?
   status       String    @default("in_progress") // in_progress, completed
   notes        String?
+  reviewContent String?  // 학교 담당자 후기 본문 (없으면 후기 영역 미노출)
+  reviewAuthor  String?  // 후기 작성자 표기 (예: "안양외고 부장교사")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

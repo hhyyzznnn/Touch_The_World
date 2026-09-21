@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { isStaff } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -19,6 +20,8 @@ export async function POST(request: NextRequest) {
       location,
       studentCount,
       content,
+      reviewContent,
+      reviewAuthor,
       status,
       imageUrls,
       fromInquiryId,
@@ -58,6 +61,8 @@ export async function POST(request: NextRequest) {
         studentCount: studentCount != null && studentCount !== "" ? parseInt(String(studentCount)) : null,
         status: status || "in_progress",
         notes: content || null,
+        reviewContent: reviewContent?.trim() || null,
+        reviewAuthor: reviewContent?.trim() ? reviewAuthor?.trim() || null : null,
         images: {
           create: imageUrls?.map((url: string) => ({ url })) || [],
         },
@@ -71,6 +76,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    revalidatePath("/events");
+    revalidatePath("/achievements");
     return NextResponse.json({ success: true, id: event.id });
   } catch (error) {
     console.error("Event creation error:", error);

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -211,10 +212,14 @@ export default async function ProgramDetailPage({
   if (!program) {
     notFound();
   }
-  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }] = await Promise.all([
+  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }, reviewStats] = await Promise.all([
     Promise.resolve(parseThumbnailFocus(program.thumbnailUrl)),
     getRelatedPrograms(id, program.category),
+    prisma.review.aggregate({ where: { programId: id }, _avg: { rating: true }, _count: true }),
   ]);
+  // 저장된 program.rating/reviewCount는 후기가 삭제·직접 수정되면 어긋날 수 있어, 화면과 구조화 데이터는 실제 후기에서 매번 계산한다
+  const reviewCount = reviewStats._count;
+  const ratingAverage = reviewStats._avg.rating ? Math.round(reviewStats._avg.rating * 10) / 10 : 0;
   const siteUrl = getSiteUrl();
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -240,12 +245,12 @@ export default async function ProgramDetailPage({
     },
     url: `${siteUrl}/programs/${program.id}`,
     ...(parsedThumbnail.imageUrl ? { image: parsedThumbnail.imageUrl } : {}),
-    ...(program.reviewCount > 0 && program.rating
+    ...(reviewCount > 0
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
-            ratingValue: program.rating,
-            reviewCount: program.reviewCount,
+            ratingValue: ratingAverage,
+            reviewCount,
             bestRating: 5,
             worstRating: 1,
           },
@@ -276,7 +281,17 @@ export default async function ProgramDetailPage({
             <div className="text-sm text-brand-green-primary mb-2">{getCategoryDisplayName(program.category)}</div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 break-words">{program.title}</h1>
             {program.summary && (
-              <p className="text-lg sm:text-xl text-gray-600 mb-6 break-words">{program.summary}</p>
+              <p className="text-lg sm:text-xl text-gray-600 mb-4 break-words">{program.summary}</p>
+            )}
+            {reviewCount > 0 && (
+              <a
+                href="#reviews"
+                className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-brand-green-primary"
+              >
+                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden />
+                <span className="font-semibold">{ratingAverage.toFixed(1)}</span>
+                <span>· 후기 {reviewCount}개 보기</span>
+              </a>
             )}
           </div>
           <div className="ml-4 flex items-center gap-2">
@@ -426,8 +441,8 @@ export default async function ProgramDetailPage({
           createdAt: r.createdAt.toISOString(),
           user: r.user,
         }))}
-        programRating={program.rating}
-        reviewCount={program.reviewCount}
+        programRating={ratingAverage}
+        reviewCount={reviewCount}
       />
     </div>
   );
