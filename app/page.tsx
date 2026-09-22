@@ -63,9 +63,12 @@ const CARD_NEWS_TAKE = 4;
 
 async function getCardNewsForHome() {
   try {
+    // 메인 화면은 "최신 소식"을 보여주는 자리라 최신순 그대로 노출한다.
+    // isPinned는 /news, /programs 카탈로그에서 특정 카드(예: 회사소개서)를 목록 맨 위에
+    // 고정해두기 위한 용도라, 여기서 우선 적용하면 오래된 고정 카드가 계속 "최신"처럼 보인다.
     return await prisma.companyNews.findMany({
       where: { type: "PROGRAM_CARD_NEWS", imageUrl: { not: null } },
-      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      orderBy: { createdAt: "desc" },
       take: CARD_NEWS_TAKE,
       select: {
         id: true, title: true, summary: true, imageUrl: true,

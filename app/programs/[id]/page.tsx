@@ -48,6 +48,19 @@ const getProgram = cache(async (id: string) => {
   });
 });
 
+async function getLinkedCardNews(programId: string) {
+  const event = await prisma.event.findFirst({
+    where: { programId, cardNewsId: { not: null } },
+    orderBy: { date: "desc" },
+    select: { cardNewsId: true },
+  });
+  if (!event?.cardNewsId) return null;
+  return await prisma.companyNews.findUnique({
+    where: { id: event.cardNewsId },
+    select: { id: true, title: true, imageUrls: true },
+  });
+}
+
 async function getRelatedPrograms(id: string, category: string) {
   const FIELDS = {
     id: true,
@@ -212,11 +225,14 @@ export default async function ProgramDetailPage({
   if (!program) {
     notFound();
   }
-  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }, reviewStats] = await Promise.all([
+  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }, reviewStats, linkedCardNews] = await Promise.all([
     Promise.resolve(parseThumbnailFocus(program.thumbnailUrl)),
     getRelatedPrograms(id, program.category),
     prisma.review.aggregate({ where: { programId: id }, _avg: { rating: true }, _count: true }),
+    getLinkedCardNews(id),
   ]);
+  const hasOwnImages =
+    program.images.filter((img) => !img.url.includes("via.placeholder.com") && img.url.startsWith("http")).length > 0;
   // 저장된 program.rating/reviewCount는 후기가 삭제·직접 수정되면 어긋날 수 있어, 화면과 구조화 데이터는 실제 후기에서 매번 계산한다
   const reviewCount = reviewStats._count;
   const ratingAverage = reviewStats._avg.rating ? Math.round(reviewStats._avg.rating * 10) / 10 : 0;
@@ -306,7 +322,7 @@ export default async function ProgramDetailPage({
         </div>
       </div>
 
-      {program.images.filter(img => !img.url.includes("via.placeholder.com") && img.url.startsWith("http")).length > 0 && (
+      {hasOwnImages && (
         <div className="mb-8">
           <div className="grid md:grid-cols-2 gap-4">
             {program.images
@@ -322,6 +338,31 @@ export default async function ProgramDetailPage({
               ))}
           </div>
         </div>
+      )}
+
+      {/* 실제 운영 사진이 없는 프로그램(행사 진행 내역에서 자동 연결)은, 실제 사진이 담긴
+          연결 카드뉴스로 안내한다 — 빈 갤러리로 끝나지 않도록 */}
+      {!hasOwnImages && linkedCardNews && (
+        <Link
+          href={`/news/${linkedCardNews.id}`}
+          className="mb-8 flex items-center gap-4 rounded-xl border border-brand-green-primary/30 bg-brand-green-primary/5 p-4 sm:p-5 hover:bg-brand-green-primary/10 transition-colors"
+        >
+          {linkedCardNews.imageUrls[0] && (
+            <div className="relative w-20 h-28 sm:w-24 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src={linkedCardNews.imageUrls[0]}
+                alt={linkedCardNews.title}
+                fill
+                sizes="96px"
+                className="object-cover"
+              />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-brand-green-primary">실제 운영 사진 · 카드뉴스로 보기</p>
+            <p className="text-sm text-text-gray line-clamp-2 mt-0.5">{linkedCardNews.title}</p>
+          </div>
+        </Link>
       )}
 
       {program.description && (
