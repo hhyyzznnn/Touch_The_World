@@ -190,6 +190,9 @@ export default async function EventDetailPage({
     getLinkedCardNews(event.cardNewsId),
   ]);
   const thumbnailUrl = getEventThumbnailUrl(event);
+  // 카드뉴스로 이미 다뤄진 행사의 프로그램은, 견적·후기 기능이 있는 빈 프로그램 페이지 대신
+  // 실제 사진·본문이 담긴 카드뉴스로 바로 연결한다.
+  const programHref = linkedCardNews ? `/news/${linkedCardNews.id}` : `/programs/${event.programId}`;
 
   const siteUrl = getSiteUrl();
   const pageUrl = `${siteUrl}/events/${event.id}`;
@@ -253,7 +256,7 @@ export default async function EventDetailPage({
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2 break-words">{event.school.name}</h1>
         <Link
-          href={`/programs/${event.programId}`}
+          href={programHref}
           className="text-lg sm:text-xl text-text-gray hover:text-brand-green-primary transition-colors break-words"
         >
           {event.program.title}
@@ -380,7 +383,7 @@ export default async function EventDetailPage({
         <div className="flex flex-col sm:flex-row gap-5 rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
           {programImageUrl && (
             <Link
-              href={`/programs/${event.programId}`}
+              href={programHref}
               className="relative block w-full sm:w-64 h-44 sm:h-auto sm:min-h-[10rem] flex-shrink-0 rounded-lg overflow-hidden bg-gray-100"
             >
               <Image
@@ -400,7 +403,7 @@ export default async function EventDetailPage({
               )}
               {programReviews.count > 0 && (
                 <Link
-                  href={`/programs/${event.programId}#reviews`}
+                  href={`${programHref}#reviews`}
                   className="mt-3 inline-flex items-center gap-2 text-sm text-text-gray hover:text-brand-green-primary"
                 >
                   <RatingStars value={programReviews.average} />
@@ -412,7 +415,7 @@ export default async function EventDetailPage({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild>
-                <Link href={`/programs/${event.programId}`}>프로그램 자세히 보기</Link>
+                <Link href={programHref}>프로그램 자세히 보기</Link>
               </Button>
               <Button asChild variant="outline">
                 <Link href="/inquiry?type=quick">우리 학교도 문의하기</Link>

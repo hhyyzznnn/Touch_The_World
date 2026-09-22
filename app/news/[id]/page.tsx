@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { BRAND_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { CardNewsImageViewer } from "@/components/news/CardNewsImageViewer";
-import { MessageCircle, ArrowRight } from "lucide-react";
+import { MessageCircle, ArrowRight, Star } from "lucide-react";
+import { ReviewSection } from "@/components/ReviewSection";
+import { PrintQuoteButton } from "@/components/programs/PrintQuoteButton";
 import { getSiteUrl } from "@/lib/site-url";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -104,6 +106,34 @@ async function getRelatedCardNews(id: string, categories: string[], type: Compan
   });
 }
 
+// 이 카드뉴스가 다룬 실제 행사에 연결된 프로그램(견적·후기 기능이 있는 카탈로그 항목)이 있으면
+// 별도 프로그램 페이지를 새로 두지 않고, 이 카드뉴스 페이지에서 바로 견적·후기를 이용하게 한다.
+async function getLinkedProgram(newsId: string) {
+  const event = await prisma.event.findFirst({
+    where: { cardNewsId: newsId },
+    orderBy: { date: "desc" },
+    select: { programId: true },
+  });
+  if (!event) return null;
+
+  const [reviews, aggregate] = await Promise.all([
+    prisma.review.findMany({
+      where: { programId: event.programId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: { user: { select: { id: true, name: true, image: true } } },
+    }),
+    prisma.review.aggregate({ where: { programId: event.programId }, _avg: { rating: true }, _count: true }),
+  ]);
+
+  return {
+    programId: event.programId,
+    reviews,
+    reviewCount: aggregate._count,
+    rating: aggregate._avg.rating ? Math.round(aggregate._avg.rating * 10) / 10 : 0,
+  };
+}
+
 export const revalidate = 86400;
 
 export async function generateMetadata({
@@ -157,7 +187,10 @@ export default async function NewsDetailPage({
     notFound();
   }
 
-  const relatedNews = await getRelatedCardNews(id, news.categories, news.type);
+  const [relatedNews, linkedProgram] = await Promise.all([
+    getRelatedCardNews(id, news.categories, news.type),
+    getLinkedProgram(id),
+  ]);
   const cardNewsImages =
     news.imageUrls.length > 0
       ? news.imageUrls
@@ -267,11 +300,28 @@ export default async function NewsDetailPage({
             >
               {format(new Date(news.createdAt), "yyyy년 MM월 dd일")}
             </time>
+            {linkedProgram && (
+              <div className="ml-auto">
+                <PrintQuoteButton programId={linkedProgram.programId} />
+              </div>
+            )}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-dark mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-dark mb-3">
             {news.title}
           </h1>
+          {linkedProgram && linkedProgram.reviewCount > 0 ? (
+            <a
+              href="#reviews"
+              className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-brand-green-primary"
+            >
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden />
+              <span className="font-semibold">{linkedProgram.rating.toFixed(1)}</span>
+              <span>· 후기 {linkedProgram.reviewCount}개 보기</span>
+            </a>
+          ) : (
+            <div className="mb-3" />
+          )}
 
           {/* 이미지 + 텍스트 2열 (데스크탑) */}
           <div className={cardNewsImages.length > 0 ? "lg:grid lg:grid-cols-[2fr_3fr] lg:gap-10 lg:items-start" : undefined}>
@@ -366,6 +416,21 @@ export default async function NewsDetailPage({
             </Button>
           </div>
         </article>
+
+        {linkedProgram && (
+          <ReviewSection
+            programId={linkedProgram.programId}
+            initialReviews={linkedProgram.reviews.map((r) => ({
+              id: r.id,
+              rating: r.rating,
+              content: r.content,
+              createdAt: r.createdAt.toISOString(),
+              user: r.user,
+            }))}
+            programRating={linkedProgram.rating}
+            reviewCount={linkedProgram.reviewCount}
+          />
+        )}
 
         {relatedNews.length > 0 && (
           <div className="mt-8">

@@ -225,6 +225,7 @@ export default async function ProgramDetailPage({
   if (!program) {
     notFound();
   }
+
   const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }, reviewStats, linkedCardNews] = await Promise.all([
     Promise.resolve(parseThumbnailFocus(program.thumbnailUrl)),
     getRelatedPrograms(id, program.category),
