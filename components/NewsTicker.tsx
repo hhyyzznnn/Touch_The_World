@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 interface NewsItem {
@@ -15,11 +15,16 @@ type Phase = "show" | "exit" | "enter";
 export function NewsTicker({ items }: { items: NewsItem[] }) {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("show");
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
 
   useEffect(() => {
     if (items.length <= 1) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const interval = setInterval(() => {
+      if (pausedRef.current) return;
       setPhase("exit");
 
       setTimeout(() => {
@@ -46,7 +51,13 @@ export function NewsTicker({ items }: { items: NewsItem[] }) {
       : { transform: "translateY(0)", opacity: 1, transition: "transform 0.35s ease, opacity 0.35s ease" };
 
   return (
-    <section className="bg-brand-green-primary/10 border-y border-brand-green-primary/20 overflow-hidden">
+    <section
+      className="bg-brand-green-primary/10 border-y border-brand-green-primary/20 overflow-hidden"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
       <div className="container mx-auto px-4 py-3">
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 text-sm sm:text-base max-w-4xl mx-auto">
           {/* 좌측 레이블 */}
