@@ -1,14 +1,54 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
-import { CheckCircle2, Bookmark } from "lucide-react";
+import { CheckCircle2, Bookmark, History, X } from "lucide-react";
 import { trackEvent, GA_EVENTS } from "@/lib/gtag";
+
+const DRAFT_STORAGE_KEY = "inquiry-draft-v1";
+const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7일
+
+type InquiryDraft = {
+  mode: InquiryMode;
+  data: Partial<InquiryFormData>;
+  savedAt: number;
+};
+
+function readDraft(): InquiryDraft | null {
+  try {
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as InquiryDraft;
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > DRAFT_MAX_AGE_MS) return null;
+    const hasContent = Object.values(parsed.data ?? {}).some((v) =>
+      typeof v === "string" ? v.trim().length > 0 : v !== undefined && v !== null
+    );
+    return hasContent ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeDraft(draft: InquiryDraft) {
+  try {
+    window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+  } catch {
+    // 저장 실패(프라이빗 모드 등)는 조용히 무시
+  }
+}
+
+function clearDraft() {
+  try {
+    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
 
 type SchoolSuggestion = { name: string; level: string; region: string | null };
 
@@ -100,6 +140,7 @@ export function InquiryForm({
   const autocomplete = useSchoolAutocomplete();
   const schoolInputRef = useRef<HTMLInputElement>(null);
   const [dropdownAbove, setDropdownAbove] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<InquiryDraft | null>(null);
 
   const handleSchoolFocus = () => {
     if (autocomplete.suggestions.length > 0) {
@@ -115,6 +156,7 @@ export function InquiryForm({
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm<InquiryFormData>({
     resolver: zodResolver(inquirySchema),
     defaultValues: {
@@ -126,6 +168,44 @@ export function InquiryForm({
         : "",
     },
   });
+
+  // 이전에 작성하다 만 문의가 있으면 배너로 복구 제안
+  useEffect(() => {
+    const draft = readDraft();
+    if (draft) setPendingDraft(draft);
+  }, []);
+
+  // 입력값이 바뀔 때마다 디바운스하여 임시저장 (성공 제출 전까지)
+  const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (isSuccess) return;
+    const subscription = watch((values) => {
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+      draftSaveTimerRef.current = setTimeout(() => {
+        const hasContent = Object.values(values).some((v) =>
+          typeof v === "string" ? v.trim().length > 0 : v !== undefined && v !== null
+        );
+        if (hasContent) {
+          writeDraft({ mode, data: values as Partial<InquiryFormData>, savedAt: Date.now() });
+        }
+      }, 800);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    };
+  }, [watch, mode, isSuccess]);
+
+  const applyDraft = (draft: InquiryDraft) => {
+    reset(draft.data);
+    setMode(draft.mode);
+    setPendingDraft(null);
+  };
+
+  const dismissDraft = () => {
+    clearDraft();
+    setPendingDraft(null);
+  };
 
   const onSubmit = async (data: InquiryFormData) => {
     setIsSubmitting(true);
@@ -151,6 +231,7 @@ export function InquiryForm({
         });
         setIsSuccess(true);
         reset();
+        clearDraft();
         toast.success("문의가 접수되었습니다.");
         trackEvent(GA_EVENTS.INQUIRY_SUBMIT, { school_level: data.schoolLevel });
       } else {
@@ -209,6 +290,46 @@ export function InquiryForm({
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
+        {/* 임시저장 복구 배너 */}
+        {pendingDraft && (
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+            <History className="mt-0.5 w-4 h-4 text-amber-600 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-text-dark">
+                작성 중이던 문의 내용이 있습니다
+              </p>
+              <p className="mt-0.5 text-xs text-text-gray">이어서 작성하시겠어요?</p>
+              <div className="mt-2.5 flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => applyDraft(pendingDraft)}
+                  className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white h-8 px-3 text-xs"
+                >
+                  이어서 작성하기
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={dismissDraft}
+                  className="h-8 px-3 text-xs"
+                >
+                  새로 작성
+                </Button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={dismissDraft}
+              aria-label="닫기"
+              className="text-text-gray hover:text-text-dark"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* 참고 프로그램 배너 */}
         {presets?.programRef && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/10 px-4 py-3.5">
@@ -462,9 +583,9 @@ export function InquiryForm({
                     </label>
                     <input
                       id="departureDate"
+                      type="date"
                       {...register("departureDate")}
                       className={inputClass}
-                      placeholder="예: 2025년 5월 12일"
                     />
                   </div>
                   <div>
@@ -473,12 +594,15 @@ export function InquiryForm({
                     </label>
                     <input
                       id="returnDate"
+                      type="date"
                       {...register("returnDate")}
                       className={inputClass}
-                      placeholder="예: 2025년 5월 14일"
                     />
                   </div>
                 </div>
+                <p className="text-xs text-text-gray">
+                  일정이 아직 확정되지 않았거나 기간이 유동적이라면 비워두고 하단 &apos;기타 문의 내용&apos;에 적어주세요.
+                </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>

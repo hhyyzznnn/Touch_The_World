@@ -107,14 +107,12 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
             </Link>
           </Button>
         ) : (
-          currentInquiry.departureDate && (
-            <Button asChild size="sm" variant="outline">
-              <Link href={`/admin/events/new?fromInquiry=${currentInquiry.id}`} className="flex items-center gap-1.5">
-                <CalendarPlus className="w-4 h-4" />
-                캘린더 등록
-              </Link>
-            </Button>
-          )
+          <Button asChild size="sm" variant="outline">
+            <Link href={`/admin/events/new?fromInquiry=${currentInquiry.id}`} className="flex items-center gap-1.5">
+              <CalendarPlus className="w-4 h-4" />
+              캘린더 등록
+            </Link>
+          </Button>
         )}
         <Button
           type="button"

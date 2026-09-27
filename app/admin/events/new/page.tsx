@@ -17,11 +17,13 @@ const EventForm = dynamic(
 
 async function getInquiryPrefill(inquiryId: string) {
   const inquiry = await prisma.inquiry.findUnique({ where: { id: inquiryId } });
-  if (!inquiry || !inquiry.departureDate) return undefined;
+  if (!inquiry) return undefined;
 
+  // 출발일이 구조화된 값(departureDate)으로 안 들어온 문의(과거 자유 텍스트 입력, AI 상담 접수 등)도
+  // 학교명·지역·인원수는 살려서 프리필해주고, 날짜만 관리자가 직접 입력하도록 비워둔다.
   return {
     schoolName: inquiry.schoolName,
-    date: format(inquiry.departureDate, "yyyy-MM-dd"),
+    date: inquiry.departureDate ? format(inquiry.departureDate, "yyyy-MM-dd") : undefined,
     endDate: inquiry.returnDate ? format(inquiry.returnDate, "yyyy-MM-dd") : undefined,
     location: inquiry.destination || undefined,
     studentCount: inquiry.participantCount || undefined,
