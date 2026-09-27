@@ -53,10 +53,3 @@ export const COMPANY_INFO = {
   facebook: "https://www.facebook.com/profile.php?id=61594076981446", // 터치더월드 공식 페이지(2026.09 신규 개설)
   youtube: "https://www.youtube.com/@ttw_ai",
 } as const;
-
-export const NAVIGATION_LINKS = [
-  { name: "Home", href: "/" },
-  { name: "회사 소개", href: "/about" },
-  { name: "사업 실적", href: "/achievements" },
-  { name: "견적 문의", href: "/inquiry" },
-] as const;

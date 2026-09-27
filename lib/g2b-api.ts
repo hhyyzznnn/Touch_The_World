@@ -261,32 +261,3 @@ export function parseG2BNotice(item: G2BNoticeItem) {
   };
 }
 
-/**
- * 최근 N일간의 공고 조회
- * 날짜 형식: yyyyMMddHHmm (12자리)
- * 
- * 주의: 문서상 최대 1개월(30일) 제한 가능성
- */
-export function getDateRange(days: number = 1): { start: string; end: string } {
-  // 최대 30일로 제한 (문서 확인: 최대 1개월 제한 가능성)
-  const maxDays = Math.min(days, 30);
-  
-  const end = new Date();
-  const start = new Date();
-  start.setDate(start.getDate() - maxDays);
-
-  const format = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hour = String(date.getHours()).padStart(2, "0");
-    const minute = String(date.getMinutes()).padStart(2, "0");
-    return `${year}${month}${day}${hour}${minute}`;
-  };
-
-  return {
-    start: format(start),
-    end: format(end),
-  };
-}
-

@@ -4,18 +4,6 @@
  */
 
 /**
- * HTML 태그 제거 (XSS 방지)
- */
-export function sanitizeHtml(input: string): string {
-  return input
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
-}
-
-/**
  * 텍스트 입력 정리 (앞뒤 공백 제거, 연속 공백 제거)
  */
 export function sanitizeText(input: string): string {

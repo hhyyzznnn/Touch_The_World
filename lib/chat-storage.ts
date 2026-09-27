@@ -129,27 +129,6 @@ export function loadChatMessages(options?: ChatStorageOptions): { messages: Chat
   }
 }
 
-export function clearChatMessages(options?: ChatStorageOptions) {
-  if (typeof window === "undefined") return;
-  
-  try {
-    const isAnonymous = !options?.userId && options?.allowAnonymous;
-    if (!options?.userId && !isAnonymous) return;
-
-    const storageKey = options?.userId
-      ? getScopedKey(STORAGE_KEY_PREFIX, options.userId)
-      : ANON_STORAGE_KEY;
-    const sessionKey = options?.userId
-      ? getScopedKey(SESSION_ID_KEY_PREFIX, options.userId)
-      : ANON_SESSION_ID_KEY;
-    const storage = isAnonymous ? sessionStorage : localStorage;
-    storage.removeItem(storageKey);
-    storage.removeItem(sessionKey);
-  } catch (error) {
-    console.error("Failed to clear chat messages:", error);
-  }
-}
-
 export function clearLegacyAnonymousChatMessages() {
   if (typeof window === "undefined") return;
 
