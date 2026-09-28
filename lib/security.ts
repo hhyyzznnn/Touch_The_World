@@ -117,21 +117,3 @@ export function validateAndSanitize(
   return { valid: true, sanitized };
 }
 
-/**
- * Origin 검증 (CSRF 방지)
- */
-export function isValidOrigin(origin: string | null, allowedOrigins: string[]): boolean {
-  if (!origin) {
-    return false;
-  }
-
-  // 개발 환경에서는 localhost 허용
-  if (process.env.NODE_ENV === "development") {
-    if (origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
-      return true;
-    }
-  }
-
-  return allowedOrigins.some((allowed) => origin.startsWith(allowed));
-}
-
