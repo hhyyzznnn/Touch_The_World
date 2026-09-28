@@ -274,22 +274,6 @@ export async function sendConsultingCompleteAlimtalk(
 }
 
 /**
- * 견적서 도착 알림톡 발송
- */
-export async function sendQuoteReadyAlimtalk(
-  phoneNumber: string,
-  quoteUrl: string
-): Promise<{ success: boolean; error?: string }> {
-  return sendKakaoAlimtalk({
-    phoneNumber,
-    templateCode: "QUOTE_READY",
-    message: `[터치더월드] 견적서가 준비되었습니다.\n\n아래 링크에서 확인해주세요.`,
-    buttonUrl: quoteUrl,
-    buttonText: "견적서 확인",
-  });
-}
-
-/**
  * 인증번호 발송 알림톡
  */
 export async function sendVerificationCodeAlimtalk(
