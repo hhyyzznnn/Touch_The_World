@@ -30,21 +30,6 @@ export function isValidPhone(phone: string): boolean {
 }
 
 /**
- * SQL Injection 패턴 검사 (기본적인 패턴만)
- * Prisma를 사용하므로 실제로는 필요 없지만, 추가 보안을 위해
- */
-export function containsSqlInjection(input: string): boolean {
-  const sqlPatterns = [
-    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE)\b)/i,
-    /(--|#|\/\*|\*\/)/,
-    /(\b(OR|AND)\s+\d+\s*=\s*\d+)/i,
-    /(\bUNION\s+SELECT\b)/i,
-  ];
-
-  return sqlPatterns.some((pattern) => pattern.test(input));
-}
-
-/**
  * XSS 패턴 검사
  */
 export function containsXss(input: string): boolean {
@@ -99,11 +84,6 @@ export function validateAndSanitize(
       valid: false,
       error: `최소 ${minLength}자 이상 입력해야 합니다.`,
     };
-  }
-
-  // SQL Injection 검사
-  if (containsSqlInjection(input)) {
-    return { valid: false, error: "허용되지 않은 문자가 포함되어 있습니다." };
   }
 
   // XSS 검사
