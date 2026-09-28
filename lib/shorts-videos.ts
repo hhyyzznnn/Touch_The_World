@@ -9,8 +9,8 @@ export interface ShortsVideo {
 
 export const SHORTS_VIDEOS: ShortsVideo[] = [
   {
-    youtubeUrl: "https://youtube.com/shorts/n5TdhrDEnPc?si=XPr0I6gmq0V7KWjd",
-    title: "2026 인천 교직원연수",
+    youtubeUrl: "https://youtube.com/shorts/Fe9GoP5j7IA",
+    title: "2026 일본 유학 성공 루틴",
   },
 ];
 
