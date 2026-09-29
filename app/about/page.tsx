@@ -257,21 +257,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-8 sm:py-10">
-        <div className="container mx-auto px-4">
-          <div className="relative aspect-[21/9] overflow-hidden rounded-2xl sm:aspect-[3/1]">
-            <Image
-              src="/images/image6.png"
-              alt="터치더월드와 함께하는 학생들"
-              fill
-              sizes="100vw"
-              priority
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </section>
-
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
