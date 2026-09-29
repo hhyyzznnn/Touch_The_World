@@ -287,13 +287,13 @@ export default function AboutPage() {
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-2xl border border-gray-200 bg-white p-6">
-              <div className="relative h-64 overflow-hidden rounded-xl bg-gray-50">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-gray-50">
                 <Image
                   src="https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUPcb8pGDLK5zYIDMjgva0ZRyACSolUQ39ePwx"
                   alt={`${ceo.name} ${ceo.title}`}
                   fill
                   sizes="(max-width: 1024px) 90vw, 400px"
-                  className="object-cover object-top"
+                  className="object-cover"
                 />
               </div>
               <p className="mt-4 text-sm text-text-gray">{ceo.name} | {ceo.title}</p>
