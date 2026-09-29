@@ -261,7 +261,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="relative aspect-[21/9] overflow-hidden rounded-2xl sm:aspect-[3/1]">
             <Image
-              src="/images/image2.png"
+              src="/images/image6.png"
               alt="터치더월드와 함께하는 학생들"
               fill
               sizes="100vw"
