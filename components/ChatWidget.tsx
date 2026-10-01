@@ -387,7 +387,7 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
 
       {/* 교사 혜택 프로모션 배너 */}
       <a
-        href="/programs/cardnews_hanatour_zeus_teacher_benefits_2026"
+        href="https://ttw.hanatour.com"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-between px-4 py-2 bg-brand-green/10 border-t border-brand-green/20 text-sm font-medium text-brand-green hover:bg-brand-green/15 transition-colors"
