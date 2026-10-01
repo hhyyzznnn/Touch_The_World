@@ -4,7 +4,7 @@ import { prisma } from "./prisma";
 import { Resend } from "resend";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
 import { sendPersonalizedRecommendationsIfOptedIn } from "./personalized-recommendations";
-import { getCategoryDetailKey, getCategoryKey } from "./category-utils";
+import { getCategoryDetailKey, getCategoryKey, getCategoryDisplayName } from "./category-utils";
 import { COMPANY_INFO } from "./constants";
 import type { Prisma } from "@prisma/client";
 
@@ -380,9 +380,16 @@ export async function searchPrograms(criteria: {
     const where: Prisma.ProgramWhereInput = {};
 
     // 카테고리 필터
+    // Program.category 컬럼에 "국내외교육여행"(표준 압축키)과 "국내외 교육여행"(띄어쓰기 포함)이
+    // 섞여 저장돼 있어("교사 연수" 등 다수 레거시 레코드 포함), 압축키로만 정확히 일치시키면
+    // 실제로 맞는 프로그램이 있어도 조용히 빠지는 경우가 많았다. 두 표기를 모두 매칭한다.
     const normalizedCategory = normalizeCategoryForSearch(criteria.category);
     if (normalizedCategory) {
-      where.category = normalizedCategory;
+      const displayFormCategory = getCategoryDisplayName(normalizedCategory);
+      where.category =
+        displayFormCategory !== normalizedCategory
+          ? { in: [normalizedCategory, displayFormCategory] }
+          : normalizedCategory;
     }
 
     // 지역 필터 (부분 일치)
