@@ -78,13 +78,18 @@ function extractContactInfo(messages: ChatRequestMessage[]): ExtractedContact {
   const nameMatch = userText.match(
     /(?:이름|성함|담당자)\s*(?:은|는|:)?\s*([가-힣A-Za-z]{2,20})/
   );
+  // "김민지이고"/"김민지입니다"처럼 이름 뒤에 서술격 조사가 공백 없이 붙어 캡처되는 경우를 정리
+  const contactName = nameMatch?.[1]?.replace(
+    /(이에요|이고요|입니다만|입니다|이고|이며|이야)$/,
+    ""
+  );
 
   return {
     contactEmail: emails?.[emails.length - 1]?.trim(),
     contactPhone: phones?.[phones.length - 1]
       ? normalizePhone(phones[phones.length - 1])
       : undefined,
-    contactName: nameMatch?.[1],
+    contactName,
   };
 }
 
@@ -105,7 +110,7 @@ function buildChatContext(
     Boolean(landingCategory) ||
     normalizedCategories.some((cat) => compactUserText.includes(cat)) ||
     /(수학여행|체험학습|교사연수|수련활동|교육여행|유학|취업|RISE|특성화고)/.test(userText);
-  const hasParticipantCount = /\b\d{1,4}\s*명\b/.test(userText);
+  const hasParticipantCount = /\d{1,4}\s*명/.test(userText);
   const hasRegion =
     /(서울|경기|인천|부산|대구|광주|대전|울산|세종|제주|강원|충북|충남|전북|전남|경북|경남|해외|일본|대만|싱가포르|베트남|중국|미국|유럽)/.test(
       userText
@@ -347,7 +352,7 @@ function extractFallbackLeadDetails(
       /(수학여행|체험학습|교사연수|수련활동|교육여행|해외 취업 및 유학|지자체 및 대학 RISE 사업|특성화고교 프로그램)/g
     );
 
-  const participantCountRaw = findLatestPattern(userText, /\b(\d{1,4})\s*명\b/g);
+  const participantCountRaw = findLatestPattern(userText, /(\d{1,4})\s*명/g);
   const participantCount = participantCountRaw
     ? Number(participantCountRaw.replace(/\D/g, ""))
     : undefined;
