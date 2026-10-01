@@ -4,9 +4,9 @@ import { prisma } from "./prisma";
 import { Resend } from "resend";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
 import { sendPersonalizedRecommendationsIfOptedIn } from "./personalized-recommendations";
-import { getCategoryDetailKey, getCategoryKey, getCategoryDisplayName } from "./category-utils";
 import { COMPANY_INFO } from "./constants";
-import type { Prisma } from "@prisma/client";
+import { PROGRAM_CATEGORIES, HASHTAG_REGIONS } from "./news-constants";
+import { CompanyNewsType, type Prisma } from "@prisma/client";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -47,35 +47,43 @@ function formatBudget(value?: number): string {
   return `${value.toLocaleString("ko-KR")}원`;
 }
 
-function normalizeCategoryForSearch(rawCategory?: string): string | undefined {
-  if (!rawCategory) return undefined;
+// searchPrograms가 실제로 검색하는 CompanyNews(PROGRAM_CARD_NEWS)는 lib/news-constants.ts의
+// 8개 공식 카테고리(PROGRAM_CATEGORIES)만 사용한다. 이건 예전 Program 테이블이 쓰던 카테고리
+// 체계(category-utils.ts, "특성화고교프로그램" 등)와 철자·구성이 다르게 갈라져 있어서 그대로
+// 재사용하면 또 다른 매칭 누락 버그가 생긴다 — 카드뉴스용으로 별도 매핑을 둔다.
+// AI/사용자가 보낸 문구가 8개 중 어디에도 확실히 안 맞으면 빈 배열을 반환해 카테고리 필터를
+// 생략하게 한다(틀린 카테고리로 단정해 0건을 만드는 것보다, 지역/목적만으로라도 찾는 게 안전).
+function normalizeCategoryForCardNews(rawCategory?: string): string[] {
+  if (!rawCategory) return [];
 
   const normalized = rawCategory.replace(/\s+/g, " ").trim();
-  if (!normalized) return undefined;
-
+  if (!normalized) return [];
   const compact = normalized.replace(/\s+/g, "");
 
-  const exactKey = getCategoryDetailKey(normalized);
-  if (exactKey) return exactKey;
+  const exact = PROGRAM_CATEGORIES.find(
+    (cat) => cat === normalized || cat.replace(/\s+/g, "") === compact
+  );
+  if (exact) return [exact];
 
-  const compactKey = getCategoryDetailKey(compact);
-  if (compactKey) return compactKey;
-
-  const displayKey = getCategoryKey(normalized);
-  if (displayKey) return displayKey;
-
-  if (compact.includes("체험학습")) return "체험학습";
-  if (compact.includes("국내외교육여행") || compact.includes("해외수학여행")) return "국내외교육여행";
-  if (compact.includes("수련활동")) return "수련활동";
-  if (compact.includes("교사연수")) return "교사연수";
-  if (compact.includes("해외취업") || compact.includes("유학")) return "해외취업및유학";
-  if (compact.includes("rise") || compact.includes("지자체") || compact.includes("대학")) {
-    return "지자체및대학RISE사업";
+  if (compact.includes("특성화고")) return ["특성화고 프로그램"];
+  if (compact.includes("유학")) return ["일본 유학"];
+  if (compact.includes("수련")) return ["수련활동"];
+  if (compact.includes("교사") || compact.includes("교직원") || compact.includes("연수")) {
+    return ["교사 연수"];
   }
-  if (compact.includes("특성화고")) return "특성화고교프로그램";
-  if (compact.includes("기타")) return "기타프로그램";
+  if (compact.includes("체험")) return ["체험학습"];
+  if (compact.includes("기타")) return ["기타 프로그램"];
 
-  return undefined;
+  const mentionsDomestic = compact.includes("국내");
+  const mentionsOverseas = compact.includes("국외") || compact.includes("해외");
+  if (mentionsDomestic && mentionsOverseas) return ["국내 교육여행", "국외 교육여행"];
+  if (mentionsOverseas) return ["국외 교육여행"];
+  if (mentionsDomestic) return ["국내 교육여행"];
+  if (compact.includes("교육여행") || compact.includes("수학여행")) {
+    return ["국내 교육여행", "국외 교육여행"];
+  }
+
+  return [];
 }
 
 function extractRegionTokens(rawRegion: string): string[] {
@@ -99,6 +107,28 @@ function extractRegionTokens(rawRegion: string): string[] {
     .filter((token) => token.length >= 2 && !stopwords.has(token));
 
   return Array.from(new Set(tokens));
+}
+
+// "힐링과 휴식", "역사 탐방이나 자연 체험"처럼 AI가 자연스러운 한국어 문구로 purpose를
+// 보내면, 전체 문구가 카드뉴스 본문에 토씨 하나 안 틀리고 그대로 있어야만 매칭되던 문제가
+// 있었다(참가 인원 재확인 버그와 같은 유형). 공백·구두점으로 나누고, 흔한 연결 조사
+// (이나/이며/및/또는/과/와/나)가 끝에 붙은 조각은 벗겨내 핵심 키워드 단위로도 매칭한다.
+function extractPurposeTokens(rawPurpose: string): string[] {
+  const normalized = rawPurpose.replace(/[·,\/]/g, " ").trim();
+  if (!normalized) return [];
+
+  const words = normalized.split(/\s+/).filter(Boolean);
+  const stripped = words.map((w) => w.replace(/(이나|이며|및|또는|과|와|나)$/, ""));
+
+  return Array.from(
+    new Set([...words, ...stripped].map((t) => t.trim()).filter((t) => t.length >= 2))
+  );
+}
+
+// 카드뉴스 hashtags(예: ["#일본", "#학생"])에서 지역 태그 하나를 골라 표시용 문자열로 변환.
+function extractDisplayRegion(hashtags: string[]): string | undefined {
+  const found = hashtags.find((tag) => HASHTAG_REGIONS.includes(tag.replace(/^#/, "") as (typeof HASHTAG_REGIONS)[number]));
+  return found?.replace(/^#/, "");
 }
 
 /**
@@ -367,6 +397,12 @@ ${categoryText}
 
 /**
  * 고객 요구사항에 맞는 프로그램 검색
+ *
+ * 2026-10-02: 예전엔 거의 관리되지 않는 레거시 Program 테이블(17건)을 검색하고 있었는데,
+ * 정작 /programs에서 방문자가 보는 실제 카탈로그는 CompanyNews(PROGRAM_CARD_NEWS)였다 —
+ * 챗봇이 추천하는 풀과 사이트에 실제로 올라와 있는 콘텐츠가 서로 다른 셈이었다.
+ * 이제 CompanyNews를 직접 검색한다. 이 테이블엔 가격/평점 필드가 없어 estimatedBudget은
+ * 더 이상 필터링에 쓰지 않는다(필요하면 상담 단계에서 사람이 직접 안내).
  */
 export async function searchPrograms(criteria: {
   category?: string;
@@ -377,107 +413,76 @@ export async function searchPrograms(criteria: {
   limit?: number;
 }) {
   try {
-    const where: Prisma.ProgramWhereInput = {};
+    const where: Prisma.CompanyNewsWhereInput = {
+      type: CompanyNewsType.PROGRAM_CARD_NEWS,
+    };
 
-    // 카테고리 필터
-    // Program.category 컬럼에 "국내외교육여행"(표준 압축키)과 "국내외 교육여행"(띄어쓰기 포함)이
-    // 섞여 저장돼 있어("교사 연수" 등 다수 레거시 레코드 포함), 압축키로만 정확히 일치시키면
-    // 실제로 맞는 프로그램이 있어도 조용히 빠지는 경우가 많았다. 두 표기를 모두 매칭한다.
-    const normalizedCategory = normalizeCategoryForSearch(criteria.category);
-    if (normalizedCategory) {
-      const displayFormCategory = getCategoryDisplayName(normalizedCategory);
-      where.category =
-        displayFormCategory !== normalizedCategory
-          ? { in: [normalizedCategory, displayFormCategory] }
-          : normalizedCategory;
+    // 카테고리 필터 — 8개 공식 카테고리 중 하나로 매핑되는 경우에만 적용.
+    // 애매한 문구는 아예 필터링하지 않고 지역/목적 조건만으로 찾는다(틀리게 단정해서
+    // 0건 만드는 것보다 안전).
+    const matchedCategories = normalizeCategoryForCardNews(criteria.category);
+    if (matchedCategories.length > 0) {
+      where.categories = { hasSome: matchedCategories };
     }
 
-    // 지역 필터 (부분 일치)
+    const andConditions: Prisma.CompanyNewsWhereInput[] = [];
+
+    // 지역 필터 — 해시태그(#서울 등) 우선, 보강으로 제목/요약 부분 일치도 함께 확인
     if (criteria.region) {
       const regionTokens = extractRegionTokens(criteria.region);
       const regionCandidates = regionTokens.length > 0 ? regionTokens : [criteria.region];
 
-      where.OR = regionCandidates.flatMap((candidate) => [
-        { region: { contains: candidate, mode: "insensitive" as const } },
-        { hashtags: { hasSome: [candidate] } },
-      ]);
+      andConditions.push({
+        OR: regionCandidates.flatMap((candidate) => [
+          { hashtags: { hasSome: [`#${candidate}`, candidate] } },
+          { title: { contains: candidate, mode: "insensitive" as const } },
+          { summary: { contains: candidate, mode: "insensitive" as const } },
+        ]),
+      });
     }
 
-    // 목적/성격 필터 (제목, 요약, 설명에서 검색)
+    // 목적/성격 필터 — 제목·요약뿐 아니라 본문(content, 실제 소개 문구가 풍부한 마크다운)까지 검색
     if (criteria.purpose) {
-      const purposeWhere: Prisma.ProgramWhereInput = {
-        OR: [
-          { title: { contains: criteria.purpose, mode: "insensitive" as const } },
-          { summary: { contains: criteria.purpose, mode: "insensitive" as const } },
-          { description: { contains: criteria.purpose, mode: "insensitive" as const } },
-        ],
-      };
-      
-      if (where.OR) {
-        // 이미 OR 조건이 있으면 AND로 결합
-        where.AND = [
-          { OR: where.OR },
-          purposeWhere,
-        ];
-        delete where.OR;
-      } else {
-        Object.assign(where, purposeWhere);
-      }
+      const purposeTokens = extractPurposeTokens(criteria.purpose);
+      const purposeCandidates = purposeTokens.length > 0 ? purposeTokens : [criteria.purpose];
+
+      andConditions.push({
+        OR: purposeCandidates.flatMap((candidate) => [
+          { title: { contains: candidate, mode: "insensitive" as const } },
+          { summary: { contains: candidate, mode: "insensitive" as const } },
+          { content: { contains: candidate, mode: "insensitive" as const } },
+        ]),
+      });
     }
 
-    // 예산 필터 (인원당 예산 계산)
-    if (criteria.estimatedBudget && criteria.participantCount) {
-      const budgetPerPerson = criteria.estimatedBudget / criteria.participantCount;
-      where.OR = where.OR || [];
-      where.OR.push(
-        { priceTo: { lte: budgetPerPerson * 1.2 } }, // 예산의 120% 이하
-        { priceFrom: { gte: budgetPerPerson * 0.8 } }, // 예산의 80% 이상
-        { AND: [
-          { priceFrom: { lte: budgetPerPerson * 1.2 } },
-          { priceTo: { gte: budgetPerPerson * 0.8 } },
-        ]}
-      );
-    } else if (criteria.estimatedBudget) {
-      // 인원 정보가 없으면 전체 예산으로 필터링
-      where.OR = where.OR || [];
-      where.OR.push(
-        { priceTo: { lte: criteria.estimatedBudget * 1.2 } },
-        { priceFrom: { gte: criteria.estimatedBudget * 0.8 } },
-      );
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
     }
 
-    const programs = await prisma.program.findMany({
+    const items = await prisma.companyNews.findMany({
       where,
-      include: {
-        images: {
-          take: 1,
-          orderBy: { createdAt: "asc" },
-        },
-      },
       take: criteria.limit || 5,
-      orderBy: [
-        { rating: "desc" },
-        { reviewCount: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     });
 
     return {
       success: true,
-      programs: programs.map((p) => ({
-        id: p.id,
-        title: p.title,
-        category: p.category,
-        summary: p.summary,
-        region: p.region,
-        priceFrom: p.priceFrom,
-        priceTo: p.priceTo,
-        rating: p.rating,
-        reviewCount: p.reviewCount,
-        thumbnailUrl: p.thumbnailUrl,
-        imageUrl: p.images[0]?.url,
+      programs: items.map((item) => ({
+        id: item.id,
+        title: item.title,
+        category: item.categories[0],
+        summary: item.summary ?? undefined,
+        region: extractDisplayRegion(item.hashtags),
+        // CompanyNews엔 가격/평점 데이터가 없음 — 아래 route.ts 포맷팅 로직이
+        // undefined/0을 "가격 문의"·"평점 없음"으로 안전하게 표시한다.
+        priceFrom: undefined as number | undefined,
+        priceTo: undefined as number | undefined,
+        rating: undefined as number | undefined,
+        reviewCount: 0,
+        thumbnailUrl: item.imageUrl ?? undefined,
+        imageUrl: item.imageUrl ?? undefined,
       })),
-      count: programs.length,
+      count: items.length,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

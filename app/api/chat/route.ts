@@ -619,7 +619,8 @@ export async function POST(request: NextRequest) {
         properties: {
           category: {
             type: "string",
-            description: "프로그램 카테고리 (예: 체험학습, 수련활동, 국내외교육여행 등)",
+            description:
+              "프로그램 카테고리. 다음 8개 중 하나로 보내세요: 국내 교육여행, 국외 교육여행, 체험학습, 수련활동, 교사 연수, 일본 유학, 특성화고 프로그램, 기타 프로그램",
           },
           region: {
             type: "string",
