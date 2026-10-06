@@ -57,7 +57,11 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/ttw_icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/ttw_icon.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
     apple: "/ttw_icon.png",
   },
   verification: {
