@@ -515,17 +515,17 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                 className="flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50 pl-2 pr-4 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 transition-colors"
               >
                 {item.logo === "hanatour" ? (
-                  <span className="flex h-6 w-11 items-center justify-center rounded-full bg-white">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white p-1">
                     <Image
-                      src="/logos/hanatour.png"
+                      src="/logos/hanatour-icon.png"
                       alt=""
-                      width={150}
-                      height={36}
-                      className="h-3 w-auto object-contain"
+                      width={256}
+                      height={256}
+                      className="h-full w-full object-contain"
                     />
                   </span>
                 ) : (
-                  <span className="flex h-6 w-10 items-center justify-center rounded-full bg-[#C9A227] text-[10px] font-extrabold tracking-wide text-white">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#C9A227] text-[8px] font-extrabold tracking-wide text-white">
                     ASO
                   </span>
                 )}

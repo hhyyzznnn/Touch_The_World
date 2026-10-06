@@ -57,8 +57,8 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/ttw_logo.png",
-    apple: "/ttw_logo.png",
+    icon: "/ttw_icon.png",
+    apple: "/ttw_icon.png",
   },
   verification: {
     ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
