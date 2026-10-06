@@ -21,10 +21,13 @@ const LOGIN_HISTORY_NOTICE =
   "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
 
 // 지금 확인하면 좋은 혜택성 프로그램 — 필요해지면 이 목록만 갱신하면 됩니다.
+// href가 http로 시작하면 제휴사 외부 링크로 새 탭에서 열립니다.
 const BENEFIT_HIGHLIGHTS = [
   { label: "포천 버스비 전액 지원", href: "/news/cardnews_pocheon_bus_subsidy_2026" },
   { label: "하나투어 교직원 혜택", href: "/news/cardnews_hanatour_teacher_benefits_2026" },
   { label: "인천 교육여행 지원사업", href: "/news/cardnews_incheon_edu_trip_support_2026" },
+  { label: "하나투어 제휴", href: "https://ttw.hanatour.com" },
+  { label: "아소전문학교그룹 제휴", href: "https://asojuku.ac.jp/japanese/kr/" },
 ] as const;
 
 function createSessionId(): string {
@@ -486,15 +489,26 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
             터치더월드가 단독 제공하는 혜택
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-          {BENEFIT_HIGHLIGHTS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm font-medium text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {BENEFIT_HIGHLIGHTS.map((item) => {
+            const isExternal = item.href.startsWith("http");
+            const pillClassName =
+              "rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm font-medium text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors";
+            return isExternal ? (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={pillClassName}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link key={item.href} href={item.href} className={pillClassName}>
+                {item.label}
+              </Link>
+            );
+          })}
           </div>
         </div>
       )}
