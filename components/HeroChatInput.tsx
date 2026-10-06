@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Send, X } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import {
@@ -21,13 +22,16 @@ const LOGIN_HISTORY_NOTICE =
   "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
 
 // 지금 확인하면 좋은 혜택성 프로그램 — 필요해지면 이 목록만 갱신하면 됩니다.
-// href가 http로 시작하면 제휴사 외부 링크로 새 탭에서 열립니다.
 const BENEFIT_HIGHLIGHTS = [
   { label: "포천 버스비 전액 지원", href: "/news/cardnews_pocheon_bus_subsidy_2026" },
   { label: "하나투어 교직원 혜택", href: "/news/cardnews_hanatour_teacher_benefits_2026" },
   { label: "인천 교육여행 지원사업", href: "/news/cardnews_incheon_edu_trip_support_2026" },
-  { label: "하나투어 제휴", href: "https://ttw.hanatour.com" },
-  { label: "아소전문학교그룹 제휴", href: "https://asojuku.ac.jp/japanese/kr/" },
+] as const;
+
+// 제휴사 링크 — 혜택 pill 바로 아래 줄에 로고와 함께 표시 (전부 외부 링크, 새 탭)
+const PARTNER_LINKS = [
+  { label: "하나투어 제휴", href: "https://ttw.hanatour.com", logo: "hanatour" as const },
+  { label: "아소전문학교그룹 제휴", href: "https://asojuku.ac.jp/japanese/kr/", logo: "aso" as const },
 ] as const;
 
 function createSessionId(): string {
@@ -489,26 +493,45 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
             터치더월드가 단독 제공하는 혜택
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-          {BENEFIT_HIGHLIGHTS.map((item) => {
-            const isExternal = item.href.startsWith("http");
-            const pillClassName =
-              "rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm font-medium text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors";
-            return isExternal ? (
+            {BENEFIT_HIGHLIGHTS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-full border border-brand-green-primary/30 bg-brand-green-primary/5 px-4 py-1.5 text-sm font-medium text-brand-green-primary hover:bg-brand-green-primary/10 transition-colors"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* 제휴사 링크 — 혜택 pill과 구분되도록 톤을 바꿔 아랫줄에 배치 */}
+          <div className="mt-2 flex flex-wrap justify-center gap-2">
+            {PARTNER_LINKS.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={pillClassName}
+                className="flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50 pl-2 pr-4 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 transition-colors"
               >
+                {item.logo === "hanatour" ? (
+                  <span className="flex h-6 w-11 items-center justify-center rounded-full bg-white">
+                    <Image
+                      src="/logos/hanatour.png"
+                      alt=""
+                      width={150}
+                      height={36}
+                      className="h-3 w-auto object-contain"
+                    />
+                  </span>
+                ) : (
+                  <span className="flex h-6 w-10 items-center justify-center rounded-full bg-[#C9A227] text-[10px] font-extrabold tracking-wide text-white">
+                    ASO
+                  </span>
+                )}
                 {item.label}
               </a>
-            ) : (
-              <Link key={item.href} href={item.href} className={pillClassName}>
-                {item.label}
-              </Link>
-            );
-          })}
+            ))}
           </div>
         </div>
       )}
