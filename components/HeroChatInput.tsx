@@ -31,7 +31,7 @@ const BENEFIT_HIGHLIGHTS = [
 // 제휴사 링크 — 혜택 pill 바로 아래 줄에 로고와 함께 표시 (전부 외부 링크, 새 탭)
 const PARTNER_LINKS = [
   { label: "하나투어 제휴", href: "https://ttw.hanatour.com", logo: "hanatour" as const },
-  { label: "아소전문학교그룹 제휴", href: "https://asojuku.ac.jp/japanese/kr/", logo: "aso" as const },
+  { label: "아소전문학교그룹 제휴", href: "https://www.asojuku.co.kr", logo: "aso" as const },
 ] as const;
 
 function createSessionId(): string {
