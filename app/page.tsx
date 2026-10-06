@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
-import { List, Shield, Lightbulb, Settings, ChevronRight } from "lucide-react";
+import { List, Shield, Lightbulb, Settings, ChevronRight, ExternalLink } from "lucide-react";
 import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButton";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
@@ -385,6 +385,37 @@ export default async function HomePage() {
           <h2 className="text-lg sm:text-xl font-medium text-text-dark">함께한 학교들</h2>
         </div>
         <SchoolLogoMarquee />
+
+        <div className="container mx-auto px-4 mt-8 sm:mt-10">
+          <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {[
+              {
+                name: "하나투어 제우스",
+                desc: "교사·교사가족 전용 프리미엄 여행 혜택",
+                href: "https://ttw.hanatour.com",
+              },
+              {
+                name: "아소전문학교그룹",
+                desc: "특성화고 일본 유학 MOU 협약 — 일본어과 안내",
+                href: "https://asojuku.ac.jp/japanese/kr/",
+              },
+            ].map(({ name, desc, href }) => (
+              <a
+                key={name}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3.5 sm:px-5 sm:py-4 hover:border-brand-green/30 hover:shadow-sm transition-all"
+              >
+                <div>
+                  <p className="text-sm sm:text-base font-medium text-text-dark">{name}</p>
+                  <p className="text-xs sm:text-sm text-text-gray mt-0.5">{desc}</p>
+                </div>
+                <ExternalLink className="w-4 h-4 text-text-gray group-hover:text-brand-green shrink-0 transition-colors" />
+              </a>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ── 최근 행사 ── */}
