@@ -252,6 +252,12 @@ export function InquiryForm({
     }
   };
 
+  // 오류 문구가 붙지 않는 항목에서 검증이 막혀도 "눌러도 반응 없음"이 되지 않도록 항상 알린다.
+  const onInvalid = () => {
+    toast.error("입력 내용을 다시 확인해주세요.");
+    document.querySelector("form .text-red-500.text-sm")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   if (isSuccess) {
     return (
       <div className="container mx-auto px-4 py-12">
@@ -388,7 +394,7 @@ export function InquiryForm({
           />
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-10">
 
           {/* ── 카테고리 1: 기본 정보 ── */}
           <div className={sectionClass}>

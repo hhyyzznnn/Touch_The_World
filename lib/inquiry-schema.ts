@@ -30,10 +30,15 @@ export const inquirySchema = z.object({
   // 카테고리 3: 여행 형태 및 선호도
   destination: z.string().optional(),
   purpose: z.string().optional(),
-  preferredTransport: z.string().optional(),
+  // 라디오 버튼은 아무것도 고르지 않으면 값이 null로 들어온다. null을 막으면 화면에 오류 표시도
+  // 없이 제출 자체가 안 되므로(상세 문의가 조용히 접수 실패하던 원인) 선택 안 함으로 받아준다.
+  preferredTransport: z
+    .string()
+    .nullish()
+    .transform((val) => val ?? undefined),
   hasInstructor: z
     .string()
-    .optional()
+    .nullish()
     .transform((val) => (val === "true" ? true : val === "false" ? false : undefined)),
   localTransport: z.string().optional(),
 
@@ -55,7 +60,7 @@ export const inquirySchema = z.object({
   insurance: z.string().optional(),
   safetyStaff: z
     .string()
-    .optional()
+    .nullish()
     .transform((val) => (val === "true" ? true : val === "false" ? false : undefined)),
   specialRequests: z.string().optional(),
   rainPlan: z.string().optional(),
