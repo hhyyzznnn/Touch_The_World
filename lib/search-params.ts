@@ -4,6 +4,7 @@ export const SEARCH_PAGINATION_PARAM_KEYS = [
   "eventPage",
   "schoolPage",
   "achievementPage",
+  "postPage",
 ] as const;
 
 export function parsePositivePageParam(value?: string): number {

@@ -11,6 +11,9 @@ import { SearchBar } from "@/components/SearchBar";
 import { Pagination } from "@/components/Pagination";
 import type { ProgramWhereInput, EventWhereInput, SchoolWhereInput, AchievementWhereInput } from "@/types";
 import { parsePositivePageParam } from "@/lib/search-params";
+import { stripBrandFromTitle } from "@/lib/news-utils";
+import { PROGRAM_CATEGORIES as NEWS_CATEGORIES } from "@/lib/news-constants";
+import type { Prisma } from "@prisma/client";
 
 interface SearchFilters {
   category?: string;
@@ -32,6 +35,78 @@ export const metadata: Metadata = {
 
 // 페이지 재검증 시간 설정 (5분 - 검색 결과는 자주 변경될 수 있음)
 export const revalidate = 300;
+
+/**
+ * 홈페이지 게시물(카드뉴스·회사 소식) 검색.
+ * 방문자가 프로그램 메뉴에서 실제로 보는 콘텐츠는 이 게시물들이라, 검색에서 빠지면
+ * "포천", "하나투어"처럼 게시물에만 있는 내용은 결과가 0건으로 나온다.
+ */
+async function searchPosts(query: string, filters: SearchFilters, page: number) {
+  const tokens = query.trim().split(/\s+/).filter(Boolean);
+  const hasFilters = Boolean(filters.category || filters.region || filters.hashtag);
+  // 게시물에는 가격 정보가 없으므로 가격 조건이 걸리면 결과에서 제외한다.
+  if ((tokens.length === 0 && !hasFilters) || filters.priceMin || filters.priceMax) {
+    return { posts: [], totalPosts: 0 };
+  }
+
+  const contains = (value: string) => ({ contains: value, mode: "insensitive" as const });
+  const and: Prisma.CompanyNewsWhereInput[] = tokens.map((token) => ({
+    // "인천 체험학습"처럼 여러 단어를 넣으면 단어마다 어딘가에는 들어 있어야 한다.
+    OR: [
+      { title: contains(token) },
+      { summary: contains(token) },
+      { content: contains(token) },
+      { hashtags: { hasSome: [token, `#${token}`] } },
+      { categories: { has: token } },
+    ],
+  }));
+
+  if (filters.category) {
+    // 필터는 "국내교육여행"처럼 공백 없는 키를 쓰고, 게시물은 "국내 교육여행"으로 저장돼 있다.
+    const compact = (value: string) => value.replace(/\s+/g, "").replace("고교", "고");
+    const matched = NEWS_CATEGORIES.filter((cat) => compact(cat) === compact(filters.category!));
+    and.push({ categories: { hasSome: matched.length > 0 ? [...matched] : [filters.category] } });
+  }
+  if (filters.region) {
+    and.push({
+      OR: [
+        { hashtags: { hasSome: [filters.region, `#${filters.region}`] } },
+        { title: contains(filters.region) },
+        { summary: contains(filters.region) },
+      ],
+    });
+  }
+  if (filters.hashtag) {
+    const tag = filters.hashtag.replace(/^#/, "");
+    and.push({ hashtags: { hasSome: [tag, `#${tag}`] } });
+  }
+
+  const matches = await prisma.companyNews.findMany({
+    where: { AND: and },
+    select: { id: true, title: true, summary: true, imageUrl: true, categories: true, hashtags: true, link: true },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+  });
+
+  // 본문 어딘가에 단어가 스친 글보다 제목·태그에 검색어가 있는 글이 먼저 나오도록 정렬한다.
+  // (게시물이 수백 건 규모라 전부 가져와 메모리에서 정렬·페이지 분할해도 부담이 없다.)
+  const relevance = (post: (typeof matches)[number]) =>
+    tokens.reduce((score, token) => {
+      const t = token.toLowerCase();
+      if (post.title.toLowerCase().includes(t)) return score + 3;
+      if ([...post.hashtags, ...post.categories].some((tag) => tag.toLowerCase().includes(t))) return score + 2;
+      if (post.summary?.toLowerCase().includes(t)) return score + 1;
+      return score;
+    }, 0);
+  const ranked = matches
+    .map((post, index) => ({ post, index, score: relevance(post) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map((entry) => entry.post)
+    // 같은 글이 회사 소식과 카드뉴스 양쪽에 등록된 경우 한 번만 보여준다.
+    .filter((post, index, all) => all.findIndex((other) => other.title === post.title) === index);
+
+  const start = (page - 1) * ITEMS_PER_TYPE;
+  return { posts: ranked.slice(start, start + ITEMS_PER_TYPE), totalPosts: ranked.length };
+}
 
 async function searchAll(
   query: string,
@@ -121,6 +196,21 @@ async function searchAll(
       schools: [],
       achievements: [],
       totalPrograms,
+      totalEvents: 0,
+      totalSchools: 0,
+      totalAchievements: 0,
+    };
+  }
+
+  // 카테고리·지역·가격 필터는 행사·학교·실적에는 적용할 수 없다. 검색어 없이 필터만 걸었을 때
+  // 조건 없는 전체 목록이 결과로 섞여 나오지 않도록 이 유형들은 검색어가 있을 때만 조회한다.
+  if (!hasQuery) {
+    return {
+      programs: [],
+      events: [],
+      schools: [],
+      achievements: [],
+      totalPrograms: 0,
       totalEvents: 0,
       totalSchools: 0,
       totalAchievements: 0,
@@ -261,6 +351,7 @@ export default async function SearchPage({
     eventPage?: string;
     schoolPage?: string;
     achievementPage?: string;
+    postPage?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -269,6 +360,7 @@ export default async function SearchPage({
   const eventPage = parsePositivePageParam(params.eventPage);
   const schoolPage = parsePositivePageParam(params.schoolPage);
   const achievementPage = parsePositivePageParam(params.achievementPage);
+  const postPage = parsePositivePageParam(params.postPage);
   
   const filters: SearchFilters = {
     category: params.category,
@@ -279,7 +371,8 @@ export default async function SearchPage({
   };
   
   // 각 타입별로 독립적으로 검색
-  const [programResults, eventResults, schoolResults, achievementResults] = await Promise.all([
+  const [postResults, programResults, eventResults, schoolResults, achievementResults] = await Promise.all([
+    searchPosts(query, filters, postPage),
     searchAll(query, filters, programPage, "programs"),
     searchAll(query, filters, eventPage, "events"),
     searchAll(query, filters, schoolPage, "schools"),
@@ -298,6 +391,7 @@ export default async function SearchPage({
   };
 
   const totalResults =
+    postResults.totalPosts +
     results.totalPrograms +
     results.totalEvents +
     results.totalSchools +
@@ -336,6 +430,64 @@ export default async function SearchPage({
         </div>
       ) : (
         <div className="space-y-12">
+          {/* 게시물(카드뉴스·소식) 결과 */}
+          {postResults.totalPosts > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-text-dark">
+                  카드뉴스·소식 ({postResults.totalPosts})
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {postResults.posts.map((post) => {
+                  const externalLink = post.link?.trim();
+                  const isExternal = !!externalLink?.startsWith("http");
+                  return (
+                    <Link
+                      key={post.id}
+                      href={externalLink || `/news/${post.id}`}
+                      target={isExternal ? "_blank" : undefined}
+                      rel={isExternal ? "noopener noreferrer" : undefined}
+                      className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+                    >
+                      <div className="relative aspect-[3/4] bg-gray-50">
+                        {post.imageUrl && (
+                          <Image
+                            src={post.imageUrl}
+                            alt={post.title}
+                            fill
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
+                          />
+                        )}
+                      </div>
+                      <div className="p-3 sm:p-4">
+                        {post.categories.length > 0 && (
+                          <p className="mb-1 text-xs text-brand-green-primary">{post.categories.join(" · ")}</p>
+                        )}
+                        <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">
+                          {stripBrandFromTitle(post.title)}
+                        </p>
+                        {post.summary && (
+                          <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{post.summary}</p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+              {postResults.totalPosts > ITEMS_PER_TYPE && (
+                <Pagination
+                  currentPage={postPage}
+                  totalPages={Math.ceil(postResults.totalPosts / ITEMS_PER_TYPE)}
+                  baseUrl="/search"
+                  searchParams={params}
+                  pageParamName="postPage"
+                />
+              )}
+            </section>
+          )}
+
           {/* 프로그램 결과 */}
           {results.totalPrograms > 0 && (
             <section>
