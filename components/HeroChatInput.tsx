@@ -18,9 +18,6 @@ interface HeroChatInputProps {
   initialCategory?: string;
 }
 
-const LOGIN_HISTORY_NOTICE =
-  "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
-
 // 지금 확인하면 좋은 혜택성 프로그램 — 필요해지면 이 목록만 갱신하면 됩니다.
 const BENEFIT_HIGHLIGHTS = [
   { label: "포천 버스비 전액 지원", href: "/news/cardnews_pocheon_bus_subsidy_2026" },
@@ -48,7 +45,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string>(createSessionId);
   const landingCategoryRef = useRef<string | undefined>(landingCategory);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -60,15 +56,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     try {
       const errorData = await response.json();
       errorMessage = errorData?.error || errorMessage;
-      if (typeof errorData?.meta?.dailyRemaining === "number") {
-        setDailyRemaining(errorData.meta.dailyRemaining);
-      }
-      if (errorData?.requiresLogin) {
-        const loginNotice = errorData?.loginNotice || LOGIN_HISTORY_NOTICE;
-        if (!errorMessage.includes(loginNotice)) {
-          errorMessage = `${errorMessage}\n\n${loginNotice}`;
-        }
-      }
     } catch {
       // ignore json parse error
     }
@@ -211,9 +198,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       }
 
       const data = await response.json();
-      if (typeof data?.meta?.dailyRemaining === "number") {
-        setDailyRemaining(data.meta.dailyRemaining);
-      }
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -284,9 +268,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       }
 
       const data = await response.json();
-      if (typeof data?.meta?.dailyRemaining === "number") {
-        setDailyRemaining(data.meta.dailyRemaining);
-      }
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -321,22 +302,9 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       ? "메시지를 입력하세요..."
       : "메시지를 입력하거나 카테고리를 선택하세요"
     : "AI에게 질문해보세요";
-  const shouldShowLoginPrompt = typeof dailyRemaining === "number" && dailyRemaining <= 2;
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      {!userId && authLoaded && typeof dailyRemaining === "number" && (
-        <div className="mb-2 px-2 text-left">
-          <p className="text-xs text-text-gray leading-relaxed">
-            {`비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회)`}
-          </p>
-          {shouldShowLoginPrompt && (
-            <p className="text-xs text-amber-700 leading-relaxed">
-              남은 횟수가 적습니다. 로그인하면 한도가 확장됩니다.
-            </p>
-          )}
-        </div>
-      )}
       {/* Input Container */}
       <form onSubmit={handleSubmit}>
         <div 

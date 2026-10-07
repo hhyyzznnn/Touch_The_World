@@ -17,9 +17,6 @@ const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4o-mini";
 const DEFAULT_SERVICE_CTA =
   "원하시면 지금 바로 상담 접수를 도와드릴게요. 인원, 희망 지역, 이동수단(전세버스/KTX/항공) 중 가능한 항목부터 알려주세요.";
 
-const LOGIN_HISTORY_NOTICE =
-  "로그인하면 대화 내용이 저장되어 상담을 이어볼 수 있고, 비로그인 한도(일 5회)도 해제됩니다.";
-
 const hasActionPrompt = (text: string): boolean =>
   /(문의|접수|견적|연락|진행|재검색|조건|선택|알려주시면|말씀해주시면)/.test(text);
 
@@ -304,20 +301,13 @@ function toOpenAIMessage(
   };
 }
 
-const ANON_DAILY_CHAT_LIMIT = 5;
 const USER_DAILY_CHAT_LIMIT = 120;
 const AUTO_LEAD_DUPLICATE_WINDOW_MS = 60 * 60 * 1000;
 
-function getChatMeta(
-  isAuthenticated: boolean,
-  dailyLimit: number,
-  dailyRemaining: number
-) {
+function getChatMeta(isAuthenticated: boolean) {
   return {
     isAuthenticated,
     historyEnabled: isAuthenticated,
-    dailyLimit,
-    dailyRemaining,
   };
 }
 
@@ -550,38 +540,25 @@ export async function POST(request: NextRequest) {
     const { messages, sessionId, landingCategory } = parsedBody.data;
     const currentUser = await getCurrentUser();
     const isAuthenticated = Boolean(currentUser?.id);
-    const dailyLimit = isAuthenticated ? USER_DAILY_CHAT_LIMIT : ANON_DAILY_CHAT_LIMIT;
-    const dailyRateLimitKey = isAuthenticated
-      ? `chat:daily:user:${currentUser!.id}`
-      : `chat:daily:anon:${clientIP}`;
-    const dailyRateLimit = await checkRateLimit(
-      dailyRateLimitKey,
-      dailyLimit,
-      24 * 60 * 60 * 1000
-    );
-
-    if (!dailyRateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: isAuthenticated
-            ? "오늘 AI 상담 사용 한도에 도달했습니다. 내일 다시 시도해주세요."
-            : "비로그인 일일 상담 한도(5회)에 도달했습니다. 로그인하면 지금까지의 상담 맥락을 이어서 계속 진행할 수 있습니다.",
-          requiresLogin: !isAuthenticated,
-          ...(isAuthenticated
-            ? {}
-            : {
-                loginNotice: LOGIN_HISTORY_NOTICE,
-              }),
-          retryAfter: Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000),
-          meta: getChatMeta(isAuthenticated, dailyLimit, 0),
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
+    // 비로그인은 일일 횟수 제한 없음 — 남용 방지는 위의 IP당 분당 제한(30회)만 적용된다.
+    if (isAuthenticated) {
+      const dailyRateLimit = await checkRateLimit(
+        `chat:daily:user:${currentUser!.id}`,
+        USER_DAILY_CHAT_LIMIT,
+        24 * 60 * 60 * 1000
       );
+
+      if (!dailyRateLimit.allowed) {
+        const retryAfter = Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000);
+        return NextResponse.json(
+          {
+            error: "오늘 AI 상담 사용 한도에 도달했습니다. 내일 다시 시도해주세요.",
+            retryAfter,
+            meta: getChatMeta(isAuthenticated),
+          },
+          { status: 429, headers: { "Retry-After": retryAfter.toString() } }
+        );
+      }
     }
 
     // 비로그인도 현재 세션 맥락을 유지할 수 있도록 최근 대화를 제한적으로 포함
@@ -597,7 +574,7 @@ export async function POST(request: NextRequest) {
           content: "네, 카테고리를 다시 보여드릴게요. 아래 버튼에서 원하시는 프로그램 유형을 선택해주세요.",
           showCategoryButtons: true,
         },
-        meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
+        meta: getChatMeta(isAuthenticated),
       });
     }
 
@@ -821,7 +798,7 @@ export async function POST(request: NextRequest) {
               name: functionName,
               result: { count: searchResult.count, programs: searchResult.programs },
             },
-            meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
+            meta: getChatMeta(isAuthenticated),
           });
         } else {
           const responseContent = withServiceGuidance(
@@ -850,7 +827,7 @@ export async function POST(request: NextRequest) {
               name: functionName,
               result: { count: 0, programs: [] },
             },
-            meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
+            meta: getChatMeta(isAuthenticated),
           });
         }
       } else if (functionName === "saveConsultingLog") {
@@ -965,7 +942,7 @@ export async function POST(request: NextRequest) {
               inquiryConversionResult,
             },
           },
-          meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
+          meta: getChatMeta(isAuthenticated),
         });
       }
     }
@@ -993,7 +970,7 @@ export async function POST(request: NextRequest) {
         content: responseContent,
         showCategoryButtons: false,
       },
-      meta: getChatMeta(isAuthenticated, dailyLimit, dailyRateLimit.remaining),
+      meta: getChatMeta(isAuthenticated),
     });
   } catch (error) {
     console.error("Chat API 오류:", error);

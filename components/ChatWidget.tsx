@@ -18,9 +18,6 @@ interface Message {
   showCategoryButtons?: boolean;
 }
 
-const LOGIN_HISTORY_NOTICE =
-  "로그인하면 대화 저장 및 이어보기를 사용할 수 있습니다.";
-
 // ChatMessage와 Message 타입 호환
 const toMessage = (msg: ChatMessage): Message => ({
   id: msg.id,
@@ -65,7 +62,6 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
   const [userId, setUserId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [dailyRemaining, setDailyRemaining] = useState<number | null>(null);
   const [sessionId, setSessionId] = useState<string>(createSessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,15 +71,6 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
     try {
       const errorData = await response.json();
       errorMessage = errorData?.error || errorMessage;
-      if (typeof errorData?.meta?.dailyRemaining === "number") {
-        setDailyRemaining(errorData.meta.dailyRemaining);
-      }
-      if (errorData?.requiresLogin) {
-        const loginNotice = errorData?.loginNotice || LOGIN_HISTORY_NOTICE;
-        if (!errorMessage.includes(loginNotice)) {
-          errorMessage = `${errorMessage}\n\n${loginNotice}`;
-        }
-      }
     } catch {
       // ignore json parse error
     }
@@ -251,9 +238,6 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
       }
 
       const data = await response.json();
-      if (typeof data?.meta?.dailyRemaining === "number") {
-        setDailyRemaining(data.meta.dailyRemaining);
-      }
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -401,16 +385,9 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
         {!userId && authLoaded && (
           <div className="mb-2 space-y-1">
             <p className="text-xs text-text-gray">
-              {typeof dailyRemaining === "number"
-                ? `비로그인 상담 남은 횟수: ${dailyRemaining}회 (일 5회). 현재 창에서는 대화 맥락이 유지됩니다.`
-                : "비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다. 브라우저 종료 시 기록은 사라집니다."}
+              비로그인 상태에서도 현재 창에서는 대화 맥락이 유지됩니다. 브라우저 종료 시 기록은 사라집니다.
             </p>
-            <p className="text-xs text-text-gray">로그인하면 대화 저장/이어보기와 한도 확장으로 상담을 끊김 없이 진행할 수 있습니다.</p>
-            {typeof dailyRemaining === "number" && dailyRemaining <= 2 && (
-              <p className="text-xs text-amber-700">
-                남은 횟수가 적습니다. 상담을 이어가려면 로그인 후 진행하는 것을 권장드립니다.
-              </p>
-            )}
+            <p className="text-xs text-text-gray">로그인하면 대화 저장/이어보기로 상담을 끊김 없이 진행할 수 있습니다.</p>
           </div>
         )}
         <div className="flex gap-2">
