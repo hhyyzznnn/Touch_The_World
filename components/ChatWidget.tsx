@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Minimize2 } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
+import { ChatMessageText } from "@/components/ChatMessageText";
 import {
   loadChatMessages,
   saveChatMessages,
@@ -322,7 +323,7 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
                     : "bg-gray-100 text-gray-900"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <ChatMessageText content={message.content} className="text-sm whitespace-pre-wrap" />
                 <p className="text-xs mt-1 opacity-70">
                   {message.timestamp.toLocaleTimeString("ko-KR", {
                     hour: "2-digit",

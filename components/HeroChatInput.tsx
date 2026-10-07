@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Send, X } from "lucide-react";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
+import { ChatMessageText } from "@/components/ChatMessageText";
 import {
   saveChatMessages,
   loadChatMessages,
@@ -377,7 +378,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                               : "bg-gray-100 text-gray-900"
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap text-left">{message.content}</p>
+                          <ChatMessageText content={message.content} className="text-sm whitespace-pre-wrap text-left" />
                           <p className="text-xs mt-1 opacity-70 text-left">
                             {message.timestamp.toLocaleTimeString("ko-KR", {
                               hour: "2-digit",
