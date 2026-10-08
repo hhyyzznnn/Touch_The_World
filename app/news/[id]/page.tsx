@@ -313,7 +313,7 @@ export default async function NewsDetailPage({
           {news.endDate && isEnded(news.endDate) && (
             <p className="mb-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-text-gray">
               이 안내는 {formatEndDate(news.endDate)}에 신청·운영 기간이 종료되었습니다. 현재 가능한 프로그램은{" "}
-              <a href="/inquiry" className="font-medium text-brand-green-primary underline">문의</a>로 안내해드립니다.
+              <Link href="/inquiry" className="font-medium text-brand-green-primary underline">문의</Link>로 안내해드립니다.
             </p>
           )}
           {linkedProgram && linkedProgram.reviewCount > 0 ? (
