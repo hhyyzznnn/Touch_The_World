@@ -46,3 +46,20 @@ test("문의 스키마는 email만 있어도 통과하고 숫자 필드를 변�
     assert.equal(result.data.hasInstructor, true);
   }
 });
+
+test("문의 스키마는 선택하지 않은 라디오 항목(null)이 있어도 통과한다", () => {
+  const result = inquirySchema.safeParse({
+    ...baseInquiryInput,
+    phone: "010-1234-5678",
+    preferredTransport: null,
+    hasInstructor: null,
+    safetyStaff: null,
+  });
+
+  assert.equal(result.success, true);
+  if (result.success) {
+    assert.equal(result.data.preferredTransport, undefined);
+    assert.equal(result.data.hasInstructor, undefined);
+    assert.equal(result.data.safetyStaff, undefined);
+  }
+});

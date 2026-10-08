@@ -18,15 +18,11 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
   
   const [category, setCategory] = useState(searchParams.get("category") || "");
   const [region, setRegion] = useState(searchParams.get("region") || "");
-  const [priceMin, setPriceMin] = useState(searchParams.get("priceMin") || "");
-  const [priceMax, setPriceMax] = useState(searchParams.get("priceMax") || "");
   const [hashtag, setHashtag] = useState(searchParams.get("hashtag") || "");
 
   useEffect(() => {
     setCategory(searchParams.get("category") || "");
     setRegion(searchParams.get("region") || "");
-    setPriceMin(searchParams.get("priceMin") || "");
-    setPriceMax(searchParams.get("priceMax") || "");
     setHashtag(searchParams.get("hashtag") || "");
   }, [searchParams]);
 
@@ -46,12 +42,6 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
     if (region) params.set("region", region);
     else params.delete("region");
     
-    if (priceMin) params.set("priceMin", priceMin);
-    else params.delete("priceMin");
-    
-    if (priceMax) params.set("priceMax", priceMax);
-    else params.delete("priceMax");
-    
     if (hashtag) params.set("hashtag", hashtag);
     else params.delete("hashtag");
 
@@ -63,16 +53,12 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
   const handleReset = () => {
     setCategory("");
     setRegion("");
-    setPriceMin("");
-    setPriceMax("");
     setHashtag("");
     
     const params = new URLSearchParams(searchParams.toString());
     resetSearchPaginationParams(params);
     params.delete("category");
     params.delete("region");
-    params.delete("priceMin");
-    params.delete("priceMax");
     params.delete("hashtag");
     
     const queryString = params.toString();
@@ -138,30 +124,6 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
         </select>
       </div>
 
-      {/* 가격 범위 */}
-      <div>
-        <label className="block text-sm font-medium text-text-dark mb-2">
-          가격 범위 (원)
-        </label>
-        <div className="flex gap-2">
-          <input
-            type="number"
-            value={priceMin}
-            onChange={(e) => setPriceMin(e.target.value)}
-            placeholder="최소"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-          />
-          <span className="self-center text-text-gray">~</span>
-          <input
-            type="number"
-            value={priceMax}
-            onChange={(e) => setPriceMax(e.target.value)}
-            placeholder="최대"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
-          />
-        </div>
-      </div>
-
       {/* 해시태그 */}
       <div>
         <label className="block text-sm font-medium text-text-dark mb-2">
@@ -171,7 +133,7 @@ export function AdvancedSearchFilters({ onClose }: AdvancedSearchFiltersProps) {
           type="text"
           value={hashtag}
           onChange={(e) => setHashtag(e.target.value)}
-          placeholder="예: 진주, 통영"
+          placeholder="예: 인천, 교사, 특성화고"
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary focus:border-brand-green-primary"
         />
       </div>

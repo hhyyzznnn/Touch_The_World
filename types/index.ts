@@ -66,9 +66,3 @@ export interface UserStatsData {
     };
   }>;
 }
-
-// Prisma Where 타입 유틸리티
-export type ProgramWhereInput = Prisma.ProgramWhereInput;
-export type EventWhereInput = Prisma.EventWhereInput;
-export type SchoolWhereInput = Prisma.SchoolWhereInput;
-export type AchievementWhereInput = Prisma.AchievementWhereInput;

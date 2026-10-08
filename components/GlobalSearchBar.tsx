@@ -159,7 +159,7 @@ export function GlobalSearchBar() {
                 setShowSuggestions(true);
               }
             }}
-            placeholder="상품, 진행 내역, 학교 검색..."
+            placeholder="프로그램, 진행 내역, 학교 검색..."
             className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent text-text-dark text-sm"
             aria-label="검색어 입력"
             aria-autocomplete="list"

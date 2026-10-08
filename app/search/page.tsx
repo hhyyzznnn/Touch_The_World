@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
-import { ProgramCard } from "@/components/programs/ProgramCard";
 import Link from "next/link";
 import Image from "next/image";
 import { getEventThumbnailUrl, getEventThumbnailPosition } from "@/lib/event-utils";
@@ -9,8 +8,8 @@ import type { Metadata } from "next";
 import { AdvancedSearchFilters } from "@/components/AdvancedSearchFilters";
 import { SearchBar } from "@/components/SearchBar";
 import { Pagination } from "@/components/Pagination";
-import type { ProgramWhereInput, EventWhereInput, SchoolWhereInput, AchievementWhereInput } from "@/types";
 import { parsePositivePageParam } from "@/lib/search-params";
+import { rankPosts } from "@/lib/post-search";
 import { isEnded, stripBrandFromTitle } from "@/lib/news-utils";
 import { PROGRAM_CATEGORIES as NEWS_CATEGORIES } from "@/lib/news-constants";
 import type { Prisma } from "@prisma/client";
@@ -18,8 +17,6 @@ import type { Prisma } from "@prisma/client";
 interface SearchFilters {
   category?: string;
   region?: string;
-  priceMin?: string;
-  priceMax?: string;
   hashtag?: string;
 }
 
@@ -36,6 +33,8 @@ export const metadata: Metadata = {
 // 페이지 재검증 시간 설정 (5분 - 검색 결과는 자주 변경될 수 있음)
 export const revalidate = 300;
 
+const contains = (value: string) => ({ contains: value, mode: "insensitive" as const });
+
 /**
  * 홈페이지 게시물(카드뉴스·회사 소식) 검색.
  * 방문자가 프로그램 메뉴에서 실제로 보는 콘텐츠는 이 게시물들이라, 검색에서 빠지면
@@ -44,12 +43,10 @@ export const revalidate = 300;
 async function searchPosts(query: string, filters: SearchFilters, page: number) {
   const tokens = query.trim().split(/\s+/).filter(Boolean);
   const hasFilters = Boolean(filters.category || filters.region || filters.hashtag);
-  // 게시물에는 가격 정보가 없으므로 가격 조건이 걸리면 결과에서 제외한다.
-  if ((tokens.length === 0 && !hasFilters) || filters.priceMin || filters.priceMax) {
+  if (tokens.length === 0 && !hasFilters) {
     return { posts: [], totalPosts: 0 };
   }
 
-  const contains = (value: string) => ({ contains: value, mode: "insensitive" as const });
   const and: Prisma.CompanyNewsWhereInput[] = tokens.map((token) => ({
     // "인천 체험학습"처럼 여러 단어를 넣으면 단어마다 어딘가에는 들어 있어야 한다.
     OR: [
@@ -87,253 +84,72 @@ async function searchPosts(query: string, filters: SearchFilters, page: number) 
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
   });
 
-  // 본문 어딘가에 단어가 스친 글보다 제목·태그에 검색어가 있는 글이 먼저 나오도록 정렬한다.
-  // (게시물이 수백 건 규모라 전부 가져와 메모리에서 정렬·페이지 분할해도 부담이 없다.)
-  const relevance = (post: (typeof matches)[number]) =>
-    tokens.reduce((score, token) => {
-      const t = token.toLowerCase();
-      if (post.title.toLowerCase().includes(t)) return score + 3;
-      if ([...post.hashtags, ...post.categories].some((tag) => tag.toLowerCase().includes(t))) return score + 2;
-      if (post.summary?.toLowerCase().includes(t)) return score + 1;
-      return score;
-    }, 0);
-  const ranked = matches
-    .map((post, index) => ({ post, index, score: relevance(post) }))
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .map((entry) => entry.post)
-    // 같은 글이 회사 소식과 카드뉴스 양쪽에 등록된 경우 한 번만 보여준다.
-    .filter((post, index, all) => all.findIndex((other) => other.title === post.title) === index);
+  const ranked = rankPosts(matches, tokens);
 
   const start = (page - 1) * ITEMS_PER_TYPE;
   return { posts: ranked.slice(start, start + ITEMS_PER_TYPE), totalPosts: ranked.length };
 }
 
-async function searchAll(
+/**
+ * 진행 내역(행사)·학교·사업 실적 검색. 카테고리·지역 필터는 이 유형들에 적용할 수 없으므로
+ * 검색어가 있을 때만 조회한다(필터만 걸었을 때 조건 없는 전체 목록이 섞여 나오지 않게).
+ *
+ * 예전 프로그램 표(Program)는 따로 검색하지 않는다 — 방문자가 보는 프로그램 소개는 위의 게시물이고,
+ * 예전 표의 항목은 진행 내역의 상위 기록이라 아래 행사 검색(프로그램명 포함)으로 이미 나온다.
+ */
+async function searchRecords(
   query: string,
-  filters: SearchFilters = {},
-  page: number = 1,
-  type: "programs" | "events" | "schools" | "achievements" = "programs"
+  pages: { event: number; school: number; achievement: number }
 ) {
   const searchQuery = query.trim();
-  
-  // 필터만 있고 검색어가 없는 경우도 허용
-  const hasQuery = searchQuery.length > 0;
-  const hasFilters = Boolean(filters.category || filters.region || filters.priceMin || filters.priceMax || filters.hashtag);
-
-  if (!hasQuery && !hasFilters) {
-    return {
-      programs: [],
-      events: [],
-      schools: [],
-      achievements: [],
-      totalPrograms: 0,
-      totalEvents: 0,
-      totalSchools: 0,
-      totalAchievements: 0,
-    };
+  if (!searchQuery) {
+    return { events: [], schools: [], achievements: [], totalEvents: 0, totalSchools: 0, totalAchievements: 0 };
   }
 
-  const skip = (page - 1) * ITEMS_PER_TYPE;
-
-  // 타입별로 필요한 데이터만 조회
-  if (type === "programs") {
-    const programWhere: ProgramWhereInput = {};
-    
-    if (hasQuery) {
-      programWhere.OR = [
-        { title: { contains: searchQuery, mode: "insensitive" as const } },
-        { summary: { contains: searchQuery, mode: "insensitive" as const } },
-        { description: { contains: searchQuery, mode: "insensitive" as const } },
-        { region: { contains: searchQuery, mode: "insensitive" as const } },
-        { hashtags: { hasSome: [searchQuery] } },
-      ];
-    }
-
-    if (filters.category) {
-      programWhere.category = filters.category;
-    }
-    
-    if (filters.region) {
-      programWhere.region = { contains: filters.region, mode: "insensitive" as const };
-    }
-    
-    if (filters.priceMin || filters.priceMax) {
-      const andConditions: Array<{ priceFrom?: { gte: number }; priceTo?: { lte: number } }> = [];
-      if (filters.priceMin) {
-        andConditions.push({ priceFrom: { gte: parseInt(filters.priceMin) } });
-      }
-      if (filters.priceMax) {
-        andConditions.push({ priceTo: { lte: parseInt(filters.priceMax) } });
-      }
-      if (andConditions.length > 0) {
-        programWhere.AND = andConditions;
-      }
-    }
-    
-    if (filters.hashtag) {
-      programWhere.hashtags = { hasSome: [filters.hashtag] };
-    }
-
-    const [programs, totalPrograms] = await Promise.all([
-      prisma.program.findMany({
-        where: programWhere,
-        include: {
-          images: {
-            take: 1,
-            orderBy: { createdAt: "asc" },
-          },
-        },
-        skip,
-        take: ITEMS_PER_TYPE,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.program.count({ where: programWhere }),
-    ]);
-
-    return {
-      programs,
-      events: [],
-      schools: [],
-      achievements: [],
-      totalPrograms,
-      totalEvents: 0,
-      totalSchools: 0,
-      totalAchievements: 0,
-    };
-  }
-
-  // 카테고리·지역·가격 필터는 행사·학교·실적에는 적용할 수 없다. 검색어 없이 필터만 걸었을 때
-  // 조건 없는 전체 목록이 결과로 섞여 나오지 않도록 이 유형들은 검색어가 있을 때만 조회한다.
-  if (!hasQuery) {
-    return {
-      programs: [],
-      events: [],
-      schools: [],
-      achievements: [],
-      totalPrograms: 0,
-      totalEvents: 0,
-      totalSchools: 0,
-      totalAchievements: 0,
-    };
-  }
-
-  if (type === "events") {
-    const eventWhere: EventWhereInput = {};
-    if (hasQuery) {
-      eventWhere.OR = [
-        { location: { contains: searchQuery, mode: "insensitive" as const } },
-        { school: { name: { contains: searchQuery, mode: "insensitive" as const } } },
-        { program: { title: { contains: searchQuery, mode: "insensitive" as const } } },
-        { program: { category: { contains: searchQuery, mode: "insensitive" as const } } },
-      ];
-    }
-
-    const [events, totalEvents] = await Promise.all([
-      prisma.event.findMany({
-        where: eventWhere,
-        include: {
-          school: true,
-          program: {
-            include: {
-              images: {
-                take: 1,
-                orderBy: { createdAt: "asc" },
-              },
-            },
-          },
-          images: {
-            take: 1,
-            orderBy: { createdAt: "asc" },
-          },
-        },
-        skip,
-        take: ITEMS_PER_TYPE,
-        orderBy: { date: "desc" },
-      }),
-      prisma.event.count({ where: eventWhere }),
-    ]);
-
-    return {
-      programs: [],
-      events,
-      schools: [],
-      achievements: [],
-      totalPrograms: 0,
-      totalEvents,
-      totalSchools: 0,
-      totalAchievements: 0,
-    };
-  }
-
-  if (type === "schools") {
-    const schoolWhere: SchoolWhereInput = {};
-    if (hasQuery) {
-      schoolWhere.name = { contains: searchQuery, mode: "insensitive" as const };
-    }
-
-    const [schools, totalSchools] = await Promise.all([
-      prisma.school.findMany({
-        where: schoolWhere,
-        skip,
-        take: ITEMS_PER_TYPE,
-        orderBy: { name: "asc" },
-      }),
-      prisma.school.count({ where: schoolWhere }),
-    ]);
-
-    return {
-      programs: [],
-      events: [],
-      schools,
-      achievements: [],
-      totalPrograms: 0,
-      totalEvents: 0,
-      totalSchools,
-      totalAchievements: 0,
-    };
-  }
-
-  if (type === "achievements") {
-    const achievementWhere: AchievementWhereInput = {};
-    if (hasQuery) {
-      achievementWhere.OR = [
-        { institution: { contains: searchQuery, mode: "insensitive" as const } },
-        { content: { contains: searchQuery, mode: "insensitive" as const } },
-      ];
-    }
-
-    const [achievements, totalAchievements] = await Promise.all([
-      prisma.achievement.findMany({
-        where: achievementWhere,
-        skip,
-        take: ITEMS_PER_TYPE,
-        orderBy: [{ year: "desc" }, { institution: "asc" }],
-      }),
-      prisma.achievement.count({ where: achievementWhere }),
-    ]);
-
-    return {
-      programs: [],
-      events: [],
-      schools: [],
-      achievements,
-      totalPrograms: 0,
-      totalEvents: 0,
-      totalSchools: 0,
-      totalAchievements,
-    };
-  }
-
-  return {
-    programs: [],
-    events: [],
-    schools: [],
-    achievements: [],
-    totalPrograms: 0,
-    totalEvents: 0,
-    totalSchools: 0,
-    totalAchievements: 0,
+  const eventWhere: Prisma.EventWhereInput = {
+    OR: [
+      { location: contains(searchQuery) },
+      { school: { name: contains(searchQuery) } },
+      { program: { title: contains(searchQuery) } },
+      { program: { category: contains(searchQuery) } },
+    ],
   };
+  const schoolWhere: Prisma.SchoolWhereInput = { name: contains(searchQuery) };
+  const achievementWhere: Prisma.AchievementWhereInput = {
+    OR: [{ institution: contains(searchQuery) }, { content: contains(searchQuery) }],
+  };
+  const skip = (page: number) => (page - 1) * ITEMS_PER_TYPE;
+
+  const [events, totalEvents, schools, totalSchools, achievements, totalAchievements] = await Promise.all([
+    prisma.event.findMany({
+      where: eventWhere,
+      include: {
+        school: true,
+        program: { include: { images: { take: 1, orderBy: { createdAt: "asc" } } } },
+        images: { take: 1, orderBy: { createdAt: "asc" } },
+      },
+      skip: skip(pages.event),
+      take: ITEMS_PER_TYPE,
+      orderBy: { date: "desc" },
+    }),
+    prisma.event.count({ where: eventWhere }),
+    prisma.school.findMany({
+      where: schoolWhere,
+      skip: skip(pages.school),
+      take: ITEMS_PER_TYPE,
+      orderBy: { name: "asc" },
+    }),
+    prisma.school.count({ where: schoolWhere }),
+    prisma.achievement.findMany({
+      where: achievementWhere,
+      skip: skip(pages.achievement),
+      take: ITEMS_PER_TYPE,
+      orderBy: [{ year: "desc" }, { institution: "asc" }],
+    }),
+    prisma.achievement.count({ where: achievementWhere }),
+  ]);
+
+  return { events, schools, achievements, totalEvents, totalSchools, totalAchievements };
 }
 
 export default async function SearchPage({
@@ -343,11 +159,8 @@ export default async function SearchPage({
     q?: string;
     category?: string;
     region?: string;
-    priceMin?: string;
-    priceMax?: string;
     hashtag?: string;
     page?: string;
-    programPage?: string;
     eventPage?: string;
     schoolPage?: string;
     achievementPage?: string;
@@ -356,7 +169,6 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const query = params.q || "";
-  const programPage = parsePositivePageParam(params.programPage);
   const eventPage = parsePositivePageParam(params.eventPage);
   const schoolPage = parsePositivePageParam(params.schoolPage);
   const achievementPage = parsePositivePageParam(params.achievementPage);
@@ -365,39 +177,18 @@ export default async function SearchPage({
   const filters: SearchFilters = {
     category: params.category,
     region: params.region,
-    priceMin: params.priceMin,
-    priceMax: params.priceMax,
     hashtag: params.hashtag,
   };
   
-  // 각 타입별로 독립적으로 검색
-  const [postResults, programResults, eventResults, schoolResults, achievementResults] = await Promise.all([
+  const [postResults, results] = await Promise.all([
     searchPosts(query, filters, postPage),
-    searchAll(query, filters, programPage, "programs"),
-    searchAll(query, filters, eventPage, "events"),
-    searchAll(query, filters, schoolPage, "schools"),
-    searchAll(query, filters, achievementPage, "achievements"),
+    searchRecords(query, { event: eventPage, school: schoolPage, achievement: achievementPage }),
   ]);
-  
-  const results = {
-    programs: programResults.programs,
-    events: eventResults.events,
-    schools: schoolResults.schools,
-    achievements: achievementResults.achievements,
-    totalPrograms: programResults.totalPrograms,
-    totalEvents: eventResults.totalEvents,
-    totalSchools: schoolResults.totalSchools,
-    totalAchievements: achievementResults.totalAchievements,
-  };
 
   const totalResults =
-    postResults.totalPosts +
-    results.totalPrograms +
-    results.totalEvents +
-    results.totalSchools +
-    results.totalAchievements;
+    postResults.totalPosts + results.totalEvents + results.totalSchools + results.totalAchievements;
 
-  const hasActiveFilters = Boolean(filters.category || filters.region || filters.priceMin || filters.priceMax || filters.hashtag);
+  const hasActiveFilters = Boolean(filters.category || filters.region || filters.hashtag);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">
@@ -415,7 +206,7 @@ export default async function SearchPage({
       {/* 검색 바 및 필터 */}
       <Suspense fallback={<div className="mb-8 h-24 rounded-lg bg-gray-100 animate-pulse" />}>
         <div className="mb-8 space-y-4">
-          <SearchBar placeholder="상품, 진행 내역, 학교 검색..." />
+          <SearchBar placeholder="프로그램, 진행 내역, 학교 검색..." />
           <AdvancedSearchFilters />
         </div>
       </Suspense>
@@ -435,7 +226,7 @@ export default async function SearchPage({
             <section>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-text-dark">
-                  카드뉴스·소식 ({postResults.totalPosts})
+                  프로그램·소식 ({postResults.totalPosts})
                 </h2>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -488,45 +279,6 @@ export default async function SearchPage({
                   baseUrl="/search"
                   searchParams={params}
                   pageParamName="postPage"
-                />
-              )}
-            </section>
-          )}
-
-          {/* 프로그램 결과 */}
-          {results.totalPrograms > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-text-dark">
-                  프로그램 ({results.totalPrograms})
-                </h2>
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {results.programs.map((program) => (
-                  <ProgramCard
-                    key={program.id}
-                    id={program.id}
-                    title={program.title}
-                    category={program.category}
-                    summary={program.summary}
-                    thumbnailUrl={program.thumbnailUrl}
-                    region={program.region}
-                    hashtags={program.hashtags}
-                    priceFrom={program.priceFrom}
-                    priceTo={program.priceTo}
-                    rating={program.rating}
-                    reviewCount={program.reviewCount}
-                    imageUrl={program.images[0]?.url}
-                  />
-                ))}
-              </div>
-              {results.totalPrograms > ITEMS_PER_TYPE && (
-                <Pagination
-                  currentPage={programPage}
-                  totalPages={Math.ceil(results.totalPrograms / ITEMS_PER_TYPE)}
-                  baseUrl="/search"
-                  searchParams={params}
-                  pageParamName="programPage"
                 />
               )}
             </section>

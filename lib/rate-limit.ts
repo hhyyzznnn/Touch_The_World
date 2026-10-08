@@ -192,7 +192,7 @@ export function getClientIP(request: Request): string {
  * 주기적으로 만료된 엔트리 정리 (메모리 누수 방지)
  */
 if (typeof setInterval !== "undefined") {
-  setInterval(() => {
+  const cleanupTimer = setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of rateLimitStore.entries()) {
       if (now > entry.resetTime) {
@@ -200,4 +200,6 @@ if (typeof setInterval !== "undefined") {
       }
     }
   }, 60000); // 1분마다 정리
+  // 이 타이머 때문에 스크립트·테스트 프로세스가 끝나지 않고 매달리지 않도록 한다.
+  cleanupTimer.unref?.();
 }

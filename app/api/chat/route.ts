@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { saveConsultingLog, sendConsultingSummaryEmail } from "@/lib/chat-actions";
 import { buildChatKnowledge } from "@/lib/chat-knowledge";
+import { appendMissingSourceLinks, stripMarkdown } from "@/lib/chat-text";
 import { maybeCreateInquiryFromConsultingLog } from "@/lib/inquiry-conversion";
 import { prisma } from "@/lib/prisma";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
@@ -19,28 +20,6 @@ const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4.1-mini";
 
 const DEFAULT_SERVICE_CTA =
   "원하시면 지금 바로 상담 접수를 도와드릴게요. 인원, 희망 지역, 이동수단(전세버스/KTX/항공) 중 가능한 항목부터 알려주세요.";
-
-/** 채팅창은 일반 텍스트로 표시되므로, 모델이 섞어 쓴 마크다운 기호를 걷어낸다. */
-const stripMarkdown = (text: string): string =>
-  text
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, "$1\n$2")
-    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
-    .replace(/^#{1,6}\s+/gm, "");
-
-/**
- * 모델이 게시물 제목을 언급하며 답하고도 링크를 빠뜨리는 경우가 있어, 언급된 게시물의
- * 상세 페이지 주소가 답변에 없으면 서버에서 붙여준다.
- */
-const appendMissingSourceLinks = (
-  text: string,
-  sources: { title: string; url: string }[]
-): string => {
-  const missing = sources
-    .filter((source) => text.includes(source.title.split(" — ")[0]) && !text.includes(source.url))
-    .slice(0, 2);
-  if (missing.length === 0) return text;
-  return `${text}\n\n자세히 보기\n${missing.map((source) => `${source.title}\n${source.url}`).join("\n")}`;
-};
 
 const hasActionPrompt = (text: string): boolean =>
   /(문의|접수|견적|연락|진행|재검색|조건|선택|알려주시면|말씀해주시면)/.test(text);

@@ -1,6 +1,5 @@
 export const SEARCH_PAGINATION_PARAM_KEYS = [
   "page",
-  "programPage",
   "eventPage",
   "schoolPage",
   "achievementPage",
