@@ -4,9 +4,6 @@ import { parseRequestBody } from "@/lib/api-helpers";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
 
-export { CompanyNewsType, PROGRAM_CATEGORIES };
-export type { ProgramCategory } from "@/lib/news-constants";
-
 const IMAGE_FIELD_NAMES = ["images", "image", "file", "thumbnail", "cardNewsImage"];
 
 export interface AdminNewsRequestData {

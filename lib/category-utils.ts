@@ -44,22 +44,3 @@ export function getCategoryKey(categoryName: string): string | null {
 
   return keyMap[categoryName] || null;
 }
-
-export function getCategoryDetailKey(category: string): string | null {
-  const keyMap: Record<string, string> = {
-    "국내교육여행":          "국내교육여행",
-    "국외교육여행":          "국외교육여행",
-    "체험학습":              "체험학습",
-    "수련활동":              "수련활동",
-    "교사연수":              "교사연수",
-    "일본유학":              "일본유학",
-    "특성화고교프로그램":    "특성화고교프로그램",
-    "기타프로그램":          "기타프로그램",
-    // 레거시
-    "국내외교육여행":          "국내외교육여행",
-    "해외취업및유학":          "해외취업및유학",
-    "지자체및대학RISE사업":    "지자체및대학RISE사업",
-  };
-
-  return keyMap[category] || null;
-}

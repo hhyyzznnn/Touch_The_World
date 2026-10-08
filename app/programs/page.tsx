@@ -5,8 +5,7 @@ import Image from "next/image";
 import { Pagination } from "@/components/Pagination";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { CompanyNewsType } from "@prisma/client";
-import { PROGRAM_CATEGORIES } from "@/lib/admin-news-request";
-import { CATEGORY_COLORS } from "@/lib/news-constants";
+import { CATEGORY_COLORS, PROGRAM_CATEGORIES } from "@/lib/news-constants";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 

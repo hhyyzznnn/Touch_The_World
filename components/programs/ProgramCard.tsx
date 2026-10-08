@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Heart, Star, MapPin } from "lucide-react";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
@@ -274,6 +274,3 @@ export function ProgramCard({
     </Link>
   );
 }
-
-// 메모이제이션으로 불필요한 재렌더링 방지
-export default memo(ProgramCard);
