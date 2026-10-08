@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
 import { sendVerificationEmail } from "@/lib/email";
 import { z } from "zod";
 import crypto from "crypto";
@@ -12,15 +12,7 @@ const resendSchema = z.object({
 export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
   const ipRateLimit = await checkRateLimit(`verify-email:resend:ip:${clientIP}`, 5, 60 * 60 * 1000);
-  if (!ipRateLimit.allowed) {
-    return NextResponse.json(
-      {
-        error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-        retryAfter: Math.ceil((ipRateLimit.resetTime - Date.now()) / 1000),
-      },
-      { status: 429 }
-    );
-  }
+  if (!ipRateLimit.allowed) return rateLimitResponse(ipRateLimit);
 
   try {
     const payload = await request.json();
@@ -39,12 +31,9 @@ export async function POST(request: NextRequest) {
       60 * 60 * 1000
     );
     if (!emailRateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: "재발송 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-          retryAfter: Math.ceil((emailRateLimit.resetTime - Date.now()) / 1000),
-        },
-        { status: 429 }
+      return rateLimitResponse(
+        emailRateLimit,
+        "재발송 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."
       );
     }
 

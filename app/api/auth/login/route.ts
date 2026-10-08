@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
 import { setAuthSession } from "@/lib/session-auth";
 import { z } from "zod";
 
@@ -21,23 +21,7 @@ export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
   const rateLimit = await checkRateLimit(`login:${clientIP}`, 5, 60 * 1000);
 
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      {
-        error: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.",
-        retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-          "X-RateLimit-Limit": "5",
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
-      }
-    );
-  }
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit, "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.");
 
   try {
     const payload = await request.json();
@@ -107,13 +91,6 @@ export async function POST(request: NextRequest) {
           role: user.role,
         },
         ...((user.role === "admin" || user.role === "editor") && { redirect: "/admin" }),
-      },
-      {
-        headers: {
-          "X-RateLimit-Limit": "5",
-          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
       }
     );
   } catch (error) {

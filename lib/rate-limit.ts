@@ -3,6 +3,7 @@
  * 기본은 메모리 기반, 환경 변수가 있으면 Upstash Redis REST 기반으로 동작합니다.
  */
 import crypto from "crypto";
+import { NextResponse } from "next/server";
 
 interface RateLimitEntry {
   count: number;
@@ -147,6 +148,19 @@ export async function checkRateLimit(
   }
 
   return fallbackRateLimit(identifier, maxRequests, windowMs, isProduction);
+}
+
+/** 한도를 넘긴 요청에 대한 공통 429 응답 (본문 retryAfter + Retry-After 헤더) */
+export function rateLimitResponse(
+  result: RateLimitResult,
+  error = "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+  extraBody: Record<string, unknown> = {}
+) {
+  const retryAfter = Math.max(1, Math.ceil((result.resetTime - Date.now()) / 1000));
+  return NextResponse.json(
+    { error, retryAfter, ...extraBody },
+    { status: 429, headers: { "Retry-After": retryAfter.toString() } }
+  );
 }
 
 /**

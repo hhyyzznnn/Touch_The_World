@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
 import { validateAndSanitize, isValidEmail, isValidPhone } from "@/lib/security";
 import { sendInquiryNotificationEmail } from "@/lib/email";
 import { generateInquirySummary } from "@/lib/inquiry-ai";
@@ -84,23 +84,7 @@ export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
   const rateLimit = await checkRateLimit(`inquiry:${clientIP}`, 3, 60 * 1000);
 
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      {
-        error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-        retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-          "X-RateLimit-Limit": "3",
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
-      }
-    );
-  }
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
 
   try {
     const currentUser = await getCurrentUser();
@@ -309,13 +293,6 @@ export async function POST(request: NextRequest) {
         id: inquiry.id,
         inquiryNumber: formatInquiryNumber(inquiry.id),
         expectedReply: "영업일 기준 24시간 이내 1차 회신",
-      },
-      {
-        headers: {
-          "X-RateLimit-Limit": "3",
-          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
       }
     );
   } catch (error) {

@@ -6,7 +6,7 @@ import { maybeCreateInquiryFromConsultingLog } from "@/lib/inquiry-conversion";
 import { prisma } from "@/lib/prisma";
 import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { z } from "zod";
-import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
 import { getCurrentUser } from "@/lib/auth-user";
 
 const openai = new OpenAI({
@@ -509,23 +509,7 @@ export async function POST(request: NextRequest) {
   try {
     const clientIP = getClientIP(request);
     const rateLimit = await checkRateLimit(`chat:${clientIP}`, 30, 60 * 1000);
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
-          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
-        },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-            "X-RateLimit-Limit": "30",
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-          },
-        }
-      );
-    }
+    if (!rateLimit.allowed) return rateLimitResponse(rateLimit);
 
     const rawBody = await request.json();
     const parsedBody = chatRequestSchema.safeParse(rawBody);
@@ -544,14 +528,10 @@ export async function POST(request: NextRequest) {
       24 * 60 * 60 * 1000
     );
     if (!dailyRateLimit.allowed) {
-      const retryAfter = Math.ceil((dailyRateLimit.resetTime - Date.now()) / 1000);
-      return NextResponse.json(
-        {
-          error: "오늘 AI 상담 이용량이 많아 잠시 제한되었습니다. 급하신 문의는 1800-8078로 연락 주세요.",
-          retryAfter,
-          meta: getChatMeta(isAuthenticated),
-        },
-        { status: 429, headers: { "Retry-After": retryAfter.toString() } }
+      return rateLimitResponse(
+        dailyRateLimit,
+        "오늘 AI 상담 이용량이 많아 잠시 제한되었습니다. 급하신 문의는 1800-8078로 연락 주세요.",
+        { meta: getChatMeta(isAuthenticated) }
       );
     }
 

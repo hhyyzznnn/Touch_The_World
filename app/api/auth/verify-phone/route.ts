@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationSMS, generateVerificationCode } from "@/lib/sms";
-import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
 
 // SMS 인증 코드 발송
 export async function POST(request: NextRequest) {
@@ -29,27 +29,17 @@ export async function POST(request: NextRequest) {
     // 발송 요청 제한: IP당 분당 5회, 번호당 5분에 3회
     const ipRateLimit = await checkRateLimit(`verify-phone:send:ip:${clientIP}`, 5, 60 * 1000);
     if (!ipRateLimit.allowed) {
-      return NextResponse.json(
-        { error: "인증 코드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil((ipRateLimit.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
+      return rateLimitResponse(
+        ipRateLimit,
+        "인증 코드 요청이 너무 많습니다. 잠시 후 다시 시도해주세요."
       );
     }
 
     const phoneRateLimit = await checkRateLimit(`verify-phone:send:phone:${normalizedPhone}`, 3, 5 * 60 * 1000);
     if (!phoneRateLimit.allowed) {
-      return NextResponse.json(
-        { error: "해당 번호로 요청이 많습니다. 5분 후 다시 시도해주세요." },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": Math.ceil((phoneRateLimit.resetTime - Date.now()) / 1000).toString(),
-          },
-        }
+      return rateLimitResponse(
+        phoneRateLimit,
+        "해당 번호로 요청이 많습니다. 5분 후 다시 시도해주세요."
       );
     }
 
@@ -123,17 +113,17 @@ export async function PUT(request: NextRequest) {
     // 인증 시도 제한: IP당 5분에 20회, 번호당 5분에 10회
     const verifyIpRateLimit = await checkRateLimit(`verify-phone:check:ip:${clientIP}`, 20, 5 * 60 * 1000);
     if (!verifyIpRateLimit.allowed) {
-      return NextResponse.json(
-        { error: "인증 시도가 너무 많습니다. 잠시 후 다시 시도해주세요." },
-        { status: 429 }
+      return rateLimitResponse(
+        verifyIpRateLimit,
+        "인증 시도가 너무 많습니다. 잠시 후 다시 시도해주세요."
       );
     }
 
     const verifyPhoneRateLimit = await checkRateLimit(`verify-phone:check:phone:${normalizedPhone}`, 10, 5 * 60 * 1000);
     if (!verifyPhoneRateLimit.allowed) {
-      return NextResponse.json(
-        { error: "해당 번호의 인증 시도가 많습니다. 잠시 후 다시 시도해주세요." },
-        { status: 429 }
+      return rateLimitResponse(
+        verifyPhoneRateLimit,
+        "해당 번호의 인증 시도가 많습니다. 잠시 후 다시 시도해주세요."
       );
     }
 

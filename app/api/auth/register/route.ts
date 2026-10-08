@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/lib/email";
 import crypto from "crypto";
-import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -22,23 +22,7 @@ export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
   const rateLimit = await checkRateLimit(`register:${clientIP}`, 3, 60 * 60 * 1000);
 
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      {
-        error: "회원가입 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.",
-        retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
-          "X-RateLimit-Limit": "3",
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
-      }
-    );
-  }
+  if (!rateLimit.allowed) return rateLimitResponse(rateLimit, "회원가입 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.");
 
   try {
     const payload = await request.json();
@@ -201,14 +185,7 @@ export async function POST(request: NextRequest) {
           name: user.name,
         },
       },
-      {
-        status: 201,
-        headers: {
-          "X-RateLimit-Limit": "3",
-          "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-          "X-RateLimit-Reset": new Date(rateLimit.resetTime).toISOString(),
-        },
-      }
+      { status: 201 }
     );
   } catch (error) {
     console.error("Registration error:", error);
