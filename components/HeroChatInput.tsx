@@ -5,15 +5,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Send, X } from "lucide-react";
-import { PROGRAM_CATEGORIES } from "@/lib/constants";
-import { ChatMessageText } from "@/components/ChatMessageText";
-import {
-  saveChatMessages,
-  loadChatMessages,
-  clearLegacyAnonymousChatMessages,
-  ChatMessage,
-} from "@/lib/chat-storage";
-import { trackEvent, GA_EVENTS } from "@/lib/gtag";
+import { CategoryButtons, ChatMessages } from "@/components/chat/ChatMessages";
+import { useChatSession } from "@/components/chat/useChatSession";
 
 interface HeroChatInputProps {
   initialCategory?: string;
@@ -32,60 +25,23 @@ const PARTNER_LINKS = [
   { label: "아소전문학교그룹 제휴", href: "https://www.asojuku.co.kr", logo: "aso" as const },
 ] as const;
 
-function createSessionId(): string {
-  return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-}
-
 export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   const searchParams = useSearchParams();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatting, setIsChatting] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [landingCategory, setLandingCategory] = useState<string | undefined>(initialCategory);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>(createSessionId);
-  const landingCategoryRef = useRef<string | undefined>(landingCategory);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const getChatErrorMessage = async (response: Response): Promise<string> => {
-    let errorMessage = "API 호출 실패";
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData?.error || errorMessage;
-    } catch {
-      // ignore json parse error
-    }
-    return errorMessage;
-  };
-
-  const toRequestMessages = (source: ChatMessage[], limit = 20) =>
-    source.slice(-limit).map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
-
-  useEffect(() => {
-    landingCategoryRef.current = landingCategory;
-  }, [landingCategory]);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((data) => {
-        setUserId(data?.user?.id ?? null);
-      })
-      .catch(() => {
-        setUserId(null);
-      })
-      .finally(() => {
-        setAuthLoaded(true);
-      });
-  }, []);
+  const { messages, isLoading, authLoaded, userId, send } = useChatSession({
+    landingCategory,
+    // 저장된 대화가 있으면 이어서 보여주되, 처음에는 펼치지 않는다.
+    onSessionReady: (restoredHistory) => {
+      setIsChatting(restoredHistory);
+      setIsExpanded(false);
+    },
+  });
 
   useEffect(() => {
     const category = searchParams?.get("category") || initialCategory;
@@ -93,56 +49,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
       setLandingCategory(category);
     }
   }, [searchParams, initialCategory]);
-
-  useEffect(() => {
-    if (!authLoaded) return;
-
-    // 저장된 채팅 기록 불러오기
-    const getInitialMessage = () => {
-      const currentLandingCategory = landingCategoryRef.current;
-      if (currentLandingCategory) {
-        return `안녕하세요! 터치더월드 AI 어시스턴트입니다.\n\n${currentLandingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 지역을 알려주시면 맞춤형 일정을 제안해드리겠습니다!`;
-      }
-      return `안녕하세요! 터치더월드 AI 어시스턴트입니다.\n\n어떤 프로그램에 관심이 있으신가요? 아래 버튼을 클릭하시거나 직접 입력해주세요!`;
-    };
-
-    if (!userId) {
-      clearLegacyAnonymousChatMessages();
-      setMessages([{
-        id: "1",
-        role: "assistant",
-        content: getInitialMessage(),
-        timestamp: new Date(),
-        showCategoryButtons: !landingCategoryRef.current,
-      }]);
-      setSessionId(createSessionId());
-      setIsChatting(false);
-      setIsExpanded(false);
-      return;
-    }
-
-    const loaded = loadChatMessages({ userId, enabled: true });
-    if (loaded.messages.length > 0) {
-      setMessages(loaded.messages);
-      setIsChatting(true);
-      // 저장된 기록이 있어도 처음에는 확장하지 않음
-      setIsExpanded(false);
-      if (loaded.sessionId) {
-        setSessionId(loaded.sessionId);
-      }
-    } else {
-      setMessages([{
-        id: "1",
-        role: "assistant",
-        content: getInitialMessage(),
-        timestamp: new Date(),
-        showCategoryButtons: !landingCategoryRef.current,
-      }]);
-      setSessionId(createSessionId());
-      setIsChatting(false);
-      setIsExpanded(false);
-    }
-  }, [authLoaded, userId]);
 
   useEffect(() => {
     // 채팅 중일 때만 채팅 영역 내부 스크롤 (페이지 전체 스크롤 방지)
@@ -155,143 +61,24 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
     }
   }, [messages, isChatting]);
 
-  useEffect(() => {
-    // 채팅 기록 저장
-    if (messages.length > 0 && userId) {
-      saveChatMessages(messages, sessionId, { userId, enabled: true });
-    }
-  }, [messages, sessionId, userId]);
-
-  const sendMessage = async (text: string) => {
+  const startChat = (text: string, options?: Parameters<typeof send>[1]) => {
     if (!authLoaded || isLoading) return;
-
-    if (messages.length === 0) {
-      trackEvent(GA_EVENTS.CHAT_START, { category: landingCategory });
-    }
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: text,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
     setIsChatting(true);
     setIsExpanded(true);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: toRequestMessages([...messages, userMessage], userId ? 40 : 20),
-          sessionId: sessionId,
-          landingCategory: landingCategory,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorMessage = await getChatErrorMessage(response);
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.message.content,
-        timestamp: new Date(),
-        showCategoryButtons: Boolean(data?.message?.showCategoryButtons),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("채팅 오류:", error);
-      const message =
-        error instanceof Error ? error.message : "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: message,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    void send(text, options);
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!authLoaded || !inputValue.trim() || isLoading) return;
-    await sendMessage(inputValue.trim());
+    if (!inputValue.trim()) return;
+    startChat(inputValue);
+    setInputValue("");
   };
 
-  const handleCategorySelect = async (categoryName: string) => {
-    if (!authLoaded || isLoading) return;
-
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: categoryName,
-      timestamp: new Date(),
-      showCategoryButtons: false,
-    };
-
-    // 카테고리 선택 시 이전 메시지의 버튼 제거
-    setMessages((prev) => 
-      [...prev.map(msg => ({ ...msg, showCategoryButtons: false })), userMessage]
-    );
+  // 카테고리를 고르면 이전 메시지의 선택 버튼은 숨기고 그 카테고리 맥락으로 상담을 시작한다.
+  const handleCategorySelect = (categoryName: string) => {
     setLandingCategory(categoryName);
-    setIsChatting(true);
-    setIsExpanded(true);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: toRequestMessages([...messages, userMessage], userId ? 40 : 20),
-          sessionId: sessionId,
-          landingCategory: categoryName,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorMessage = await getChatErrorMessage(response);
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.message.content,
-        timestamp: new Date(),
-        showCategoryButtons: Boolean(data?.message?.showCategoryButtons),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("채팅 오류:", error);
-      const message =
-        error instanceof Error ? error.message : "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: message,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    startChat(categoryName, { landingCategory: categoryName, hideCategoryButtons: true });
   };
 
   const handleInputFocus = () => {
@@ -366,91 +153,21 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                   aria-live="polite"
                   aria-label="AI 상담 대화 내용"
                 >
-                  {messages.map((message) => (
-                    <div key={message.id}>
-                      <div
-                        className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                            message.role === "user"
-                              ? "bg-brand-green-primary text-white"
-                              : "bg-gray-100 text-gray-900"
-                          }`}
-                        >
-                          <ChatMessageText content={message.content} className="text-sm whitespace-pre-wrap text-left" />
-                          <p className="text-xs mt-1 opacity-70 text-left">
-                            {message.timestamp.toLocaleTimeString("ko-KR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      {/* Category Buttons - 카테고리 선택 후에는 표시하지 않음 */}
-                      {message.showCategoryButtons && (
-                        <div className="mt-3">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {PROGRAM_CATEGORIES.map((category) => {
-                              const Icon = category.icon;
-                              return (
-                                <button
-                                  key={category.name}
-                                  type="button"
-                                  onClick={() => handleCategorySelect(category.name)}
-                                  className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-100 rounded-lg hover:bg-brand-green/5 transition-all"
-                                  aria-label={`${category.name} 카테고리 선택`}
-                                >
-                                  <div className="w-9 h-9 bg-brand-green/10 rounded-full flex items-center justify-center mb-1">
-                                    <Icon className="w-4 h-4 text-brand-green" />
-                                  </div>
-                                  <span className="text-sm font-medium text-gray-500 text-center leading-tight whitespace-pre-line">{category.name}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex justify-start" aria-live="polite" aria-label="AI 답변 생성 중">
-                      <div className="bg-gray-100 rounded-2xl px-4 py-2">
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
+                  <ChatMessages
+                    messages={messages}
+                    isLoading={isLoading}
+                    onCategorySelect={handleCategorySelect}
+                    categoryGridClassName="grid grid-cols-2 sm:grid-cols-4 gap-2"
+                  />
                 </div>
               )}
 
               {/* Category Buttons (채팅 시작 전) */}
               {!isChatting && (
-                <div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {PROGRAM_CATEGORIES.map((category) => {
-                      const Icon = category.icon;
-                      return (
-                        <button
-                          key={category.name}
-                          type="button"
-                          onClick={() => handleCategorySelect(category.name)}
-                          className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-100 rounded-lg hover:bg-brand-green/5 transition-all"
-                          aria-label={`${category.name} 카테고리 선택`}
-                        >
-                          <div className="w-9 h-9 bg-brand-green/10 rounded-full flex items-center justify-center mb-1">
-                            <Icon className="w-4 h-4 text-brand-green" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-500 text-center leading-tight whitespace-pre-line">{category.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <CategoryButtons
+                  onSelect={handleCategorySelect}
+                  className="grid grid-cols-2 sm:grid-cols-4 gap-2"
+                />
               )}
             </div>
           )}

@@ -2,35 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Minimize2 } from "lucide-react";
-import { PROGRAM_CATEGORIES } from "@/lib/constants";
-import { ChatMessageText } from "@/components/ChatMessageText";
-import {
-  loadChatMessages,
-  saveChatMessages,
-  clearLegacyAnonymousChatMessages,
-  ChatMessage,
-} from "@/lib/chat-storage";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-  showCategoryButtons?: boolean;
-}
-
-// ChatMessage와 Message 타입 호환
-const toMessage = (msg: ChatMessage): Message => ({
-  id: msg.id,
-  role: msg.role,
-  content: msg.content,
-  timestamp: msg.timestamp,
-  showCategoryButtons: msg.showCategoryButtons,
-});
-
-function createSessionId(): string {
-  return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-}
+import { ChatMessages } from "@/components/chat/ChatMessages";
+import { useChatSession } from "@/components/chat/useChatSession";
 
 interface ChatWidgetProps {
   isOpen: boolean;
@@ -40,101 +13,11 @@ interface ChatWidgetProps {
   landingCategory?: string; // 랜딩 페이지에서 전달된 카테고리
 }
 
-function getInitialAssistantMessage(landingCategory?: string): string {
-  if (landingCategory) {
-    return `안녕하세요! 터치더월드 AI 어시스턴트입니다.
-
-${landingCategory} 상담을 도와드리겠습니다. 예상 인원과 희망 지역을 알려주시면 맞춤형 일정을 제안해드리겠습니다!`;
-  }
-  return `안녕하세요! 터치더월드 AI 어시스턴트입니다.
-
-어떤 프로그램에 관심이 있으신가요? 아래 버튼을 클릭하시거나 직접 입력해주세요!`;
-}
-
 export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landingCategory }: ChatWidgetProps) {
-  const [messages, setMessages] = useState<Message[]>(() => [{
-    id: "1",
-    role: "assistant",
-    content: getInitialAssistantMessage(landingCategory),
-    timestamp: new Date(),
-    showCategoryButtons: !landingCategory,
-  }]);
+  const { messages, isLoading, authLoaded, userId, send } = useChatSession({ landingCategory });
   const [input, setInput] = useState(initialMessage || "");
-  const [userId, setUserId] = useState<string | null>(null);
-  const [authLoaded, setAuthLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string>(createSessionId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const getChatErrorMessage = async (response: Response): Promise<string> => {
-    let errorMessage = "API 호출 실패";
-    try {
-      const errorData = await response.json();
-      errorMessage = errorData?.error || errorMessage;
-    } catch {
-      // ignore json parse error
-    }
-    return errorMessage;
-  };
-
-  const toRequestMessages = (
-    source: Array<{ role: "user" | "assistant"; content: string }>,
-    limit = 20
-  ) =>
-    source.slice(-limit).map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((data) => {
-        setUserId(data?.user?.id ?? null);
-      })
-      .catch(() => {
-        setUserId(null);
-      })
-      .finally(() => {
-        setAuthLoaded(true);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!authLoaded) return;
-
-    if (!userId) {
-      clearLegacyAnonymousChatMessages();
-      setMessages([{
-        id: "1",
-        role: "assistant",
-        content: getInitialAssistantMessage(landingCategory),
-        timestamp: new Date(),
-        showCategoryButtons: !landingCategory,
-      }]);
-      setSessionId(createSessionId());
-      return;
-    }
-
-    const loaded = loadChatMessages({ userId, enabled: true });
-    if (loaded.messages.length > 0) {
-      setMessages(loaded.messages.map(toMessage));
-      if (loaded.sessionId) {
-        setSessionId(loaded.sessionId);
-      }
-      return;
-    }
-
-    setMessages([{
-      id: "1",
-      role: "assistant",
-      content: getInitialAssistantMessage(landingCategory),
-      timestamp: new Date(),
-      showCategoryButtons: !landingCategory,
-    }]);
-    setSessionId(createSessionId());
-  }, [authLoaded, landingCategory, userId]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -145,7 +28,6 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
   useEffect(() => {
     if (initialMessage && isOpen) {
       setInput(initialMessage);
-      // 초기 메시지가 있으면 자동으로 전송할 수도 있음
     }
   }, [initialMessage, isOpen]);
 
@@ -164,112 +46,10 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!userId || messages.length === 0) return;
-    saveChatMessages(
-      messages.map((msg) => ({
-        id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        timestamp: msg.timestamp,
-        showCategoryButtons: msg.showCategoryButtons,
-      })),
-      sessionId,
-      { userId, enabled: true }
-    );
-  }, [messages, sessionId, userId]);
-
-  const handleCategoryClick = (categoryName: string) => {
-    if (!authLoaded || isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: categoryName,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => {
-      return [...prev, userMessage];
-    });
-    handleSendMessage(categoryName);
-  };
-
-  const handleSendMessage = async (messageContent?: string) => {
-    const contentToSend = messageContent || input.trim();
-    if (!authLoaded || !contentToSend || isLoading) return;
-    const payloadUserMessage = {
-      role: "user" as const,
-      content: contentToSend,
-    };
-
-    if (!messageContent) {
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        role: "user",
-        content: input.trim(),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => {
-        return [...prev, userMessage];
-      });
-      setInput("");
-    }
-    
-    setIsLoading(true);
-
-    try {
-      // OpenAI API 호출
-      const allMessages = [...messages, payloadUserMessage];
-      
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: toRequestMessages(allMessages, userId ? 40 : 20),
-          sessionId: sessionId,
-          landingCategory: landingCategory,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorMessage = await getChatErrorMessage(response);
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.message.content,
-        timestamp: new Date(),
-        showCategoryButtons: Boolean(data?.message?.showCategoryButtons),
-      };
-
-      setMessages((prev) => {
-        return [...prev, assistantMessage];
-      });
-    } catch (error) {
-      console.error("채팅 오류:", error);
-      const message =
-        error instanceof Error ? error.message : "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: message,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => {
-        return [...prev, errorMessage];
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSend = async () => {
-    await handleSendMessage();
+  const handleSend = () => {
+    if (!input.trim()) return;
+    void send(input);
+    setInput("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -311,62 +91,7 @@ export function ChatWidget({ isOpen, onClose, onMinimize, initialMessage, landin
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
-        {messages.map((message) => (
-          <div key={message.id}>
-            <div
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                  message.role === "user"
-                    ? "bg-brand-green-primary text-white"
-                    : "bg-gray-100 text-gray-900"
-                }`}
-              >
-                <ChatMessageText content={message.content} className="text-sm whitespace-pre-wrap" />
-                <p className="text-xs mt-1 opacity-70">
-                  {message.timestamp.toLocaleTimeString("ko-KR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            </div>
-            {/* Category Buttons */}
-            {message.showCategoryButtons && (
-              <div className="mt-3 space-y-2">
-                <div className="grid grid-cols-2 gap-2">
-                  {PROGRAM_CATEGORIES.map((category) => {
-                    const Icon = category.icon;
-                    return (
-                      <button
-                        key={category.name}
-                        onClick={() => handleCategoryClick(category.name)}
-                        className="flex flex-col items-center justify-center p-2.5 bg-white border border-gray-100 rounded-lg hover:bg-brand-green/5 transition-all"
-                      >
-                        <div className="w-9 h-9 bg-brand-green/10 rounded-full flex items-center justify-center mb-1">
-                          <Icon className="w-4 h-4 text-brand-green" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-500 text-center leading-tight whitespace-pre-line">{category.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-2xl px-4 py-2">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-            </div>
-          </div>
-        )}
+        <ChatMessages messages={messages} isLoading={isLoading} onCategorySelect={(name) => void send(name)} />
         <div ref={messagesEndRef} />
       </div>
 
