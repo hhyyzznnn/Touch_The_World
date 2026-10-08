@@ -37,6 +37,7 @@ interface NewsItem {
   link?: string;
   isPinned?: boolean;
   deleteLocalAfterUpload?: boolean;  // true면 업로드 후 로컬 폴더 삭제
+  thumbnailFile?: string;       // 지정하면 이 이미지를 썸네일(imageUrl)로 별도 업로드 (폴더 내 캐러셀과 분리)
 }
 
 // ─── 업로드 대기 목록 ───────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ const NEWS_ITEMS: NewsItem[] = [
   //   content: `## 본문 마크다운`,
   //   hashtags: ["#일본", "#특성화고"], // lib/news-constants.ts의 HASHTAG_POOL에서만 골라 쓸 것 (지역 1개 + 대상 1~2개, 총 3개 안팎)
   //   deleteLocalAfterUpload: true,
+  //   thumbnailFile: "public/company-news/새폴더이름.png", // 캐러셀과 분리된 별도 썸네일을 쓸 때만 지정
   // },
 ];
 // ─────────────────────────────────────────────────────────────────────────────
@@ -74,6 +76,17 @@ function copyToCardnewsShortsInput(sourceFolder: string): void {
 
   fs.cpSync(sourceFolder, targetFolder, { recursive: true });
   console.log(`  📁 cardnews-shorts/input/${path.basename(sourceFolder)}/ 로 사본 저장 (유튜브 파이프라인용)`);
+}
+
+async function uploadSingleFile(filePath: string): Promise<string> {
+  const buffer = fs.readFileSync(filePath);
+  const filename = path.basename(filePath);
+  const ext = path.extname(filename).slice(1).toLowerCase();
+  const mime = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
+  const file = new File([buffer], filename, { type: mime });
+  const result = await utapi.uploadFiles(file);
+  if (result.error) throw new Error(`업로드 실패 (${filename}): ${result.error.message}`);
+  return result.data.ufsUrl ?? result.data.url;
 }
 
 async function uploadFolder(folderPath: string): Promise<string[]> {
@@ -108,7 +121,7 @@ function pgArray(arr: string[]): string {
 }
 
 /** 실행한 내용을 나중에 대조할 수 있도록 기록용 SQL 로그만 남긴다 (실행용 아님) */
-function buildLogSql(item: NewsItem, urls: string[], timestamp: string): string {
+function buildLogSql(item: NewsItem, urls: string[], timestamp: string, thumbnailUrl: string): string {
   return `-- ${item.title}
 INSERT INTO "CompanyNews" (
   "id","type","categories","title","summary","content",
@@ -120,7 +133,7 @@ INSERT INTO "CompanyNews" (
   ${pgLiteral(item.title)},
   ${pgLiteral(item.summary)},
   ${pgLiteral(item.content)},
-  '${urls[0]}',
+  '${thumbnailUrl}',
   ${pgArray(urls)},
   ${item.link ? `'${item.link}'` : "NULL"},
   ${pgArray(item.hashtags)},
@@ -157,6 +170,14 @@ async function main() {
     process.stdout.write("  이미지 업로드 중 ");
 
     const urls = await uploadFolder(path.resolve(item.folder));
+
+    let thumbnailUrl = urls[0];
+    if (item.thumbnailFile) {
+      process.stdout.write("  썸네일 이미지 별도 업로드 중...");
+      thumbnailUrl = await uploadSingleFile(path.resolve(item.thumbnailFile));
+      console.log(" 완료");
+    }
+
     const itemTimestamp = new Date(runStart + index * 1000);
 
     console.log("  DB 반영 중...");
@@ -169,7 +190,7 @@ async function main() {
         title: item.title,
         summary: item.summary,
         content: item.content,
-        imageUrl: urls[0],
+        imageUrl: thumbnailUrl,
         imageUrls: urls,
         link: item.link ?? null,
         hashtags: item.hashtags,
@@ -181,7 +202,7 @@ async function main() {
         title: item.title,
         summary: item.summary,
         content: item.content,
-        imageUrl: urls[0],
+        imageUrl: thumbnailUrl,
         imageUrls: urls,
         hashtags: item.hashtags,
         updatedAt: itemTimestamp,
@@ -189,12 +210,16 @@ async function main() {
     });
     console.log("  ✓ DB 반영 완료");
 
-    sqlLines.push(buildLogSql(item, urls, itemTimestamp.toISOString()));
+    sqlLines.push(buildLogSql(item, urls, itemTimestamp.toISOString(), thumbnailUrl));
 
     if (item.deleteLocalAfterUpload) {
       copyToCardnewsShortsInput(path.resolve(item.folder));
       fs.rmSync(path.resolve(item.folder), { recursive: true, force: true });
       console.log(`  로컬 폴더 삭제 완료: ${item.folder}`);
+      if (item.thumbnailFile && fs.existsSync(path.resolve(item.thumbnailFile))) {
+        fs.rmSync(path.resolve(item.thumbnailFile), { force: true });
+        console.log(`  썸네일 원본 삭제 완료: ${item.thumbnailFile}`);
+      }
     }
   }
 
