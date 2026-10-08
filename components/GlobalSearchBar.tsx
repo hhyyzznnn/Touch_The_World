@@ -236,12 +236,12 @@ export function GlobalSearchBar() {
             </div>
           )}
 
-          {/* 인기 검색어 */}
+          {/* 이 브라우저에서 자주 찾은 검색어 (전체 방문자 집계가 아니라 본인 검색 횟수 기준) */}
           {popularSearches.length > 0 && searchQuery.trim().length === 0 && (
             <div className="p-2 border-t border-gray-100">
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
-                인기 검색어
+                자주 찾은 검색어
               </div>
               {popularSearches.map((item, index) => (
                 <button

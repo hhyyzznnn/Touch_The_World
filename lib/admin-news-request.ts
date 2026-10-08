@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { uploadPublicImages } from "@/lib/uploadthing-server";
 import { parseRequestBody } from "@/lib/api-helpers";
 import { CompanyNewsType } from "@prisma/client";
-import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
+import { parseEndDate } from "@/lib/news-utils";
 
 const IMAGE_FIELD_NAMES = ["images", "image", "file", "thumbnail", "cardNewsImage"];
 
@@ -17,6 +17,7 @@ export interface AdminNewsRequestData {
   hashtags: string[];
   link: string;
   isPinned: boolean;
+  endDate: Date | null;
 }
 
 function parseBoolean(value: unknown): boolean {
@@ -110,6 +111,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
       hashtags,
       link: String(formData.get("link") || "").trim(),
       isPinned: parseBoolean(formData.get("isPinned")),
+      endDate: parseEndDate(formData.get("endDate")),
     };
   }
 
@@ -125,6 +127,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     hashtags?: string[];
     link?: string;
     isPinned?: boolean;
+    endDate?: string | null;
   }>(request);
   const imageUrls = normalizeStringList(body.imageUrls);
   const imageUrl = body.imageUrl?.trim() || imageUrls[0] || "";
@@ -148,5 +151,6 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     hashtags,
     link: body.link?.trim() || "",
     isPinned: Boolean(body.isPinned),
+    endDate: parseEndDate(body.endDate),
   };
 }

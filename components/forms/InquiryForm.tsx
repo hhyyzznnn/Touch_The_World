@@ -276,6 +276,12 @@ export function InquiryForm({
                 <p className="mt-1 text-gray-600">
                   {submitResult.expectedReply || "영업일 기준 24시간 내 1차 회신 예정"}
                 </p>
+                <a
+                  href={`/inquiry/status?number=${encodeURIComponent(submitResult.inquiryNumber)}`}
+                  className="mt-2 inline-block font-medium text-brand-green-primary underline"
+                >
+                  진행 상황 조회하기
+                </a>
               </div>
             )}
             <Button

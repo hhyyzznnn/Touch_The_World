@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/toast";
 import type { CompanyNews } from "@prisma/client";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES, HASHTAG_POOL } from "@/lib/news-constants";
+import { formatEndDate } from "@/lib/news-utils";
 
 type CompanyNewsWithImages = CompanyNews & {
   imageUrls?: string[];
@@ -50,6 +51,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
   const [hashtags, setHashtags] = useState<string[]>((news as any)?.hashtags ?? []);
   const [hashtagInput, setHashtagInput] = useState("");
   const [isPinned, setIsPinned] = useState(news?.isPinned ?? false);
+  const [endDate, setEndDate] = useState(news?.endDate ? formatEndDate(news.endDate) : "");
 
   const isCardNews = type === CompanyNewsType.PROGRAM_CARD_NEWS || type === CompanyNewsType.BOOK_CARD_NEWS;
   const isBookCardNews = type === CompanyNewsType.BOOK_CARD_NEWS;
@@ -78,6 +80,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
           imageUrls: normalizedImageUrls.length > 0 ? normalizedImageUrls : thumbnailUrl ? [thumbnailUrl] : [],
           hashtags,
           isPinned,
+          endDate: endDate || null,
         }),
       });
       if (res.ok) {
@@ -416,6 +419,20 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
         />
         <p className="text-xs text-gray-500 mt-1">
           카카오채널 게시글 URL을 넣으면 카드뉴스 클릭 시 해당 게시글로 이동합니다.
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="endDate" className="block text-sm font-medium mb-2">신청·운영 마감일 (선택)</label>
+        <input
+          id="endDate"
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-green-primary"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          지원사업·모집처럼 기간이 정해진 글만 입력하세요. 이 날짜가 지나면 목록·검색·챗봇에서 &quot;종료&quot;로 안내됩니다.
         </p>
       </div>
 

@@ -15,7 +15,7 @@ import { PrintQuoteButton } from "@/components/programs/PrintQuoteButton";
 import { getSiteUrl } from "@/lib/site-url";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+import { formatEndDate, isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CompanyNewsType } from "@prisma/client";
 
 /** 해시태그에서 목적지 선택지 값을 추출 */
@@ -310,6 +310,12 @@ export default async function NewsDetailPage({
           <h1 className="text-2xl sm:text-3xl font-bold text-text-dark mb-3">
             {news.title}
           </h1>
+          {news.endDate && isEnded(news.endDate) && (
+            <p className="mb-4 rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-text-gray">
+              이 안내는 {formatEndDate(news.endDate)}에 신청·운영 기간이 종료되었습니다. 현재 가능한 프로그램은{" "}
+              <a href="/inquiry" className="font-medium text-brand-green-primary underline">문의</a>로 안내해드립니다.
+            </p>
+          )}
           {linkedProgram && linkedProgram.reviewCount > 0 ? (
             <a
               href="#reviews"

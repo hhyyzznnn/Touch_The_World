@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { getSiteUrl } from "./site-url";
+import { formatEndDate, isEnded } from "./news-utils";
 
 /**
  * 챗봇 답변의 근거 자료 — 홈페이지에 올라간 게시물(CompanyNews 전체)을 매 질문마다 검색해
@@ -16,6 +17,7 @@ interface KnowledgeDoc {
   hashtags: string[];
   link: string | null;
   createdAt: Date;
+  endDate: Date | null;
   fields: { grams: Set<string>; weight: number }[];
 }
 
@@ -56,6 +58,7 @@ async function loadIndex(): Promise<KnowledgeIndex> {
       hashtags: true,
       link: true,
       createdAt: true,
+      endDate: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -183,6 +186,13 @@ export async function buildChatKnowledge(
       `등록일: ${doc.createdAt.toISOString().slice(0, 10)} (오늘 ${today} 기준 ${Math.floor((now - doc.createdAt.getTime()) / 86_400_000)}일 전 게시) / 분류: ${doc.categories.join(", ") || "회사 소식"}`,
       `상세 페이지: ${siteUrl}/news/${doc.id}`,
       ...(doc.link ? [`관련 외부 링크: ${doc.link}`] : []),
+      ...(doc.endDate
+        ? [
+            `신청·운영 마감일: ${formatEndDate(doc.endDate)} → ${
+              isEnded(doc.endDate) ? "이미 종료됨 (답변 첫 문장에서 종료 사실을 알릴 것)" : "현재 진행 중"
+            }`,
+          ]
+        : []),
       `요약: ${doc.summary}`,
       `본문:\n${body}`,
     ].join("\n");

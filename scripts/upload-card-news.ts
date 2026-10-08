@@ -21,6 +21,8 @@ import { UTApi } from "uploadthing/server";
 import { CompanyNewsType, PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
+import sharp from "sharp";
+import { parseEndDate } from "../lib/news-utils";
 
 const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
 const prisma = new PrismaClient();
@@ -37,6 +39,7 @@ interface NewsItem {
   link?: string;
   isPinned?: boolean;
   deleteLocalAfterUpload?: boolean;  // true면 업로드 후 로컬 폴더 삭제
+  endDate?: string;             // 신청·운영 마감일 "YYYY-MM-DD" (기간이 정해진 지원사업·모집 글만)
   thumbnailFile?: string;       // 지정하면 이 이미지를 썸네일(imageUrl)로 별도 업로드 (폴더 내 캐러셀과 분리)
 }
 
@@ -57,6 +60,7 @@ const NEWS_ITEMS: NewsItem[] = [
   //   content: `## 본문 마크다운`,
   //   hashtags: ["#일본", "#특성화고"], // lib/news-constants.ts의 HASHTAG_POOL에서만 골라 쓸 것 (지역 1개 + 대상 1~2개, 총 3개 안팎)
   //   deleteLocalAfterUpload: true,
+  //   endDate: "2026-10-16", // 지원사업·모집처럼 마감이 있는 글만 — 지나면 사이트·챗봇에서 "종료"로 안내됨
   //   thumbnailFile: "public/company-news/새폴더이름.png", // 캐러셀과 분리된 별도 썸네일을 쓸 때만 지정
   // },
 ];
@@ -78,14 +82,37 @@ function copyToCardnewsShortsInput(sourceFolder: string): void {
   console.log(`  📁 cardnews-shorts/input/${path.basename(sourceFolder)}/ 로 사본 저장 (유튜브 파이프라인용)`);
 }
 
-async function uploadSingleFile(filePath: string): Promise<string> {
-  const buffer = fs.readFileSync(filePath);
+// 원본 카드뉴스는 장당 2~7MB PNG로 들어오는 경우가 많다. 그대로 올리면 첫 로딩이 느리고
+// 이미지 최적화 서버가 원본을 받다가 시간 초과되기도 해서, 올리기 전에 가로 1600px·JPEG로 줄인다.
+// (로컬 원본 폴더는 건드리지 않으므로 cardnews-shorts로 넘어가는 사본은 원본 화질 그대로다.)
+const MAX_UPLOAD_WIDTH = 1600;
+const COMPRESS_THRESHOLD_BYTES = 500 * 1024;
+
+async function prepareImage(filePath: string): Promise<File> {
+  const original = fs.readFileSync(filePath);
   const filename = path.basename(filePath);
   const ext = path.extname(filename).slice(1).toLowerCase();
-  const mime = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
-  const file = new File([buffer], filename, { type: mime });
+  const originalFile = () => new File([original], filename, { type: ext === "jpg" ? "image/jpeg" : `image/${ext}` });
+
+  if (original.length < COMPRESS_THRESHOLD_BYTES || ext === "webp") return originalFile();
+
+  const image = sharp(original).rotate();
+  const { isOpaque } = await image.stats();
+  if (!isOpaque) return originalFile(); // 투명 배경이 있는 이미지는 JPEG로 바꾸면 깨진다
+
+  const compressed = await image
+    .resize({ width: MAX_UPLOAD_WIDTH, withoutEnlargement: true })
+    .jpeg({ quality: 88, mozjpeg: true })
+    .toBuffer();
+  if (compressed.length >= original.length) return originalFile();
+
+  return new File([new Uint8Array(compressed)], filename.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+}
+
+async function uploadSingleFile(filePath: string): Promise<string> {
+  const file = await prepareImage(filePath);
   const result = await utapi.uploadFiles(file);
-  if (result.error) throw new Error(`업로드 실패 (${filename}): ${result.error.message}`);
+  if (result.error) throw new Error(`업로드 실패 (${file.name}): ${result.error.message}`);
   return result.data.ufsUrl ?? result.data.url;
 }
 
@@ -99,13 +126,7 @@ async function uploadFolder(folderPath: string): Promise<string[]> {
 
   const urls: string[] = [];
   for (const filename of files) {
-    const buffer = fs.readFileSync(path.join(folderPath, filename));
-    const ext = path.extname(filename).slice(1).toLowerCase();
-    const mime = ext === "jpg" ? "image/jpeg" : `image/${ext}`;
-    const file = new File([buffer], filename, { type: mime });
-    const result = await utapi.uploadFiles(file);
-    if (result.error) throw new Error(`업로드 실패 (${filename}): ${result.error.message}`);
-    urls.push(result.data.ufsUrl ?? result.data.url);
+    urls.push(await uploadSingleFile(path.join(folderPath, filename)));
     process.stdout.write(".");
   }
   console.log(` ${files.length}장`);
@@ -195,6 +216,7 @@ async function main() {
         link: item.link ?? null,
         hashtags: item.hashtags,
         isPinned: item.isPinned ?? false,
+        endDate: parseEndDate(item.endDate),
         createdAt: itemTimestamp,
         updatedAt: itemTimestamp,
       },
@@ -205,6 +227,7 @@ async function main() {
         imageUrl: thumbnailUrl,
         imageUrls: urls,
         hashtags: item.hashtags,
+        endDate: parseEndDate(item.endDate),
         updatedAt: itemTimestamp,
       },
     });

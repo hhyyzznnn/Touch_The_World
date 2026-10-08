@@ -6,7 +6,7 @@ import { Pagination } from "@/components/Pagination";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { CompanyNewsType } from "@prisma/client";
 import { CATEGORY_COLORS, PROGRAM_CATEGORIES } from "@/lib/news-constants";
-import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
+import { isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 
 // category/page 등 쿼리 파라미터가 있는 URL은 /programs와 중복 색인되지 않도록 noindex 처리
@@ -44,6 +44,7 @@ const CARD_SELECT = {
   createdAt: true,
   isPinned: true,
   link: true,
+  endDate: true,
 } as const;
 
 type CardNewsItem = {
@@ -56,6 +57,7 @@ type CardNewsItem = {
   createdAt: Date;
   isPinned: boolean;
   link: string | null;
+  endDate: Date | null;
 };
 
 async function getProgramCardNews(page: number, category?: string) {
@@ -145,9 +147,10 @@ const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#�
 function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?: string }) {
   const href = item.link?.trim() || `/news/${item.id}`;
   const isExternal = !!item.link?.trim()?.startsWith("http");
-  const isNew = isRecentlyAdded(item.createdAt);
+  const ended = isEnded(item.endDate);
+  const isNew = !ended && isRecentlyAdded(item.createdAt);
   const regionTag = item.hashtags.find((t) => REGION_TAGS.includes(t)) ?? null;
-  const showTagRow = isNew || item.categories.length > 0 || regionTag;
+  const showTagRow = ended || isNew || item.categories.length > 0 || regionTag;
 
   return (
     <Link
@@ -159,6 +162,9 @@ function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?:
       {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
       {showTagRow && (
         <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
+          {ended && (
+            <span className="rounded bg-gray-500 text-white px-2.5 py-0.5 text-xs font-bold">종료</span>
+          )}
           {isNew && (
             <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
               NEW

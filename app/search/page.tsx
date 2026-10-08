@@ -11,7 +11,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { Pagination } from "@/components/Pagination";
 import type { ProgramWhereInput, EventWhereInput, SchoolWhereInput, AchievementWhereInput } from "@/types";
 import { parsePositivePageParam } from "@/lib/search-params";
-import { stripBrandFromTitle } from "@/lib/news-utils";
+import { isEnded, stripBrandFromTitle } from "@/lib/news-utils";
 import { PROGRAM_CATEGORIES as NEWS_CATEGORIES } from "@/lib/news-constants";
 import type { Prisma } from "@prisma/client";
 
@@ -83,7 +83,7 @@ async function searchPosts(query: string, filters: SearchFilters, page: number) 
 
   const matches = await prisma.companyNews.findMany({
     where: { AND: and },
-    select: { id: true, title: true, summary: true, imageUrl: true, categories: true, hashtags: true, link: true },
+    select: { id: true, title: true, summary: true, imageUrl: true, categories: true, hashtags: true, link: true, endDate: true },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
   });
 
@@ -462,8 +462,13 @@ export default async function SearchPage({
                         )}
                       </div>
                       <div className="p-3 sm:p-4">
-                        {post.categories.length > 0 && (
-                          <p className="mb-1 text-xs text-brand-green-primary">{post.categories.join(" · ")}</p>
+                        {(post.categories.length > 0 || isEnded(post.endDate)) && (
+                          <p className="mb-1 text-xs text-brand-green-primary">
+                            {isEnded(post.endDate) && (
+                              <span className="mr-1.5 rounded bg-gray-500 px-1.5 py-0.5 font-bold text-white">종료</span>
+                            )}
+                            {post.categories.join(" · ")}
+                          </p>
                         )}
                         <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">
                           {stripBrandFromTitle(post.title)}

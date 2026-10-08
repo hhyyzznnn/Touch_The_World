@@ -194,6 +194,12 @@ const withServiceGuidance = (
     return next;
   }
 
+  // 단순 정보 질문("사전예약 언제까지예요?")에는 유도 문구를 덧붙이지 않는다.
+  // 인원을 말했거나 견적·상담 의사를 보이는 등 실제 준비 신호가 있을 때만 다음 단계를 안내한다.
+  if (!context?.hasConsultingIntent && !context?.hasParticipantCount) {
+    return next;
+  }
+
   if (!hasActionPrompt(next)) {
     next = `${next}\n\n${DEFAULT_SERVICE_CTA}`;
   }

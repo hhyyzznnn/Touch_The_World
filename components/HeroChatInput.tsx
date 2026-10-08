@@ -7,17 +7,19 @@ import Image from "next/image";
 import { Send, X } from "lucide-react";
 import { CategoryButtons, ChatMessages } from "@/components/chat/ChatMessages";
 import { useChatSession } from "@/components/chat/useChatSession";
+import { isEnded, parseEndDate } from "@/lib/news-utils";
 
 interface HeroChatInputProps {
   initialCategory?: string;
 }
 
 // 지금 확인하면 좋은 혜택성 프로그램 — 필요해지면 이 목록만 갱신하면 됩니다.
-const BENEFIT_HIGHLIGHTS = [
-  { label: "포천 버스비 전액 지원", href: "/news/cardnews_pocheon_bus_subsidy_2026" },
+// until(마감일, YYYY-MM-DD)을 적어두면 그날이 지난 뒤에는 자동으로 숨겨져, 끝난 혜택이 첫 화면에 남지 않는다.
+const BENEFIT_HIGHLIGHTS: { label: string; href: string; until?: string }[] = [
+  { label: "국립청소년시설 수련활동 사전예약 (~10/16)", href: "/news/cardnews_kywa_2nd_reservation_2027", until: "2026-10-16" },
   { label: "하나투어 교직원 혜택", href: "/news/cardnews_hanatour_teacher_benefits_2026" },
   { label: "인천 교육여행 지원사업", href: "/news/cardnews_incheon_edu_trip_support_2026" },
-] as const;
+];
 
 // 제휴사 링크 — 혜택 pill 바로 아래 줄에 로고와 함께 표시 (전부 외부 링크, 새 탭)
 const PARTNER_LINKS = [
@@ -179,7 +181,7 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
             터치더월드가 단독 제공하는 혜택
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            {BENEFIT_HIGHLIGHTS.map((item) => (
+            {BENEFIT_HIGHLIGHTS.filter((item) => !isEnded(parseEndDate(item.until))).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
