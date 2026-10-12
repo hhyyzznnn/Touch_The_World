@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Send, X } from "lucide-react";
 import { CategoryButtons, ChatMessages } from "@/components/chat/ChatMessages";
 import { useChatSession } from "@/components/chat/useChatSession";
@@ -20,12 +19,6 @@ const BENEFIT_HIGHLIGHTS: { label: string; href: string; until?: string }[] = [
   { label: "하나투어 교직원 혜택", href: "/news/cardnews_hanatour_teacher_benefits_2026" },
   { label: "인천 교육여행 지원사업", href: "/news/cardnews_incheon_edu_trip_support_2026" },
 ];
-
-// 제휴사 링크 — 혜택 pill 바로 아래 줄에 로고와 함께 표시 (전부 외부 링크, 새 탭)
-const PARTNER_LINKS = [
-  { label: "하나투어 제휴", href: "https://ttw.hanatour.com", logo: "hanatour" as const },
-  { label: "아소전문학교그룹 제휴", href: "https://www.asojuku.co.kr", logo: "aso" as const },
-] as const;
 
 export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
   const searchParams = useSearchParams();
@@ -189,36 +182,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
               >
                 {item.label}
               </Link>
-            ))}
-          </div>
-
-          {/* 제휴사 링크 — 혜택 pill과 구분되도록 톤을 바꿔 아랫줄에 배치 */}
-          <div className="mt-2 flex flex-wrap justify-center gap-2">
-            {PARTNER_LINKS.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50 pl-2 pr-4 py-1.5 text-sm font-medium text-amber-900 hover:bg-amber-100 transition-colors"
-              >
-                {item.logo === "hanatour" ? (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white p-1">
-                    <Image
-                      src="/logos/hanatour-icon.png"
-                      alt=""
-                      width={256}
-                      height={256}
-                      className="h-full w-full object-contain"
-                    />
-                  </span>
-                ) : (
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#C9A227] text-[8px] font-extrabold tracking-wide text-white">
-                    ASO
-                  </span>
-                )}
-                {item.label}
-              </a>
             ))}
           </div>
         </div>
