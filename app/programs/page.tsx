@@ -9,20 +9,44 @@ import { CATEGORY_COLORS, PROGRAM_CATEGORIES } from "@/lib/news-constants";
 import { isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 
-// category/page 등 쿼리 파라미터가 있는 URL은 /programs와 중복 색인되지 않도록 noindex 처리
+const KEYWORDS = mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]);
+
+// 카테고리별 목록(?category=, ?category=&page=)은 각자 주소로 색인되게 한다. "전체" 탭은 카테고리당
+// 미리보기 4건만 보여주므로, 이 목록이 색인에서 빠지면 검색엔진이 나머지 카드뉴스로 갈 길이 사이트맵뿐이다.
+// 그 밖의 쿼리 파라미터가 붙은 URL만 /programs와 중복되지 않도록 noindex 처리한다.
 export async function generateMetadata({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }): Promise<Metadata> {
   const params = await searchParams;
+  const category = typeof params.category === "string" ? params.category : "";
+  const page = typeof params.page === "string" ? parseInt(params.page, 10) : 1;
+  const isCategoryList =
+    (PROGRAM_CATEGORIES as readonly string[]).includes(category) &&
+    Object.keys(params).every((key) => key === "category" || key === "page") &&
+    Number.isInteger(page) &&
+    page >= 1;
+
+  if (isCategoryList) {
+    const pageSuffix = page > 1 ? ` (${page}페이지)` : "";
+    return {
+      title: `${category} 프로그램 카드뉴스${pageSuffix} | 터치더월드`,
+      description: `터치더월드가 기획·운영한 ${category} 프로그램을 카드뉴스로 모았습니다${pageSuffix}. 세부 일정과 견적은 상담 후 맞춤 제안합니다.`,
+      keywords: mergeKeywords(KEYWORDS, [category]),
+      alternates: {
+        canonical: `/programs?category=${encodeURIComponent(category)}${page > 1 ? `&page=${page}` : ""}`,
+      },
+    };
+  }
+
   const hasQueryParams = Object.keys(params).length > 0;
 
   return {
     title: "프로그램 카드뉴스 | 터치더월드",
     description:
       "터치더월드의 프로그램 가치와 인사이트를 카드뉴스 형태로 확인하세요. 세부 일정과 견적은 상담 후 맞춤 제안합니다.",
-    keywords: mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]),
+    keywords: KEYWORDS,
     alternates: {
       canonical: "/programs",
     },
@@ -106,9 +130,6 @@ async function getProgramCardNewsGrouped() {
     return {
       category: cat,
       items: matched.slice(0, GROUP_PREVIEW_LIMIT),
-      // 미리보기에 못 들어간 나머지는 제목 링크로 깔아둔다. 카테고리별 목록(?category=)은 noindex라
-      // 여기에 링크가 없으면 검색엔진이 개별 카드뉴스까지 따라갈 길이 사이트맵밖에 남지 않는다.
-      rest: matched.slice(GROUP_PREVIEW_LIMIT).map(({ id, title, link }) => ({ id, title, link })),
       total: matched.length,
     };
   }).filter((group) => group.items.length > 0);
@@ -340,27 +361,6 @@ export default async function ProgramsPage({
                   ))}
                 </div>
               </div>
-
-              {section.rest.length > 0 && (
-                <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1.5">
-                  {section.rest.map((item) => {
-                    const href = item.link?.trim() || `/news/${item.id}`;
-                    const isExternal = href.startsWith("http");
-                    return (
-                      <li key={item.id} className="min-w-0">
-                        <Link
-                          href={href}
-                          target={isExternal ? "_blank" : undefined}
-                          rel={isExternal ? "noopener noreferrer" : undefined}
-                          className="block truncate text-xs sm:text-sm text-text-gray hover:text-brand-green-primary hover:underline"
-                        >
-                          {stripBrandFromTitle(item.title)}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
             </section>
           ))}
         </div>

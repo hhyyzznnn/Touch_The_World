@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { getSiteUrl } from "@/lib/site-url";
+import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
 
 export const dynamic = "force-static";
 
@@ -32,6 +33,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    // 카테고리별 목록 — "전체" 탭에 다 나오지 않는 카드뉴스로 이어지는 길
+    ...PROGRAM_CATEGORIES.map((category) => ({
+      url: `${baseUrl}/programs?category=${encodeURIComponent(category)}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
     {
       url: `${baseUrl}/events`,
       lastModified: new Date(),
