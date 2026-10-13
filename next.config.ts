@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
       // 처리할 때 Location 헤더에 원문 UTF-8을 그대로 넣으려다 500을 내는 문제가 있어
       // (raw든 percent-encoded든 동일하게 실패) middleware.ts에서 직접 처리한다.
 
+      // 카드뉴스 주소를 /programs/로 잘못 건 링크가 "없는 페이지"로 끝나지 않게 실제 글로 보낸다.
+      { source: "/programs/:slug(cardnews_.*|companynews_.*)", destination: "/news/:slug", permanent: true },
+
       // CompanyNews slug 정리 (2026-06 이전 랜덤 ID → 정돈된 슬러그)
       { source: "/news/9c58e97d-f25a-4a14-bfe2-f79c27a73f92", destination: "/news/cardnews_fukuoka_culinary_field_trip_2026",         permanent: true },
       { source: "/news/82b1f0b1-444f-4594-a95f-5ac4d1fb307b", destination: "/news/cardnews_fukuoka_specialized_highschool_trip_2026", permanent: true },

@@ -42,7 +42,8 @@ export function Pagination({
       params.set(pageParamName, String(page));
     }
     
-    const queryString = params.toString();
+    // 공백을 +가 아닌 %20으로 통일 — 카테고리 버튼·사이트맵과 같은 주소가 되어야 검색엔진이 한 페이지로 본다.
+    const queryString = params.toString().replace(/\+/g, "%20");
     return `${baseUrl}${queryString ? `?${queryString}` : ""}`;
   };
 

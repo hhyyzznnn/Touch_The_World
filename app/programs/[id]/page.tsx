@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -223,6 +223,9 @@ export default async function ProgramDetailPage({
   const program = await getProgram(id);
 
   if (!program) {
+    // 카드뉴스 주소를 /programs/로 잘못 건 링크(팝업 등)가 "없는 페이지"로 끝나지 않게 실제 글로 보낸다.
+    const cardNews = await prisma.companyNews.findUnique({ where: { id }, select: { id: true } });
+    if (cardNews) permanentRedirect(`/news/${cardNews.id}`);
     notFound();
   }
 

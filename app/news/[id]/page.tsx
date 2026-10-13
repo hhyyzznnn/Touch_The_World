@@ -13,7 +13,7 @@ import { MessageCircle, ArrowRight, Star } from "lucide-react";
 import { ReviewSection } from "@/components/ReviewSection";
 import { PrintQuoteButton } from "@/components/programs/PrintQuoteButton";
 import { getSiteUrl } from "@/lib/site-url";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { formatEndDate, isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CompanyNewsType } from "@prisma/client";
@@ -365,7 +365,16 @@ export default async function NewsDetailPage({
                   prose-ul:list-disc prose-ol:list-decimal
                   prose-li:my-1
                   prose-hr:border-gray-200">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    // 본문에 "www.touchtheworld.co.kr"만 적으면 http:// 링크로 걸리므로 자사 주소는 https로 맞춘다.
+                    urlTransform={(url) =>
+                      defaultUrlTransform(url).replace(
+                        /^http:\/\/(www\.)?touchtheworld\.co\.kr/,
+                        "https://www.touchtheworld.co.kr"
+                      )
+                    }
+                  >
                     {news.content}
                   </ReactMarkdown>
                 </div>
