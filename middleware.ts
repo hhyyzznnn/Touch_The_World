@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
 
 // 2026-09 삭제한 SEO 랜딩페이지 4개 — 실제 검색·AI 어시스턴트 유입이 있던 페이지라
 // 그냥 404로 두지 않고 가장 관련 있는 카테고리로 301 연결해 유입을 이어받는다.
@@ -23,6 +24,36 @@ const DELETED_NEWS_REDIRECTS: Record<string, string> = {
   "/news/cardnews_touchtheworld_9_differentiators": "/news/cardnews_touchtheworld_company_profile_2026",
 };
 
+// 예전 카테고리 이름(띄어쓰기 없는 표기, 개편 전 분류)으로 들어오는 /programs?category= 주소.
+// 그대로 두면 전부 "프로그램 카드뉴스"라는 같은 제목의 페이지로 남아 검색엔진 진단에 중복으로 잡힌다.
+const LEGACY_CATEGORY_ALIASES: Record<string, string> = {
+  "해외교육여행": "국외 교육여행",
+  "국내외교육여행": "국외 교육여행",
+  "국내수학여행": "국내 교육여행",
+  "특성화고교육여행": "특성화고 프로그램",
+  "특성화고교프로그램": "특성화고 프로그램",
+  "해외취업및유학": "일본 유학",
+  "기타": "기타 프로그램",
+};
+
+// 유효하면 null, 아니면 옮겨갈 카테고리 이름(없으면 "" → 전체 목록)
+function resolveLegacyCategory(category: string): string | null {
+  if ((PROGRAM_CATEGORIES as readonly string[]).includes(category)) return null;
+  const compact = category.replace(/\s+/g, "");
+  return (
+    PROGRAM_CATEGORIES.find((cat) => cat.replace(/\s+/g, "") === compact) ??
+    LEGACY_CATEGORY_ALIASES[compact] ??
+    ""
+  );
+}
+
+// URL.searchParams는 공백을 +로 적는데, 사이트 안의 카테고리 링크·사이트맵은 %20을 쓴다. 같은 표기로 맞춘다.
+function programsUrl(request: NextRequest, category: string | null) {
+  const target = new URL("/programs", request.url);
+  target.search = category ? `?category=${encodeURIComponent(category)}` : "";
+  return target;
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -33,9 +64,17 @@ export async function middleware(request: NextRequest) {
 
   if (pathname in DELETED_LANDING_PAGE_REDIRECTS) {
     const category = DELETED_LANDING_PAGE_REDIRECTS[pathname];
-    const target = new URL("/programs", request.url);
-    if (category) target.searchParams.set("category", category);
-    return NextResponse.redirect(target, { status: 308 });
+    return NextResponse.redirect(programsUrl(request, category), { status: 308 });
+  }
+
+  if (pathname === "/programs") {
+    const category = request.nextUrl.searchParams.get("category");
+    if (category !== null) {
+      const replacement = resolveLegacyCategory(category);
+      if (replacement !== null) {
+        return NextResponse.redirect(programsUrl(request, replacement), { status: 308 });
+      }
+    }
   }
 
   if (pathname in DELETED_NEWS_REDIRECTS) {
