@@ -106,6 +106,9 @@ async function getProgramCardNewsGrouped() {
     return {
       category: cat,
       items: matched.slice(0, GROUP_PREVIEW_LIMIT),
+      // 미리보기에 못 들어간 나머지는 제목 링크로 깔아둔다. 카테고리별 목록(?category=)은 noindex라
+      // 여기에 링크가 없으면 검색엔진이 개별 카드뉴스까지 따라갈 길이 사이트맵밖에 남지 않는다.
+      rest: matched.slice(GROUP_PREVIEW_LIMIT).map(({ id, title, link }) => ({ id, title, link })),
       total: matched.length,
     };
   }).filter((group) => group.items.length > 0);
@@ -337,6 +340,27 @@ export default async function ProgramsPage({
                   ))}
                 </div>
               </div>
+
+              {section.rest.length > 0 && (
+                <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-1.5">
+                  {section.rest.map((item) => {
+                    const href = item.link?.trim() || `/news/${item.id}`;
+                    const isExternal = href.startsWith("http");
+                    return (
+                      <li key={item.id} className="min-w-0">
+                        <Link
+                          href={href}
+                          target={isExternal ? "_blank" : undefined}
+                          rel={isExternal ? "noopener noreferrer" : undefined}
+                          className="block truncate text-xs sm:text-sm text-text-gray hover:text-brand-green-primary hover:underline"
+                        >
+                          {stripBrandFromTitle(item.title)}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </section>
           ))}
         </div>
