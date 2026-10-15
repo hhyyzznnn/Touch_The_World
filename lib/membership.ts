@@ -29,7 +29,7 @@ export const MEMBERSHIP_BUNDLES: MembershipBundle[] = [
     key: "지원사업·예산",
     basis: "포천·인천 버스비, 국립청소년시설 사전예약, 국제화사업",
     items: [
-      { name: "지원사업 마감 알림", desc: "버스비 지원·사전예약·보조금 공모를 마감 전에 먼저 안내", tier: 2 },
+      { name: "지원사업 마감 알림", desc: "버스비 지원·사전예약·보조금 공모를 마감 전에 이메일로 안내", tier: 1 },
       { name: "연간 지원사업 캘린더", desc: "학년도 초, 우리 학교가 신청할 수 있는 사업 일정표", tier: 2 },
       { name: "지원사업 신청 지원", desc: "신청 대상·기간·서류 확인부터 신청서 초안까지", tier: 3 },
     ],
@@ -49,7 +49,8 @@ export const MEMBERSHIP_BUNDLES: MembershipBundle[] = [
     basis: "선생님 업무 지원 가이드, 사전교육, 안전 매뉴얼",
     items: [
       { name: "월간 교육여행 소식", desc: "신규 프로그램·지원사업·추천 도서를 월 1회 정리해 발송", tier: 1 },
-      { name: "서류 양식 자료실", desc: "가정통신문·계획서·품의서·안전교육·사전답사·정산 양식", tier: 2 },
+      { name: "기본 서류 양식집", desc: "가정통신문·계획서·품의서·사전답사 보고서·정산 양식", tier: 1 },
+      { name: "안전 자료", desc: "안전 점검 체크리스트·비상연락망 양식·여행자보험 안내·사고 대응 절차", tier: 1 },
       { name: "학생 사전교육 자료", desc: "해외 교육여행 기초 회화·문화·에티켓·안전 자료와 활동지", tier: 2 },
       { name: "우리 학교용 완성본", desc: "양식에 학교 일정·인원을 넣어 완성본으로 제공", tier: 3 },
     ],
@@ -68,8 +69,7 @@ export const MEMBERSHIP_BUNDLES: MembershipBundle[] = [
     key: "교직원 연수·여행",
     basis: "교직원 연수, 하나투어 제휴, 교사 특별여행",
     items: [
-      { name: "하나투어 교직원 혜택 안내", desc: "모든 교직원에게 열린 제휴 혜택 안내", tier: 1 },
-      { name: "방학 교사 여행 우선 안내", desc: "인원이 적은 교사 대상 상품을 먼저 안내", tier: 2 },
+      { name: "교직원 제휴 혜택 안내", desc: "회원 여부와 관계없이 모든 교직원에게 열린 하나투어 제휴 혜택 안내", tier: 1 },
       { name: "AI 활용 온라인 연수", desc: "계획서·가정통신문을 AI로 쓰는 법, 분기 1회", tier: 2 },
       { name: "교직원 연수 기획 패키지", desc: "일정표 + 숙소 비교표 + 품의서 초안", tier: 3 },
     ],
@@ -78,7 +78,7 @@ export const MEMBERSHIP_BUNDLES: MembershipBundle[] = [
     key: "행사 케어",
     basis: "과천여고·안양문화고·정화여중 진행 사례",
     items: [
-      { name: "상담·견적 이력 저장", desc: "지난 상담과 견적을 다음 학기에 이어서 확인", tier: 1 },
+      { name: "상담·견적 이력 저장", desc: "사이트 회원으로 로그인하면 지난 상담과 견적을 '내 문의'에서 이어서 확인", tier: 1 },
       { name: "행사 결과 요약 카드", desc: "행사 사진으로 학교 홈페이지·소식지용 카드 1장", tier: 2 },
       { name: "결과보고서·만족도 설문", desc: "학생 만족도 집계와 결과보고서 초안", tier: 3 },
       { name: "전담 담당자·사전답사 지원", desc: "준비부터 정산까지 한 사람이 담당, 사전답사 동행", tier: 3 },
@@ -87,9 +87,9 @@ export const MEMBERSHIP_BUNDLES: MembershipBundle[] = [
 ];
 
 export const MEMBERSHIP_TIERS = [
-  { tier: 1 as const, name: "기본", status: "지금 가입 가능", price: "무료", target: "누구나" },
-  { tier: 2 as const, name: "플러스", status: "시범 운영 신청", price: "시범 운영 후 공개", target: "담당 선생님 개인" },
-  { tier: 3 as const, name: "프리미엄", status: "시범 운영 신청", price: "시범 운영 후 공개", target: "부장교사·학교 단위" },
+  { tier: 1 as const, name: "기본", status: "지금 가입 가능", headline: "무료", price: "비용 없음", target: "교육여행을 맡은 선생님 누구나" },
+  { tier: 2 as const, name: "플러스", status: "시범 운영 신청", headline: "담당 선생님용", price: "요금은 시범 운영 후 공개", target: "자료·비교표로 준비 시간을 줄이는 단계" },
+  { tier: 3 as const, name: "프리미엄", status: "시범 운영 신청", headline: "학교 단위", price: "요금은 시범 운영 후 공개", target: "부장교사·학교가 함께 쓰는 단계 — 담당이 바뀌어도 유지" },
 ];
 
 export interface MembershipInput {

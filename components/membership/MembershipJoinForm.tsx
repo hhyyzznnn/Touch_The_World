@@ -20,7 +20,7 @@ export function MembershipJoinForm() {
     phone: "",
     interests: [] as string[],
     pilotInterest: false,
-    newsletterOptIn: true,
+    newsletterOptIn: false,
     privacyConsent: false,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -73,7 +73,7 @@ export function MembershipJoinForm() {
           {done.updated ? "가입 정보가 갱신되었습니다" : "멤버십 가입이 완료되었습니다"}
         </p>
         <p className="mt-2 text-sm text-text-gray leading-relaxed">
-          {form.newsletterOptIn ? "다음 달 교육여행 소식부터 이메일로 보내드립니다. " : ""}
+          {form.newsletterOptIn ? "마감 알림과 월간 소식을 이메일로 보내드립니다. " : "마감 알림을 받으시려면 이메일 수신에 동의해 다시 가입해주세요. "}
           {form.pilotInterest ? "시범 운영 대상이 정해지면 따로 연락드리겠습니다." : ""}
         </p>
       </div>
@@ -142,13 +142,13 @@ export function MembershipJoinForm() {
           <input type="checkbox" className="mt-0.5" checked={form.pilotInterest} onChange={(e) => set("pilotInterest", e.target.checked)} />
           <span>
             <b>플러스·프리미엄 시범 운영에 참여하고 싶어요</b>
-            <span className="block text-xs text-text-gray">시범 기간에는 비용 없이 자료실·마감 알림 등을 먼저 써보고 의견을 주시는 방식입니다.</span>
+            <span className="block text-xs text-text-gray">시범 기간에는 비용 없이 비교표·사전교육 자료 등을 먼저 써보고 의견을 주시는 방식입니다.</span>
           </span>
         </label>
         <label className="flex items-start gap-2.5">
           <input type="checkbox" className="mt-0.5" checked={form.newsletterOptIn} onChange={(e) => set("newsletterOptIn", e.target.checked)} />
           <span>
-            (선택) 월간 교육여행 소식·지원사업 안내 이메일 수신
+            (선택) 지원사업 마감 알림·월간 교육여행 소식 이메일 수신
           </span>
         </label>
         <label className="flex items-start gap-2.5">

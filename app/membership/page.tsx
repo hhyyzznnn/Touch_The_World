@@ -29,7 +29,7 @@ const TIER_LABEL = { 1: "기본", 2: "플러스", 3: "프리미엄" } as const;
 const TIER_STYLE = {
   1: "bg-brand-green-primary text-white",
   2: "bg-brand-green-primary/15 text-brand-green-primary",
-  3: "bg-gray-200 text-text-dark",
+  3: "bg-[#1B4332] text-white",
 } as const;
 
 export default async function MembershipPage() {
@@ -61,16 +61,26 @@ export default async function MembershipPage() {
             <CalendarClock className="h-5 w-5 text-brand-green-primary" />
             <h2 className="text-lg font-bold">지금 마감이 다가오는 안내</h2>
           </div>
-          <p className="mt-1 text-sm text-text-gray">플러스 단계부터는 이런 마감을 미리 알려드립니다.</p>
+          <p className="mt-1 text-sm text-text-gray">기본(무료) 회원에게 이런 마감을 미리 이메일로 알려드립니다.</p>
           <ul className="mt-4 divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white">
             {deadlines.map((d) => (
               <li key={d.id}>
-                <Link href={`/news/${d.id}`} className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-gray-50">
-                  <span className="truncate text-sm text-text-dark">{stripBrandFromTitle(d.title)}</span>
-                  <span className="flex-shrink-0 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                    ~{d.endDate ? formatEndDate(d.endDate) : ""}
-                  </span>
-                </Link>
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+                  <Link href={`/news/${d.id}`} className="min-w-0 flex-1 truncate text-sm text-text-dark hover:text-brand-green-primary hover:underline">
+                    {stripBrandFromTitle(d.title)}
+                  </Link>
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                      ~{d.endDate ? formatEndDate(d.endDate) : ""}
+                    </span>
+                    <Link
+                      href={`/inquiry?programRef=${encodeURIComponent(stripBrandFromTitle(d.title))}`}
+                      className="rounded-full border border-brand-green-primary px-3 py-1 text-xs font-semibold text-brand-green-primary hover:bg-brand-green-primary hover:text-white"
+                    >
+                      신청 문의
+                    </Link>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
@@ -86,8 +96,9 @@ export default async function MembershipPage() {
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${TIER_STYLE[t.tier]}`}>{t.name}</span>
                 <span className="text-xs text-text-gray">{t.status}</span>
               </div>
-              <p className="mt-3 text-xl font-bold">{t.price}</p>
-              <p className="text-xs text-text-gray">{t.target}</p>
+              <p className="mt-3 text-xl font-bold">{t.headline}</p>
+              <p className="text-sm text-gray-600">{t.target}</p>
+              <p className="mt-1 text-xs font-medium text-text-gray">{t.price}</p>
               <ul className="mt-4 space-y-1.5 text-sm">
                 {MEMBERSHIP_BUNDLES.flatMap((b) => b.items)
                   .filter((i) => i.tier === t.tier)
@@ -120,7 +131,7 @@ export default async function MembershipPage() {
                     </span>
                     <span>
                       <b className="font-medium">{item.name}</b>
-                      <span className="block text-xs text-text-gray">{item.desc}</span>
+                      <span className="block text-[13px] leading-snug text-gray-600">{item.desc}</span>
                     </span>
                   </li>
                 ))}
@@ -132,7 +143,10 @@ export default async function MembershipPage() {
 
       <section id="join" className="scroll-mt-24">
         <h2 className="text-lg font-bold">기본 멤버십 가입</h2>
-        <p className="mt-1 text-sm text-text-gray">로그인 없이 가입할 수 있습니다. 비용은 들지 않습니다.</p>
+        <p className="mt-1 text-sm text-text-gray">
+          비용은 들지 않습니다. 사이트 회원가입과는 별개라 이름·학교·이메일만 있으면 됩니다.
+          (상담·견적 이력은 사이트 회원으로 로그인했을 때 &lsquo;내 문의&rsquo;에서 볼 수 있습니다.)
+        </p>
         <div className="mt-4">
           <MembershipJoinForm />
         </div>
@@ -144,6 +158,19 @@ export default async function MembershipPage() {
           <div>
             <dt className="font-medium">멤버십이 여행 계약이나 견적 가격에 영향을 주나요?</dt>
             <dd className="text-text-gray">아니요. 멤버십은 업무 자료·안내 서비스이며, 계약 조건이나 가격 우대와는 관계가 없습니다.</dd>
+          </div>
+          <div>
+            <dt className="font-medium">업체 선정이나 입찰과 관계가 있나요?</dt>
+            <dd className="text-text-gray">
+              없습니다. 회원이라고 업체 선정·입찰·계약에서 유리해지지 않고, 비교견적도 자유롭게 받으시면 됩니다.
+              선생님 개인에게 금품·할인·무료 여행을 드리지 않으며, 멤버십은 학교 업무에 쓰는 자료와 안내로만 구성합니다.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-medium">학교 예산으로도 이용할 수 있나요?</dt>
+            <dd className="text-text-gray">
+              학교 단위(프리미엄)는 학교 예산 집행을 기준으로 설계하고 있습니다. 결제 방법과 필요한 서류는 정식 출시 때 함께 안내드립니다.
+            </dd>
           </div>
           <div>
             <dt className="font-medium">플러스·프리미엄은 언제 이용할 수 있나요?</dt>
