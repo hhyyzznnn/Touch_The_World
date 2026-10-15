@@ -15,6 +15,7 @@ import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } fro
 import { ToastProvider } from "@/components/ui/toast";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MicrosoftClarity } from "@/components/MicrosoftClarity";
+import { AttributionCapture } from "@/components/tracking/AttributionCapture";
 
 const notoSerif = Noto_Serif_KR({
   subsets: ["latin"],
@@ -176,6 +177,7 @@ export default function RootLayout({
       <body className={`${notoSerif.variable} ${bonaNovaSC.variable} ${pretendard.variable} font-sans`} suppressHydrationWarning>
         <ToastProvider>
           <KakaoScript />
+          <AttributionCapture />
           <NextSSRPlugin
             routerConfig={extractRouterConfig(ourFileRouter)}
           />

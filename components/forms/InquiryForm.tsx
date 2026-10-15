@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
 import { CheckCircle2, Bookmark, History, X } from "lucide-react";
 import { trackEvent, GA_EVENTS } from "@/lib/gtag";
+import { classifyTouch } from "@/lib/attribution";
+import { readAttribution } from "@/components/tracking/AttributionCapture";
 import { BasicInfoSection } from "./inquiry/BasicInfoSection";
 import { ScheduleSection } from "./inquiry/ScheduleSection";
 import { TravelSection } from "./inquiry/TravelSection";
@@ -43,6 +45,13 @@ export function InquiryForm({
   } | null>(null);
 
   const [pendingDraft, setPendingDraft] = useState<InquiryDraft | null>(null);
+  // 폼에 처음 손댄 순간 한 번만 보낸다 — inquiry_submit과 비교하면 작성 도중 이탈한 비율이 나온다.
+  const startTrackedRef = useRef(false);
+  const handleFormFocus = () => {
+    if (startTrackedRef.current) return;
+    startTrackedRef.current = true;
+    trackEvent(GA_EVENTS.INQUIRY_START, { inquiry_mode: mode });
+  };
 
   const form = useForm<InquiryFormData>({
     resolver: zodResolver(inquirySchema),
@@ -99,8 +108,10 @@ export function InquiryForm({
     setIsSubmitting(true);
     setSubmitError(null);
     try {
+      const attribution = readAttribution();
       const payload = {
         ...data,
+        attribution,
         phone: typeof data.phone === "string" ? formatPhoneNumber(data.phone) : data.phone,
         estimatedBudget:
           typeof data.estimatedBudget === "number" ? data.estimatedBudget : undefined,
@@ -121,7 +132,11 @@ export function InquiryForm({
         reset();
         clearDraft();
         toast.success("문의가 접수되었습니다.");
-        trackEvent(GA_EVENTS.INQUIRY_SUBMIT, { school_level: data.schoolLevel });
+        trackEvent(GA_EVENTS.INQUIRY_SUBMIT, {
+          school_level: data.schoolLevel,
+          inquiry_mode: mode,
+          first_channel: classifyTouch(attribution?.first),
+        });
       } else {
         const errData = await response.json().catch(() => ({}));
         const message =
@@ -289,7 +304,7 @@ export function InquiryForm({
         )}
 
         <FormProvider {...form}>
-          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-10">
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} onFocusCapture={handleFormFocus} className="space-y-10">
             <BasicInfoSection mode={mode} />
 
             {mode === "detailed" && (

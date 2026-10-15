@@ -164,6 +164,7 @@ model Inquiry {
   status            String   @default("pending") // pending, completed
   reminderSentAt    DateTime? // 24시간 미확인 리마인더 발송 시각
   linkedEventId     String?  @unique // 캘린더 진행 내역(Event)으로 전환된 경우 해당 Event ID
+  attribution       Json?    // 유입 경로 { first, last } — lib/attribution.ts
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

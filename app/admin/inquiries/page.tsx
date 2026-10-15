@@ -149,6 +149,9 @@ export default async function AdminInquiriesPage({
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">문의 관리</h1>
         <div className="flex items-center gap-3">
+          <Link href="/admin/inquiries/stats" className="text-sm font-medium text-brand-green-primary hover:underline">
+            문의 통계
+          </Link>
           <AiSummaryBackfillButton />
           <span className="text-sm text-gray-500">총 {total}건</span>
         </div>

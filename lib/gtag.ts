@@ -11,6 +11,7 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
 }
 
 export const GA_EVENTS = {
+  INQUIRY_START: "inquiry_start",
   INQUIRY_SUBMIT: "inquiry_submit",
   KAKAO_CONTACT_CLICK: "kakao_contact_click",
   PHONE_CLICK: "phone_click",

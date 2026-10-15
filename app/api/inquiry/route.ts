@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
+import { sanitizeAttribution } from "@/lib/attribution";
+import type { Prisma } from "@prisma/client";
 import { validateAndSanitize, isValidEmail, isValidPhone } from "@/lib/security";
 import { sendInquiryNotificationEmail } from "@/lib/email";
 import { generateInquirySummary } from "@/lib/inquiry-ai";
@@ -221,6 +223,7 @@ export async function POST(request: NextRequest) {
         estimatedBudget: data.estimatedBudget ?? null,
         schoolLevel: data.schoolLevel ?? null,
         expectedDate: data.expectedDate ?? data.departureDate ?? null,
+        attribution: (sanitizeAttribution(body.attribution) as Prisma.InputJsonObject | null) ?? undefined,
       },
     });
 
