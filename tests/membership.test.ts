@@ -34,3 +34,13 @@ test("이메일 형식이 틀리면 거절한다", () => {
 test("혜택 묶음은 관심 분야 목록과 1:1로 맞는다", () => {
   assert.deepEqual(MEMBERSHIP_BUNDLES.map((b) => b.key), [...MEMBERSHIP_INTERESTS]);
 });
+
+test("단계 카드의 대표 혜택은 전체 혜택 목록에 같은 단계로 들어 있다", async () => {
+  const { MEMBERSHIP_TIERS } = await import("@/lib/membership");
+  const all = MEMBERSHIP_BUNDLES.flatMap((b) => b.items);
+  for (const t of MEMBERSHIP_TIERS) {
+    for (const name of t.keyBenefits) {
+      assert.equal(all.find((i) => i.name === name)?.tier, t.tier, name);
+    }
+  }
+});
