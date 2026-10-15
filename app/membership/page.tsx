@@ -36,14 +36,14 @@ export default async function MembershipPage() {
   const deadlines = await getUpcomingDeadlines();
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-10 sm:py-14 space-y-14">
+    <div className="container mx-auto max-w-5xl px-4 py-10 sm:py-14 space-y-14 break-keep">
       <section className="text-center">
         <p className="text-sm font-semibold text-brand-green-primary">교사 멤버십</p>
-        <h1 className="mt-2 text-2xl sm:text-4xl font-bold leading-snug">
+        <h1 className="mt-2 text-2xl sm:text-4xl font-bold leading-snug text-balance">
           교육여행 담당 선생님의
           <br className="sm:hidden" /> 1년 업무를 같이 챙깁니다
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-text-gray leading-relaxed">
+        <p className="mx-auto mt-4 max-w-2xl text-sm sm:text-base text-text-gray leading-relaxed text-balance">
           계획서·가정통신문·지원사업 신청·사전교육·결과보고까지, 견적 앞뒤로 이어지는 일을 덜어드리는 멤버십입니다.
           기본 단계는 무료이고, 플러스·프리미엄은 시범 운영을 거쳐 정식으로 엽니다.
         </p>
@@ -66,7 +66,7 @@ export default async function MembershipPage() {
             {deadlines.map((d) => (
               <li key={d.id}>
                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-                  <Link href={`/news/${d.id}`} className="min-w-0 flex-1 truncate text-sm text-text-dark hover:text-brand-green-primary hover:underline">
+                  <Link href={`/news/${d.id}`} className="min-w-0 basis-full sm:basis-auto sm:flex-1 line-clamp-2 sm:truncate text-sm text-text-dark hover:text-brand-green-primary hover:underline">
                     {stripBrandFromTitle(d.title)}
                   </Link>
                   <div className="flex flex-shrink-0 items-center gap-2">
@@ -97,7 +97,7 @@ export default async function MembershipPage() {
                 <span className="text-xs text-text-gray">{t.status}</span>
               </div>
               <p className="mt-3 text-xl font-bold">{t.headline}</p>
-              <p className="text-sm text-gray-600">{t.target}</p>
+              <p className="text-sm text-gray-600 text-balance">{t.target}</p>
               <p className="mt-1 text-xs font-medium text-text-gray">{t.price}</p>
               <ul className="mt-4 space-y-1.5 text-sm">
                 {MEMBERSHIP_BUNDLES.flatMap((b) => b.items)
