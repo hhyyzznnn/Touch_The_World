@@ -536,3 +536,28 @@ model ConsultingLog {
   @@index([createdAt])
   @@index([emailSent])
 }
+
+/// 교사 멤버십 가입자 (1단계: 무료 기본 + 유료 단계 시범 운영 신청). 로그인 없이 가입할 수 있어 User와 별도로 둔다.
+model MembershipMember {
+  id                String    @id @default(cuid())
+  name              String
+  schoolName        String
+  position          String?
+  schoolLevel       String?
+  email             String    @unique
+  phone             String?
+  interests         String[]  @default([]) // lib/membership.ts MEMBERSHIP_INTERESTS
+  tier              String    @default("basic") // basic | pilot | plus | premium
+  pilotInterest     Boolean   @default(false) // 유료 단계 시범 운영 참여 희망
+  newsletterOptIn   Boolean   @default(false) // 월간 교육여행 소식·마감 알림 수신
+  newsletterOptInAt DateTime?
+  privacyConsentAt  DateTime
+  userId            String?
+  attribution       Json?
+  memo              String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([tier])
+  @@index([createdAt])
+}
