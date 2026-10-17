@@ -31,14 +31,16 @@ export function InquiryDropdownButton({ dark }: { dark?: boolean } = {}) {
         className={dark
           ? "border-2 border-white/20 bg-white/10 hover:bg-white/20 text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-base rounded-xl transition-all duration-200 min-h-11 backdrop-blur-sm"
           : "bg-white border-2 border-gray250/50 hover:border-brand-green/50 hover:bg-brand-green/5 px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg text-text-dark rounded-xl transition-all duration-200 min-h-11"}
-        onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
       >
-        <span className="flex items-center justify-center gap-2 sm:gap-3">
+        {/* 버튼 자체를 누르면 바로 문의 페이지로 간다. 예전에는 누를 때마다 메뉴를 열고 닫기만 해서,
+            마우스를 올려 이미 열린 메뉴가 클릭에 닫혀 버리는 바람에 여러 번 눌러야 했다(Clarity 녹화로 확인).
+            빠른/구체적 선택은 마우스를 올렸을 때 뜨는 메뉴나 문의 페이지 안의 탭에서 한다. */}
+        <Link href="/inquiry" className="flex items-center justify-center gap-2 sm:gap-3">
           <Send className="w-4 h-4" />
           문의하기
-        </span>
+        </Link>
       </Button>
 
       {open && (
