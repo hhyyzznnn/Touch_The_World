@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { ErrorMessage } from "@/components/ErrorMessage";
@@ -145,18 +145,22 @@ export function InquiryForm({
             : "문의 등록에 실패했습니다. 다시 시도해주세요.";
         setSubmitError(message);
         toast.error(message);
+        trackEvent(GA_EVENTS.INQUIRY_ERROR, { inquiry_mode: mode, status: response.status, reason: message.slice(0, 100) });
       }
     } catch {
       const message = "문의 등록에 실패했습니다. 다시 시도해주세요.";
       setSubmitError(message);
       toast.error(message);
+      trackEvent(GA_EVENTS.INQUIRY_ERROR, { inquiry_mode: mode, status: "network" });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // 오류 문구가 붙지 않는 항목에서 검증이 막혀도 "눌러도 반응 없음"이 되지 않도록 항상 알린다.
-  const onInvalid = () => {
+  // 어느 칸 때문에 막혔는지(칸 이름만, 입력값은 보내지 않음)를 남겨 제출 실패 원인을 추적한다.
+  const onInvalid = (errors: FieldErrors<InquiryFormData>) => {
+    trackEvent(GA_EVENTS.INQUIRY_INVALID, { inquiry_mode: mode, fields: Object.keys(errors).join(",").slice(0, 100) });
     toast.error("입력 내용을 다시 확인해주세요.");
     document.querySelector("form .text-red-500.text-sm")?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
