@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ExternalLink } from "lucide-react";
 
 /**
@@ -17,28 +18,51 @@ const linkProps = (item: FamilyItem) =>
     ? { href: item.href, "aria-current": "page" as const }
     : { href: item.href, target: "_blank", rel: "noopener noreferrer" };
 
-/** 헤더 위 띠 — 모든 페이지 최상단에 표시되고, 스크롤하면 헤더만 남는다 */
-export function FamilyBar() {
+function FamilyMark({ item }: { item: FamilyItem }) {
+  if (item.key === "hanatour") {
+    return (
+      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white p-1">
+        <Image src="/logos/hanatour-icon.png" alt="" width={256} height={256} className="h-full w-full object-contain" />
+      </span>
+    );
+  }
   return (
-    <nav aria-label="터치더월드와 제휴사" className="bg-[#1B4332] text-white print:hidden">
-      <ul className="container mx-auto grid grid-cols-3 px-2 sm:flex sm:px-6 md:px-8">
-        {FAMILY.map((item) => (
-          <li key={item.key} className="sm:border-r sm:border-white/15 sm:first:border-l">
-            <a
-              {...linkProps(item)}
-              className={`flex h-11 flex-col items-center justify-center gap-0 px-1 text-center leading-tight transition-colors sm:h-9 sm:flex-row sm:gap-1.5 sm:px-5 ${
-                item.current ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <span className="text-[10px] sm:text-xs">{item.need}</span>
-              <span className="flex items-center gap-1 text-xs font-bold sm:text-[13px]">
-                {item.brand}
-                {!item.current && <ExternalLink className="h-3 w-3 opacity-70" aria-hidden />}
-              </span>
-            </a>
-          </li>
-        ))}
-      </ul>
+    <span
+      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-extrabold tracking-wide text-white ${
+        item.key === "aso" ? "bg-[#C9A227]" : "bg-brand-green-primary"
+      }`}
+    >
+      {item.key === "aso" ? "ASO" : "TTW"}
+    </span>
+  );
+}
+
+/** 메인 첫 화면 AI 입력창 아래 3칸 */
+export function FamilyCards() {
+  return (
+    <nav aria-label="터치더월드와 제휴사" className="grid grid-cols-3 gap-2">
+      {FAMILY.map((item) => (
+        <a
+          key={item.key}
+          {...linkProps(item)}
+          className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2.5 text-left transition-colors sm:px-4 ${
+            item.current
+              ? "border-brand-green-primary/40 bg-brand-green-primary/5"
+              : "border-gray-200 bg-white/80 hover:border-brand-green-primary/40 hover:bg-white"
+          }`}
+        >
+          <span className="hidden sm:flex">
+            <FamilyMark item={item} />
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block text-[11px] text-text-gray sm:text-xs">{item.need}</span>
+            <span className={`block truncate text-[13px] font-bold sm:text-[15px] ${item.current ? "text-brand-green-primary" : "text-text-dark"}`}>
+              {item.brand}
+            </span>
+          </span>
+          {!item.current && <ExternalLink className="hidden h-3.5 w-3.5 flex-shrink-0 text-text-gray sm:block" aria-hidden />}
+        </a>
+      ))}
     </nav>
   );
 }

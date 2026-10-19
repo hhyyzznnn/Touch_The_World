@@ -9,7 +9,6 @@ import { GlobalSearchBar } from "./GlobalSearchBar";
 import { UserMenu } from "./UserMenu";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { InstagramTile, FacebookTile, YoutubeTile } from "./SnsIcons";
-import { FamilyBar } from "./FamilyLinks";
 
 export function Header() {
   const pathname = usePathname();
@@ -41,8 +40,6 @@ export function Header() {
   }
 
   return (
-    <>
-    <FamilyBar />
     <header className="bg-white border-b sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-4 sm:px-6 md:px-8">
         <div className="flex items-center justify-between h-16 sm:h-24 gap-2 sm:gap-4">
@@ -263,6 +260,5 @@ export function Header() {
         </div>
       )}
     </header>
-    </>
   );
 }
