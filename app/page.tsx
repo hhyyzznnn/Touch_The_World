@@ -23,6 +23,7 @@ import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
 import { CategoryQuickNav } from "@/components/home/CategoryQuickNav";
 import { HomePopup } from "@/components/home/HomePopup";
+import { MembershipBanner } from "@/components/home/MembershipBanner";
 
 export const metadata: Metadata = {
   title: "터치더월드 | 교육여행·수학여행·교사연수 전문 여행사",
@@ -181,6 +182,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── 교사 멤버십 안내 ── */}
+      <MembershipBanner />
 
       {/* ── Stats (숫자 애니메이션) ── */}
       <StatsSection />
