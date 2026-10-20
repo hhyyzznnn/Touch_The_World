@@ -9,6 +9,8 @@ import {
   MEMBERSHIP_INTERESTS,
   MEMBERSHIP_POSITIONS,
   MEMBERSHIP_SCHOOL_LEVELS,
+  parseEntryPoint,
+  type MembershipEntryPoint,
 } from "@/lib/membership";
 
 const inputClass =
@@ -32,6 +34,33 @@ export function MembershipJoinForm() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ updated: boolean } | null>(null);
 
+  // 사이트 안 어디서 들어왔는지(?from=) — 페이지 안에서 이동하거나 새로고침해도 유지되도록 세션에 보관
+  const [via, setVia] = useState<MembershipEntryPoint | null>(null);
+  const viewTrackedRef = useRef(false);
+  useEffect(() => {
+    if (viewTrackedRef.current) return;
+    viewTrackedRef.current = true;
+    try {
+      const fromUrl = parseEntryPoint(new URLSearchParams(window.location.search).get("from"));
+      if (fromUrl) sessionStorage.setItem("ttw_membership_via", fromUrl);
+      const current = fromUrl ?? parseEntryPoint(sessionStorage.getItem("ttw_membership_via"));
+      setVia(current);
+      trackEvent("membership_view", { via: current ?? "direct" });
+    } catch {
+      trackEvent("membership_view", { via: "direct" });
+    }
+  }, []);
+
+  // 처음 입력을 시작한 순간 한 번만 — membership_join과 비교하면 작성 도중 이탈한 비율이 나온다
+  const startedRef = useRef(false);
+  const handleFormFocus = () => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    trackEvent("membership_form_start", { via: via ?? "direct" });
+  };
+  const trackFailure = (reason: string) =>
+    trackEvent("membership_error", { via: via ?? "direct", reason: reason.slice(0, 100) });
+
   const doneRef = useRef<HTMLDivElement>(null);
   // 폼이 짧은 완료 안내로 바뀌면 화면이 아래쪽에 남으므로 안내 위치로 올려준다.
   useEffect(() => {
@@ -54,6 +83,7 @@ export function MembershipJoinForm() {
     setError(null);
     if (!form.privacyConsent) {
       setError("개인정보 수집·이용에 동의해 주세요.");
+      trackFailure("privacy_consent");
       return;
     }
     setSubmitting(true);
@@ -61,10 +91,11 @@ export function MembershipJoinForm() {
       const res = await fetch("/api/membership", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, attribution: readAttribution() }),
+        body: JSON.stringify({ ...form, attribution: readAttribution(), via }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
+        trackFailure(typeof body.error === "string" ? body.error : `status_${res.status}`);
         setError(
           typeof body.error === "string"
             ? body.error
@@ -76,8 +107,10 @@ export function MembershipJoinForm() {
       trackEvent("membership_join", {
         pilot_interest: form.pilotInterest,
         interests: form.interests.join(","),
+        via: via ?? "direct",
       });
     } catch {
+      trackFailure("network");
       setError("가입에 실패했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setSubmitting(false);
@@ -109,6 +142,7 @@ export function MembershipJoinForm() {
   return (
     <form
       onSubmit={submit}
+      onFocusCapture={handleFormFocus}
       className="space-y-5 rounded-2xl border border-gray-200 bg-white p-5 sm:p-7"
     >
       <div className="grid gap-4 sm:grid-cols-2">

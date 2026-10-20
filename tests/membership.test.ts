@@ -44,3 +44,11 @@ test("단계 카드의 대표 혜택은 전체 혜택 목록에 같은 단계로
     }
   }
 });
+
+test("사이트 안 진입 자리는 정해 둔 값만 받는다", async () => {
+  const { parseEntryPoint } = await import("@/lib/membership");
+  assert.equal(parseEntryPoint("home_banner"), "home_banner");
+  assert.equal(parseEntryPoint("header_menu"), "header_menu");
+  assert.equal(parseEntryPoint("evil<script>"), null);
+  assert.equal(parseEntryPoint(undefined), null);
+});

@@ -101,7 +101,7 @@ export function Header() {
               회사 소식
             </Link>
             <Link
-              href="/membership"
+              href="/membership?from=header_menu"
               className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
             >
               교사 멤버십
@@ -242,7 +242,7 @@ export function Header() {
                 회사 소식
               </Link>
               <Link
-                href="/membership"
+                href="/membership?from=header_menu"
                 onClick={closeMenu}
                 className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
               >

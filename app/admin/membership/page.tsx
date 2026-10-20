@@ -2,7 +2,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import { classifyTouch, sanitizeAttribution } from "@/lib/attribution";
-import { MEMBERSHIP_INTERESTS } from "@/lib/membership";
+import { MEMBERSHIP_ENTRY_POINTS, MEMBERSHIP_INTERESTS, parseEntryPoint } from "@/lib/membership";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,11 @@ export default async function AdminMembershipPage() {
   const pilot = members.filter((m) => m.pilotInterest);
   const interestCounts = MEMBERSHIP_INTERESTS.map((i) => ({ label: i, count: members.filter((m) => m.interests.includes(i)).length }));
   const maxInterest = Math.max(1, ...interestCounts.map((i) => i.count));
+  const viaOf = (m: (typeof members)[number]) => parseEntryPoint((m.attribution as { via?: unknown } | null)?.via);
+  const viaCounts = [
+    ...Object.entries(MEMBERSHIP_ENTRY_POINTS).map(([key, label]) => ({ label, count: members.filter((m) => viaOf(m) === key).length })),
+    { label: "직접·기타", count: members.filter((m) => !viaOf(m)).length },
+  ];
 
   return (
     <div className="space-y-6">
@@ -27,11 +32,12 @@ export default async function AdminMembershipPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: "전체 가입", value: members.length },
           { label: "시범 운영 희망", value: pilot.length },
           { label: "소식 수신 동의", value: newsletter.length },
+          ...viaCounts.map((v) => ({ label: `가입 경로 · ${v.label}`, value: v.count })),
         ].map((c) => (
           <div key={c.label} className="rounded-xl border border-gray-200 bg-white p-4">
             <p className="text-xs text-text-gray">{c.label}</p>
@@ -89,6 +95,7 @@ export default async function AdminMembershipPage() {
             )}
             {members.map((m) => {
               const attribution = sanitizeAttribution(m.attribution);
+              const via = parseEntryPoint((m.attribution as { via?: unknown } | null)?.via);
               return (
                 <tr key={m.id} className="align-top">
                   <td className="px-4 py-3 whitespace-nowrap text-text-gray">{format(m.createdAt, "yyyy-MM-dd")}</td>
@@ -105,7 +112,10 @@ export default async function AdminMembershipPage() {
                     {TIER_NAME[m.tier] ?? m.tier}
                     {m.pilotInterest && <span className="ml-1 rounded bg-amber-50 px-1.5 py-0.5 text-amber-700">시범 희망</span>}
                   </td>
-                  <td className="px-4 py-3 text-xs text-text-gray">{attribution ? classifyTouch(attribution.first ?? attribution.last) : "-"}</td>
+                  <td className="px-4 py-3 text-xs text-text-gray">
+                    <p>{attribution ? classifyTouch(attribution.first ?? attribution.last) : "-"}</p>
+                    {via && <p className="text-brand-green-primary">{MEMBERSHIP_ENTRY_POINTS[via]}</p>}
+                  </td>
                 </tr>
               );
             })}

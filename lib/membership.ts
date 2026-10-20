@@ -169,3 +169,17 @@ export function parseMembershipInput(body: unknown): { data: MembershipInput } |
     },
   };
 }
+
+/**
+ * 사이트 안에서 멤버십 페이지로 들어온 자리 — 링크에 ?from=<key>를 붙이고 가입 때 함께 저장한다.
+ * (외부 유입 경로는 lib/attribution.ts가 따로 기록)
+ */
+export const MEMBERSHIP_ENTRY_POINTS = {
+  home_banner: "메인 배너",
+  header_menu: "상단 메뉴",
+} as const;
+export type MembershipEntryPoint = keyof typeof MEMBERSHIP_ENTRY_POINTS;
+
+export function parseEntryPoint(value: unknown): MembershipEntryPoint | null {
+  return typeof value === "string" && value in MEMBERSHIP_ENTRY_POINTS ? (value as MembershipEntryPoint) : null;
+}

@@ -34,7 +34,7 @@ export function MembershipBanner() {
           </div>
           <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row md:flex-col lg:flex-row">
             <Link
-              href="/membership#join"
+              href="/membership?from=home_banner#join"
               onClick={() => track("join")}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-[#1B4332] transition-colors hover:bg-white/90"
             >
@@ -42,7 +42,7 @@ export function MembershipBanner() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/membership"
+              href="/membership?from=home_banner"
               onClick={() => track("detail")}
               className="inline-flex items-center justify-center rounded-xl border border-white/30 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
