@@ -72,6 +72,14 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                 문의
               </Link>
             )}
+            {isAdmin && (
+              <Link
+                href="/admin/membership"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              >
+                멤버십
+              </Link>
+            )}
             <Link
               href="/admin/news"
               className="text-gray-700 hover:text-brand-green-primary transition text-base"
@@ -185,6 +193,15 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   문의
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin/membership"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  멤버십
                 </Link>
               )}
               <Link

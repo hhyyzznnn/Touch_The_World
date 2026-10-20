@@ -101,6 +101,12 @@ export function Header() {
               회사 소식
             </Link>
             <Link
+              href="/membership"
+              className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
+            >
+              교사 멤버십
+            </Link>
+            <Link
               href="/inquiry"
               className="text-text-dark hover:text-brand-green hover:underline underline-offset-4 decoration-2 transition"
             >
@@ -234,6 +240,13 @@ export function Header() {
                 className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
               >
                 회사 소식
+              </Link>
+              <Link
+                href="/membership"
+                onClick={closeMenu}
+                className="px-4 py-3 text-text-dark hover:text-brand-green hover:bg-gray-50 rounded-lg transition font-medium"
+              >
+                교사 멤버십
               </Link>
               <Link
                 href="/inquiry"
