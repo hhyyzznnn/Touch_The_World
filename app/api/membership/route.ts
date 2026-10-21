@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIP, rateLimitResponse } from "@/lib/rate-limit";
-import { sanitizeAttribution } from "@/lib/attribution";
 import { getCurrentUser } from "@/lib/auth-user";
-import { parseEntryPoint, parseMembershipInput } from "@/lib/membership";
+import { MEMBERSHIP_ENTRY_POINTS, parseEntryPoint, parseMembershipInput } from "@/lib/membership";
+import { classifyTouch, sanitizeAttribution } from "@/lib/attribution";
+import { sendMembershipNotificationEmail } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   const rateLimit = await checkRateLimit(`membership:${getClientIP(request)}`, 5, 60 * 1000);
@@ -46,6 +47,14 @@ export async function POST(request: NextRequest) {
       data: { ...fields, email: data.email, ...(attribution ? { attribution } : {}) },
     });
   }
+
+  // 관리자 알림 — 메일이 실패해도 가입은 성공으로 둔다
+  const source = [via ? MEMBERSHIP_ENTRY_POINTS[via] : null, touches ? classifyTouch(touches.first ?? touches.last) : null]
+    .filter(Boolean)
+    .join(" · ");
+  await sendMembershipNotificationEmail({ ...data, source: source || null, updated: !!existing }).catch((error) =>
+    console.error("멤버십 알림 메일 실패:", error)
+  );
 
   return NextResponse.json({ ok: true, updated: !!existing });
 }

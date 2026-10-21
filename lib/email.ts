@@ -277,6 +277,97 @@ export async function sendInquiryNotificationEmail(
   }
 }
 
+/** 관리자 수신자 — 문의 알림과 같은 대상 (ADMIN_EMAIL + ADMIN_CC_EMAILS) */
+function adminRecipients() {
+  const adminEmail = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  const ccEmails = process.env.ADMIN_CC_EMAILS
+    ? process.env.ADMIN_CC_EMAILS.split(",").map((e) => e.trim()).filter(Boolean)
+    : [];
+  return [adminEmail, ...ccEmails];
+}
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+export async function sendMembershipNotificationEmail(member: {
+  name: string;
+  schoolName: string;
+  position?: string | null;
+  schoolLevel?: string | null;
+  email: string;
+  phone?: string | null;
+  interests: string[];
+  pilotInterest: boolean;
+  newsletterOptIn: boolean;
+  /** 사이트 안 진입 자리 · 외부 유입 경로 (예: "메인 배너 · 네이버 검색") */
+  source?: string | null;
+  /** 같은 이메일로 다시 가입해 정보만 갱신된 경우 */
+  updated: boolean;
+}) {
+  const recipients = adminRecipients();
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const title = member.updated ? "멤버십 가입 정보가 수정되었습니다" : "새 멤버십 가입";
+  const rows: [string, string | null | undefined][] = [
+    ["이름", member.name],
+    ["학교(기관)", member.schoolName],
+    ["학교급", member.schoolLevel],
+    ["직책", member.position],
+    ["이메일", member.email],
+    ["연락처", member.phone],
+    ["관심 혜택", member.interests.join(", ") || null],
+    ["체험단 참여", member.pilotInterest ? "희망" : "미희망"],
+    ["소식 메일 수신", member.newsletterOptIn ? "동의" : "미동의"],
+    ["가입 경로", member.source],
+  ];
+
+  if (!process.env.RESEND_API_KEY) {
+    console.log("📧 멤버십 가입 알림 (개발 모드)", recipients.join(", "), member.name, member.schoolName);
+    return { success: true, skipped: true };
+  }
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || DEFAULT_FROM_EMAIL,
+      to: recipients,
+      subject: `[터치더월드] ${title} - ${member.schoolName} ${member.name}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto;">
+          <h2 style="color: #2E6D45;">${title}</h2>
+          ${member.pilotInterest ? `<p style="background:#FFF7E6;color:#9A5B00;padding:10px 14px;border-radius:6px;font-size:14px;">플러스·프리미엄 체험단 참여를 희망했습니다.</p>` : ""}
+          <div style="background-color: #f5f5f5; padding: 16px 20px; border-radius: 8px; margin: 16px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+              ${rows
+                .filter(([, v]) => v)
+                .map(([label, value]) => `
+                <tr>
+                  <td style="padding: 5px 0; font-weight: bold; color: #333; width: 120px; vertical-align: top;">${label}:</td>
+                  <td style="padding: 5px 0; color: #666;">${escapeHtml(String(value))}</td>
+                </tr>`)
+                .join("")}
+            </table>
+          </div>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${baseUrl}/admin/membership"
+               style="background-color: #2E6D45; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">
+              관리자 페이지에서 확인하기
+            </a>
+          </div>
+          <p style="color: #666; font-size: 12px; margin-top: 20px;">이 이메일은 터치더월드 웹사이트에서 자동으로 발송되었습니다.</p>
+        </div>
+      `,
+    });
+    if (error) {
+      console.error("멤버십 알림 메일 발송 오류:", error);
+      return { success: false };
+    }
+    return { success: true, data };
+  } catch (error) {
+    console.error("멤버십 알림 메일 발송 오류:", error);
+    return { success: false };
+  }
+}
+
 export async function sendInquiryReminderEmail(inquiries: Array<{
   id: string;
   schoolName: string;
