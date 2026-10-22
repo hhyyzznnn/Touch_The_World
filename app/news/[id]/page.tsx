@@ -17,6 +17,7 @@ import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { formatEndDate, isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CompanyNewsType } from "@prisma/client";
+import { MembershipInlineCta } from "@/components/membership/MembershipInlineCta";
 
 /** 해시태그에서 목적지 선택지 값을 추출 */
 const HASHTAG_DESTINATION_MAP: Record<string, string> = {
@@ -420,6 +421,9 @@ export default async function NewsDetailPage({
                   </Button>
                 </div>
               )}
+
+              {/* 멤버십 안내 — 프로그램 카드뉴스 전체 (종료된 글 포함: 다음 마감을 받아보도록) */}
+              {isCardNews && <MembershipInlineCta hasDeadline={!!news.endDate} postId={news.id} />}
             </div>
           </div>
 

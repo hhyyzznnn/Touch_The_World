@@ -177,6 +177,7 @@ export function parseMembershipInput(body: unknown): { data: MembershipInput } |
 export const MEMBERSHIP_ENTRY_POINTS = {
   home_banner: "메인 배너",
   header_menu: "상단 메뉴",
+  news_detail: "카드뉴스 상세",
 } as const;
 export type MembershipEntryPoint = keyof typeof MEMBERSHIP_ENTRY_POINTS;
 
