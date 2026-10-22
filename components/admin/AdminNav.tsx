@@ -74,6 +74,14 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
             )}
             {isAdmin && (
               <Link
+                href="/admin/outreach"
+                className="text-gray-700 hover:text-brand-green-primary transition text-base"
+              >
+                연락 시기
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
                 href="/admin/membership"
                 className="text-gray-700 hover:text-brand-green-primary transition text-base"
               >
@@ -193,6 +201,15 @@ export function AdminNav({ isAdmin }: { isAdmin: boolean }) {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   문의
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin/outreach"
+                  className="text-gray-700 hover:text-brand-green-primary transition text-base py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  연락 시기
                 </Link>
               )}
               {isAdmin && (
