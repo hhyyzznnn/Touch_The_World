@@ -54,3 +54,12 @@ test("이름이 조금 달라도 예상일이 3주 안이면 같은 행사로 �
   );
   assert.deepEqual(plans.map((p) => p.name), ["학급 체험학습의 날", "교과 체험학습의 날"]);
 });
+
+test("교내 특강·발표회·창의캠프는 교육여행으로 보지 않는다", () => {
+  for (const name of ["월요 글로벌 포커스", "글로벌 리더십 특강", "글로벌 이슈 발표회", "알고리즘 창의캠프", "학업설계캠프"]) {
+    assert.equal(isTripEvent(name), false, name);
+  }
+  for (const name of ["소규모 테마형 교육여행", "미국 방문 체험학습", "간부수련회", "숙박형 교과연계 현장체험학습"]) {
+    assert.equal(isTripEvent(name), true, name);
+  }
+});

@@ -86,6 +86,6 @@ export const getSchoolTrips = unstable_cache(
     const events = await fetchTripEvents(school, toD(fromYmd), toD(toYmd));
     return { school, events };
   },
-  ["neis-school-trips-v1"],
+  ["neis-school-trips-v2"],
   { revalidate: 7 * 24 * 60 * 60 },
 );
