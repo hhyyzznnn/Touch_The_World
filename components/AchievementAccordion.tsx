@@ -20,9 +20,10 @@ interface AchievementAccordionProps {
 // 실적 문구에서 어떤 종류의 프로그램인지 유추해, 방문자가 "이런 프로그램은 뭐가 있지?"로 바로 이어갈 수 있게 한다.
 // 순서 중요: 국외 키워드가 있으면 다른 유형보다 우선한다.
 const CATEGORY_RULES: Array<{ pattern: RegExp; category: string }> = [
-  { pattern: /일본|후쿠오카|동경|도쿄|오사카|싱가포르|대만|독일|체코|해외|국제교류|글로벌/, category: "국외 교육여행" },
+  { pattern: /일본|후쿠오카|동경|도쿄|오사카|교토|규슈/, category: "일본 교육여행" },
+  { pattern: /싱가포르|대만|독일|체코|미국|유럽|해외|국제교류|글로벌/, category: "해외 교육여행" },
   { pattern: /수련활동|리더쉽|리더십/, category: "수련활동" },
-  { pattern: /교사연수|교원|수업/, category: "교사 연수" },
+  { pattern: /교사연수|교원|수업/, category: "교직원 연수·혜택" },
   { pattern: /취업|직업|인력양성|특성화|마이스터/, category: "특성화고 프로그램" },
   { pattern: /체험학습|현장학습|탐방/, category: "체험학습" },
 ];

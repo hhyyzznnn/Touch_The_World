@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
  *
  * Request body (JSON):
  *   title       string    required
- *   categories  string[]  optional  (예: ["교사 연수", "특성화고 프로그램"], 복수 가능)
+ *   categories  string[]  optional  (예: ["교직원 연수·혜택", "특성화고 프로그램"], 복수 가능)
  *   category    string    optional  (레거시 호환용 단일 필드, categories가 없을 때만 사용)
  *   summary     string  optional
  *   content     string  optional

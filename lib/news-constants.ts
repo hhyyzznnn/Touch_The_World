@@ -1,12 +1,15 @@
+// 2026-10-28 재정비: "국외 교육여행"을 일본/해외로 나누고, 회사 소개·교사 혜택·단체 연수가 섞여 있던
+// "기타 프로그램"을 없앴다. (유튜브 재생목록 8개와 같은 기준) 이름을 바꾸면 middleware.ts의
+// LEGACY_CATEGORY_ALIASES에 옛 이름을 꼭 추가할 것 — 검색에 색인된 옛 카테고리 주소를 살린다.
 export const PROGRAM_CATEGORIES = [
   "국내 교육여행",
-  "국외 교육여행",
+  "일본 교육여행",
+  "해외 교육여행",
   "체험학습",
   "수련활동",
-  "교사 연수",
-  "일본 유학",
+  "교직원 연수·혜택",
   "특성화고 프로그램",
-  "기타 프로그램",
+  "일본 유학",
 ] as const;
 
 export type ProgramCategory = (typeof PROGRAM_CATEGORIES)[number];
@@ -16,7 +19,7 @@ export type ProgramCategory = (typeof PROGRAM_CATEGORIES)[number];
  * 한눈에 구분이 안 되던 문제를 해결하기 위해 카테고리마다 다른 색을 지정한다.
  *
  * 무지개색 대신 브랜드 그린(#2E6D45)에서 회색으로 짙게 이어지는 그라데이션 한 벌로 구성 —
- * 대표 프로그램(국내 교육여행)이 가장 짙은 그린, "기타 프로그램"이 가장 중립적인 그레이가
+ * 대표 프로그램(국내 교육여행)이 가장 짙은 그린, 마지막 "일본 유학"이 가장 중립적인 그레이가
  * 되도록 순서대로 배치했다. 전부 흰 글자를 올릴 수 있을 만큼 어두운 톤으로 골라서
  * (연한 -100 계열 배경은 흰 바탕 카드 위에서 색이 거의 안 보이는 문제가 있었음),
  * 배지 자체가 옅어져 안 보이는 일이 없게 했다.
@@ -25,13 +28,13 @@ export type ProgramCategory = (typeof PROGRAM_CATEGORIES)[number];
  */
 export const CATEGORY_COLORS: Record<ProgramCategory, string> = {
   "국내 교육여행": "bg-[#1B4332] text-white",
-  "국외 교육여행": "bg-[#2E6D45] text-white",
+  "일본 교육여행": "bg-[#245A3B] text-white",
+  "해외 교육여행": "bg-[#2E6D45] text-white",
   "체험학습": "bg-[#3D8361] text-white",
   "수련활동": "bg-[#4A7A5C] text-white",
-  "교사 연수": "bg-[#5C7A68] text-white",
-  "일본 유학": "bg-[#6B7A72] text-white",
+  "교직원 연수·혜택": "bg-[#5C7A68] text-white",
   "특성화고 프로그램": "bg-[#6E7673] text-white",
-  "기타 프로그램": "bg-[#64748B] text-white",
+  "일본 유학": "bg-[#64748B] text-white",
 };
 
 /**

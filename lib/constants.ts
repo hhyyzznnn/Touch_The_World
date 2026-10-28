@@ -6,30 +6,39 @@ import {
   GraduationCap,
   Plane,
   School,
-  MoreHorizontal,
+  Landmark,
   LucideIcon
 } from "lucide-react";
+import { PROGRAM_CATEGORIES as CATEGORY_NAMES, type ProgramCategory as CategoryName } from "./news-constants";
 
 export const PROGRAM_CATEGORY_GROUPS = ["국내외 교육여행", "해외유학"] as const;
 export type ProgramCategoryGroup = (typeof PROGRAM_CATEGORY_GROUPS)[number];
 
 export interface ProgramCategory {
-  name: string;
+  name: CategoryName;
   icon: LucideIcon;
   href: string;
   group: ProgramCategoryGroup;
 }
 
-export const PROGRAM_CATEGORIES: ProgramCategory[] = [
-  { name: "국내 교육여행",          icon: MapPin,        href: "/programs?category=%EA%B5%AD%EB%82%B4%20%EA%B5%90%EC%9C%A1%EC%97%AC%ED%96%89", group: "국내외 교육여행" },
-  { name: "국외 교육여행",          icon: Globe,         href: "/programs?category=%EA%B5%AD%EC%99%B8%20%EA%B5%90%EC%9C%A1%EC%97%AC%ED%96%89", group: "국내외 교육여행" },
-  { name: "체험학습\n(숙박형, 비숙박형)", icon: BookOpen, href: "/programs?category=%EC%B2%B4%ED%97%98%ED%95%99%EC%8A%B5", group: "국내외 교육여행" },
-  { name: "수련활동",               icon: Mountain,      href: "/programs?category=%EC%88%98%EB%A0%A8%ED%99%9C%EB%8F%99", group: "국내외 교육여행" },
-  { name: "교사 연수",              icon: GraduationCap, href: "/programs?category=%EA%B5%90%EC%82%AC%20%EC%97%B0%EC%88%98", group: "국내외 교육여행" },
-  { name: "일본 유학",              icon: Plane,         href: "/programs?category=%EC%9D%BC%EB%B3%B8%20%EC%9C%A0%ED%95%99", group: "해외유학" },
-  { name: "특성화고 프로그램",      icon: School,        href: "/programs?category=%ED%8A%B9%EC%84%B1%ED%99%94%EA%B3%A0%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8", group: "국내외 교육여행" },
-  { name: "기타 프로그램",          icon: MoreHorizontal,href: "/programs?category=%EA%B8%B0%ED%83%80%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8", group: "국내외 교육여행" },
-];
+const CATEGORY_ICONS: Record<CategoryName, LucideIcon> = {
+  "국내 교육여행": MapPin,
+  "일본 교육여행": Landmark,
+  "해외 교육여행": Globe,
+  "체험학습": BookOpen,
+  "수련활동": Mountain,
+  "교직원 연수·혜택": GraduationCap,
+  "특성화고 프로그램": School,
+  "일본 유학": Plane,
+};
+
+// 이름 목록은 lib/news-constants.ts 한 곳에서만 관리하고, 메뉴·버튼용 정보는 여기서 붙인다.
+export const PROGRAM_CATEGORIES: ProgramCategory[] = CATEGORY_NAMES.map((name) => ({
+  name,
+  icon: CATEGORY_ICONS[name],
+  href: `/programs?category=${encodeURIComponent(name)}`,
+  group: name === "일본 유학" ? "해외유학" : "국내외 교육여행",
+}));
 
 // 창립연도 기준 업력(연차). 화면 곳곳(About, 홈 통계, SEO 랜딩페이지)에서 하드코딩된
 // 숫자("28년" 등)가 해마다 그대로 남아 실제 연차와 어긋나는 걸 막기 위해 여기서 한 번만 계산한다.

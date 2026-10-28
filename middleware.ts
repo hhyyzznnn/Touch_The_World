@@ -9,9 +9,9 @@ import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
 // 실패) 여기서 URL 객체로 직접 만들어 처리한다 — URL의 searchParams는 자동으로
 // 올바르게 퍼센트 인코딩해준다.
 const DELETED_LANDING_PAGE_REDIRECTS: Record<string, string | null> = {
-  "/programs/japan-edu-trip": "국외 교육여행",
+  "/programs/japan-edu-trip": "일본 교육여행",
   "/programs/school-trip": null,
-  "/programs/teacher-training": "교사 연수",
+  "/programs/teacher-training": "교직원 연수·혜택",
   "/programs/specialized-highschool": "특성화고 프로그램",
 };
 
@@ -26,14 +26,20 @@ const DELETED_NEWS_REDIRECTS: Record<string, string> = {
 
 // 예전 카테고리 이름(띄어쓰기 없는 표기, 개편 전 분류)으로 들어오는 /programs?category= 주소.
 // 그대로 두면 전부 "프로그램 카드뉴스"라는 같은 제목의 페이지로 남아 검색엔진 진단에 중복으로 잡힌다.
+// 2026-10-28 재정비 때 없어진 이름(국외 교육여행·교사 연수·기타 프로그램)도 여기서 이어받는다.
+// 값이 ""이면 전체 목록으로 보낸다.
 const LEGACY_CATEGORY_ALIASES: Record<string, string> = {
-  "해외교육여행": "국외 교육여행",
-  "국내외교육여행": "국외 교육여행",
+  "국외교육여행": "일본 교육여행",
+  "해외교육여행": "해외 교육여행",
+  "국내외교육여행": "일본 교육여행",
   "국내수학여행": "국내 교육여행",
+  "교사연수": "교직원 연수·혜택",
+  "교직원연수": "교직원 연수·혜택",
   "특성화고교육여행": "특성화고 프로그램",
   "특성화고교프로그램": "특성화고 프로그램",
   "해외취업및유학": "일본 유학",
-  "기타": "기타 프로그램",
+  "기타프로그램": "",
+  "기타": "",
 };
 
 // 유효하면 null, 아니면 옮겨갈 카테고리 이름(없으면 "" → 전체 목록)

@@ -105,7 +105,7 @@ const services = [
   { title: "국내외 교육여행", icon: MapPin },
   { title: "체험학습", icon: BookOpen },
   { title: "수련활동", icon: Mountain },
-  { title: "교사 연수", icon: GraduationCap },
+  { title: "교직원 연수", icon: GraduationCap },
   { title: "해외 취업 및 유학", icon: Plane },
   { title: "지자체/대학 RISE", icon: Building2 },
   { title: "특성화고 프로그램", icon: School },

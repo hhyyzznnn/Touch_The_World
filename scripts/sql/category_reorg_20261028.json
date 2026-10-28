@@ -1,0 +1,703 @@
+[
+ {
+  "id": "cardnews_fukuoka_culinary_field_trip_2026",
+  "title": "2026 조리과·제과제빵과 후쿠오카 체험학습",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "특성화고 프로그램",
+   "국외 교육여행"
+  ],
+  "to": [
+   "특성화고 프로그램",
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "splasresort-chungnam-v2-2026",
+  "title": "2026 충남 스플라스 리솜 — 수학여행 2박3일·교사연수 1박2일",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "수련활동",
+   "국내 교육여행",
+   "교사 연수"
+  ],
+  "to": [
+   "수련활동",
+   "국내 교육여행",
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_specialized_highschool_global_field_study_2026",
+  "title": "2026 특성화고 일본 후쿠오카 글로벌 현장학습",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "특성화고 프로그램",
+   "국외 교육여행"
+  ],
+  "to": [
+   "특성화고 프로그램",
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_japan_2026_edu_trip_overview",
+  "title": "2026 일본교육여행 — 역사·문화·미래산업을 만나는 특별한 배움",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_schopenhauer_autobiography_2026",
+  "title": "중3 학생을 위한 쇼펜하우어 자서전 — 내 삶과 생각을 내가 직접 들려준다면",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_teacher_retreat_venue_guide_2026",
+  "title": "2026/27 선생님들을 위한 교직원 연수 1박 2일 — 추천 숙소 및 서비스 안내",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_kyushu_domestic_budget_school_trip_2026",
+  "title": "국내비용으로 가는 일본 규슈 수학여행 — 학교 예산에 맞춰 고르는 4가지 일정",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_osaka_domestic_budget_school_trip_2026",
+  "title": "국내비용으로 가는 일본 오사카 수학여행 — 학교 예산에 맞춰 고르는 6가지 일정",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_hanatour_family_travel_2026",
+  "title": "교사·교직원 가족을 위한 믿을 수 있는 여행 제안 — 하나투어 교직원 가족여행",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "boundary-person-book",
+  "title": "경계인: AI 시대, 새로운 인재의 조건 — 백영재 저",
+  "type": "BOOK_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "brain-stroke-prevention-guide",
+  "title": "뇌졸중 예방, 오늘의 선택 — 뇌가 멈추기 전에",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_fukuoka_specialized_highschool_trip_2026",
+  "title": "2026 특성화고 일본 후쿠오카 수학여행 프로그램",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "특성화고 프로그램",
+   "국외 교육여행"
+  ],
+  "to": [
+   "특성화고 프로그램",
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_inspire_resort_teacher_training_2026",
+  "title": "2026 인스파이어 리조트 교직원 연수 1박 2일",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_education_trip_tour_leader_recruitment_2026",
+  "title": "2026 교육여행 인솔자 모집",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [],
+  "toType": "COMPANY_NEWS"
+ },
+ {
+  "id": "cardnews_korea_japan_school_exchange_matching",
+  "title": "2026 한일 학교 교류 매칭 신청 안내",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_ceo_introduction",
+  "title": "박정주 대표 소개 — 교육여행 전문가·AI 혁신가",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [],
+  "toType": "COMPANY_NEWS"
+ },
+ {
+  "id": "cardnews_anyang_munhwa_osaka_global_training_2026",
+  "title": "2026 안양문화고등학교 일본 오사카·교토 국외연수 3박4일 — 기업·진로·창업·문화의 현장을 만나다",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행",
+   "특성화고 프로그램"
+  ],
+  "to": [
+   "일본 교육여행",
+   "특성화고 프로그램"
+  ]
+ },
+ {
+  "id": "korean-history-therapy-book",
+  "title": "전범선의 한국사 테라피 — 트라우마를 치유하는 근현대사",
+  "type": "BOOK_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_chuseok_greeting_popup_2026",
+  "title": "2026 추석 인사 — 풍요로운 한가위, 사랑과 감사가 가득한 행복한 추석 보내세요",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "67b389d7-1e7e-4127-86ff-533d54b953f7",
+  "title": "왜 다시 외고인가? — 이향근 저",
+  "type": "BOOK_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "2a06fc55-8714-4f27-bbc8-5be5a04b3e23",
+  "title": "[2026 과학고 특화] 과학고등학교를 위한 미국 STEM 교육여행 — NASA·MIT·실리콘밸리",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_seoul_hospital_nursing_workshop_2026",
+  "title": "2026 서울특별시 병원간호사회 중간관리자 워크샵 — 바다·역사·휴식이 어우러진 인천 하루",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "국내 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_hanatour_zeus_teacher_benefits_2026",
+  "title": "2026 하나투어 제우스 교사·교사가족 특별혜택 — 품격 있는 프리미엄 여행",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_safrica_12days_teacher_travel_2026",
+  "title": "2026 남아프리카 12일 교사 특별여행 — 로브스레일 럭셔리 트레인·크루거 사파리로 품격있게",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_seo_seoul_science_fukuoka_2026",
+  "title": "2026 서서울생활과학고 후쿠오카 글로벌 현장학습",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "특성화고 프로그램",
+   "국외 교육여행"
+  ],
+  "to": [
+   "특성화고 프로그램",
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "17dce62d-a05d-4e6c-b31b-6d61fa37683c",
+  "title": "[2026 글로벌리더] 미국 교육여행 — 하버드·MIT·실리콘밸리에서 글로벌 리더십을 키우다",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_touchtheworld_company_profile_2026",
+  "title": "터치더월드 회사소개서 2026 — 학생이 세상과 연결되는 교육",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [],
+  "toType": "COMPANY_NEWS"
+ },
+ {
+  "id": "cardnews_japan_edu_trip_2026",
+  "title": "2026 일본 에듀트립 교육여행 제안서",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_jeju_cost_overseas_teacher_training_2027",
+  "title": "2026/27 제주도 비용으로 떠나는 해외 교직원 연수 — 히로시마·후쿠오카·칭다오",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_usa_ai_bigtech_edutravel_2026",
+  "title": "AI 빅테크와 혁신교육의 본고장 미국을 가다 — 2026/27 미국 교육여행",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_touchtheworld_learning_world_2026",
+  "title": "터치더월드 교육여행 소개 — 배움이 세상으로",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [],
+  "toType": "COMPANY_NEWS"
+ },
+ {
+  "id": "cardnews_japan_osaka_nara_kyoto_5days_2026",
+  "title": "2026학년도 일본 수학여행 — 오사카·나라·교토 5일",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_teacher_work_support_2027",
+  "title": "학교 선생님 업무 지원 가이드 — 교육여행 준비부터 진로·지자체 지원사업까지",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "clr5companynews0000000000001",
+  "title": "2025 교육여행부문 인천시장상 수상",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "korea-exploration-book",
+  "title": "이병한의 대한민국 탐문 — 과거 성찰, 미래 설계",
+  "type": "BOOK_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_pocheon_bus_subsidy_2026",
+  "title": "2026 포천 버스지원금 교육여행 — 8월까지 전액 지원",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국내 교육여행",
+   "체험학습",
+   "교사 연수"
+  ],
+  "to": [
+   "국내 교육여행",
+   "체험학습",
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_newzealand_fun_english_camp_2027",
+  "title": "2027 겨울방학 뉴질랜드 2주 Fun English Camp — 오클랜드 영어교육·로토루아·타우포 체험",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "perfect-primitive-book",
+  "title": "완벽한 원시인 — 자청 저",
+  "type": "BOOK_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_fukuoka_junghwa_girls_exchange_2026",
+  "title": "2026 일본 후쿠오카 국제대면교류 3박4일 — 어느 작은 여자중학교의 아주 큰 이야기",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_fukuoka_domestic_budget_trip_2026",
+  "title": "국내비용으로 떠나는 일본 후쿠오카 수학여행 — 2026/27",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "1ff2fafc-ee67-4f02-bfee-19c1a60c88a0",
+  "title": "터치더월드 교육여행 종합 안내 — 국내부터 해외까지",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [],
+  "toType": "COMPANY_NEWS"
+ },
+ {
+  "id": "cardnews_splasresort_edu_trip_popup_2026",
+  "title": "스플라스 리솜 초중고 교육여행 — 미래설계·세계시민·역사문화 3종 프로그램",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "국내 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_ai_student_startup_edu_trip_2026",
+  "title": "2026 AI 에이전트 교육여행 학생창업프로그램 1기",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_webtoon_custom_japan_education_trip",
+  "title": "2026 웹툰과 맞춤형 일본 교육여행",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "특성화고 프로그램",
+   "국외 교육여행"
+  ],
+  "to": [
+   "특성화고 프로그램",
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_overseas_edu_trip_program",
+  "title": "2026 해외 교육여행 프로그램 안내",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_programs_introduction_2026",
+  "title": "2026 교육여행 프로그램 소개",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cmr1zqv700000h5bsrh7u486q",
+  "title": "2026 인천 교직원 단체 연수·워크샵 1일 프로그램",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_pocheon_teacher_training_2026",
+  "title": "2026 포천 교직원 1일 연수 — 예술정원·이동갈비",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_pocheon_education_trip_2026",
+  "title": "2026 포천 현장체험학습·교직원 연수 프로그램",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국내 교육여행",
+   "체험학습",
+   "교사 연수"
+  ],
+  "to": [
+   "국내 교육여행",
+   "체험학습",
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "psychology-life-weapon-book",
+  "title": "심리학은 어떻게 삶의 무기가 되는가 — 한소원 저",
+  "type": "BOOK_CARD_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": []
+ },
+ {
+  "id": "cardnews_kansai_osaka_kyoto_nara_2027",
+  "title": "일본 간사이 교육여행 프로그램 2026/27 — 오사카·교토·나라",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_chungnam_teacher_training_2026",
+  "title": "2026 충청남도 교직원 연수 — 충남에서 배우고, 쉬고, 함께한다",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_japan_recommended_edu_trip_2026",
+  "title": "2026 일본 교육여행 추천 프로그램",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_foreign_language_highschool_osaka_2026",
+  "title": "2026 외국어고 오사카 수학여행 프로그램",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_specialized_highschool_japan_global_2026",
+  "title": "2026 특성화고 일본 국제화사업 후쿠오카 4박 5일",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "특성화고 프로그램",
+   "국외 교육여행"
+  ],
+  "to": [
+   "특성화고 프로그램",
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cmr1zqvlc0001h5bslj8c23o6",
+  "title": "2026 후쿠오카 국외연수 — 문화체험·직업산업 탐방 3박 4일",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_europe_school_partnership_2026",
+  "title": "청소년을 위한 유럽 교육여행 — 2026/27 School Partnership",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_teacher_training_program",
+  "title": "2026 국내·외 교직원 연수 프로그램",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_staff_training_incheon_custom_2026",
+  "title": "2026 인천 교직원 연수 맞춤형 설계 안내",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "cardnews_hanatour_teacher_benefits_2026",
+  "title": "2026 교직원·가족을 위한 하나투어 전용 여행 혜택",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "44341c48-7762-43ca-9eb7-c8c37967e14a",
+  "title": "[2026 초등] 초등학생을 위한 미국 교육여행 — 꿈을 키우는 글로벌 체험학습",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "해외 교육여행"
+  ]
+ },
+ {
+  "id": "cardnews_seoul_gyeonggi_teacher_training_accommodations_2026",
+  "title": "2026 서울·경기 교직원 연수 숙소 7선",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "교사 연수"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ },
+ {
+  "id": "d393e5fb-3a87-4083-8619-59eb8a7fa5fb",
+  "title": "일본 규슈 교육여행 — 역사·문화·자연을 한 번에",
+  "type": "PROGRAM_CARD_NEWS",
+  "from": [
+   "국외 교육여행"
+  ],
+  "to": [
+   "일본 교육여행"
+  ]
+ },
+ {
+  "id": "companynews_hanatour_zeus_teacher_benefits_popup_2026",
+  "title": "2026 하나투어 제우스 교사·교사가족 특별혜택 — 품격 있는 프리미엄 여행",
+  "type": "COMPANY_NEWS",
+  "from": [
+   "기타 프로그램"
+  ],
+  "to": [
+   "교직원 연수·혜택"
+  ]
+ }
+]

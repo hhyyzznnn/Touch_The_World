@@ -36,7 +36,7 @@ export const MEMBERSHIP_BUNDLES: MembershipBundle[] = [
   },
   {
     key: "맞춤 견적·기획",
-    basis: "국내·국외 교육여행, 체험학습, 수련활동",
+    basis: "국내·일본·해외 교육여행, 체험학습, 수련활동",
     items: [
       { name: "AI 가견적", desc: "AI 상담으로 대략적인 일정과 비용을 바로 확인", tier: 1 },
       { name: "지역·시설 비교표", desc: "인천·충남·포천·가평, 국립청소년시설을 인원·이동시간·비용으로 비교", tier: 2 },
