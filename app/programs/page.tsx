@@ -116,7 +116,7 @@ const getProgramCardNewsCached = unstable_cache(
 );
 
 // "전체" 탭 전용: 카테고리 8개 순서대로 한 줄씩 묶어서 보여주기 위한 그룹핑.
-// 카드 한 건이 여러 카테고리에 걸칠 수 있어(예: 특성화고 프로그램 + 국외 교육여행),
+// 카드 한 건이 여러 카테고리에 걸칠 수 있어(예: 특성화고 프로그램 + 일본 교육여행),
 // 같은 카드가 해당하는 모든 줄에 각각 노출될 수 있다 — 의도된 동작.
 async function getProgramCardNewsGrouped() {
   const items = await prisma.companyNews.findMany({
@@ -141,12 +141,16 @@ const getProgramCardNewsGroupedCached = unstable_cache(
   { revalidate: 600 },
 );
 
-// 2026-09 Clarity 세션 녹화 분석 결과 확인된 최다 클릭 프로그램 3건(클릭 순).
-// 방문자가 실제로 가장 많이 찾는 프로그램이라 "전체" 탭 맨 위에 별도로 부각한다.
+// 인기 프로그램 (2026-10-28 취합): 7~10월 홈페이지 실사용자(GA4, 봇 영향이 큰 직접 유입 제외) +
+// 유튜브 쇼츠 조회수 + 문의 언급을 합산한 순위에서, 종료된 글을 빼고 분야가 겹치지 않게 6개를 골랐다.
+// 월 1회 주간 점검 때 다시 취합해 바꾼다.
 const POPULAR_PROGRAM_IDS = [
-  "cardnews_chungnam_teacher_training_2026", // 충청남도 교직원 연수
-  "cmr1zqvlc0001h5bslj8c23o6", // 후쿠오카 국외연수
-  "cardnews_specialized_highschool_job_camp_2026", // 특성화고 취업 두드림 캠프
+  "cardnews_seoul_gyeonggi_teacher_training_accommodations_2026", // 서울·경기 교직원 연수 숙소 7선 (1위)
+  "cardnews_specialized_highschool_global_field_study_2026", // 특성화고 후쿠오카 글로벌 현장학습
+  "cardnews_aso_japanese_language_course_2026", // 아소전문학교그룹 일본어과
+  "cardnews_inspire_resort_teacher_training_2026", // 인스파이어 리조트 교직원 연수
+  "cardnews_fukuoka_junghwa_girls_exchange_2026", // 후쿠오카 국제대면교류 (정화여중)
+  "cardnews_japan_edu_trip_2026", // 일본 에듀트립 교육여행 제안서
 ];
 
 async function getPopularPrograms() {
