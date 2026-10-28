@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
       // 처리할 때 Location 헤더에 원문 UTF-8을 그대로 넣으려다 500을 내는 문제가 있어
       // (raw든 percent-encoded든 동일하게 실패) middleware.ts에서 직접 처리한다.
 
+      // 2026-10-28 미사용 기능 정리 — 지운 페이지로 들어오는 링크는 가장 가까운 화면으로 보낸다
+      { source: "/news", destination: "/programs", permanent: true },
+      { source: "/products", destination: "/programs", permanent: true },
+      { source: "/clients", destination: "/achievements", permanent: true },
+      { source: "/favorites", destination: "/programs", permanent: true },
+      { source: "/my-reviews", destination: "/my-inquiries", permanent: true },
+      { source: "/programs/:id/quote", destination: "/programs/:id", permanent: true },
+
       // 카드뉴스 주소를 /programs/로 잘못 건 링크가 "없는 페이지"로 끝나지 않게 실제 글로 보낸다.
       { source: "/programs/:slug(cardnews_.*|companynews_.*)", destination: "/news/:slug", permanent: true },
 

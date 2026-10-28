@@ -4,15 +4,12 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCategoryDisplayName } from "@/lib/category-utils";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ReviewSection } from "@/components/ReviewSection";
 import { ShareButton } from "@/components/ShareButton";
 import ReactMarkdown from "react-markdown";
 import { ProgramImage } from "@/components/programs/ProgramImage";
-import { PrintQuoteButton } from "@/components/programs/PrintQuoteButton";
 import remarkGfm from "remark-gfm";
 import { BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { parseThumbnailFocus } from "@/lib/thumbnail-focus";
@@ -28,21 +25,6 @@ const getProgram = cache(async (id: string) => {
       },
       schedules: {
         orderBy: { day: "asc" },
-      },
-      reviews: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 10, // 최근 10개만 미리 로드
       },
     },
   });
@@ -229,17 +211,13 @@ export default async function ProgramDetailPage({
     notFound();
   }
 
-  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }, reviewStats, linkedCardNews] = await Promise.all([
+  const [parsedThumbnail, { programs: relatedPrograms, sameCategory: relatedSameCategory }, linkedCardNews] = await Promise.all([
     Promise.resolve(parseThumbnailFocus(program.thumbnailUrl)),
     getRelatedPrograms(id, program.category),
-    prisma.review.aggregate({ where: { programId: id }, _avg: { rating: true }, _count: true }),
     getLinkedCardNews(id),
   ]);
   const hasOwnImages =
     program.images.filter((img) => !img.url.includes("via.placeholder.com") && img.url.startsWith("http")).length > 0;
-  // 저장된 program.rating/reviewCount는 후기가 삭제·직접 수정되면 어긋날 수 있어, 화면과 구조화 데이터는 실제 후기에서 매번 계산한다
-  const reviewCount = reviewStats._count;
-  const ratingAverage = reviewStats._avg.rating ? Math.round(reviewStats._avg.rating * 10) / 10 : 0;
   const siteUrl = getSiteUrl();
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -251,8 +229,6 @@ export default async function ProgramDetailPage({
     ],
   };
 
-  // 후기가 있는 프로그램만 별점 rich snippet 노출 (Google 가이드라인상 페이지에
-  // 실제로 보이는 후기·평점에 대해서만 AggregateRating을 넣어야 함)
   const serviceJsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -265,17 +241,6 @@ export default async function ProgramDetailPage({
     },
     url: `${siteUrl}/programs/${program.id}`,
     ...(parsedThumbnail.imageUrl ? { image: parsedThumbnail.imageUrl } : {}),
-    ...(reviewCount > 0
-      ? {
-          aggregateRating: {
-            "@type": "AggregateRating",
-            ratingValue: ratingAverage,
-            reviewCount,
-            bestRating: 5,
-            worstRating: 1,
-          },
-        }
-      : {}),
   };
 
   return (
@@ -303,19 +268,8 @@ export default async function ProgramDetailPage({
             {program.summary && (
               <p className="text-lg sm:text-xl text-gray-600 mb-4 break-words">{program.summary}</p>
             )}
-            {reviewCount > 0 && (
-              <a
-                href="#reviews"
-                className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-brand-green-primary"
-              >
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden />
-                <span className="font-semibold">{ratingAverage.toFixed(1)}</span>
-                <span>· 후기 {reviewCount}개 보기</span>
-              </a>
-            )}
           </div>
           <div className="ml-4 flex items-center gap-2">
-            <PrintQuoteButton programId={program.id} />
             <ShareButton
               url={`/programs/${program.id}`}
               title={program.title}
@@ -477,18 +431,6 @@ export default async function ProgramDetailPage({
         </div>
       )}
 
-      <ReviewSection
-        programId={program.id}
-        initialReviews={program.reviews.map((r) => ({
-          id: r.id,
-          rating: r.rating,
-          content: r.content,
-          createdAt: r.createdAt.toISOString(),
-          user: r.user,
-        }))}
-        programRating={ratingAverage}
-        reviewCount={reviewCount}
-      />
     </div>
   );
 }

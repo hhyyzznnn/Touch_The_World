@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings, Mail, Star, Heart, ShieldCheck } from "lucide-react";
+import { User, LogOut, Settings, Mail, ShieldCheck } from "lucide-react";
 
 interface UserData {
   id: string;
@@ -109,28 +109,12 @@ export function UserMenu() {
                 회원 정보
               </Link>
               <Link
-                href="/my-reviews"
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <Star className="w-4 h-4" />
-                내 후기
-              </Link>
-              <Link
                 href="/my-inquiries"
                 className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 onClick={() => setIsOpen(false)}
               >
                 <Mail className="w-4 h-4" />
                 문의 내역
-              </Link>
-              <Link
-                href="/favorites"
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <Heart className="w-4 h-4" />
-                즐겨찾기
               </Link>
               <button
                 onClick={handleLogout}

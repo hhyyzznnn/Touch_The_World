@@ -3,12 +3,10 @@ import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth-user";
 import { ProfileForm } from "@/components/forms/ProfileForm";
-import { UserStats } from "@/components/UserStats";
-import { PersonalizedRecommendations } from "@/components/PersonalizedRecommendations";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Mail, Star } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "회원 정보 | 터치더월드",
@@ -39,27 +37,11 @@ export default async function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         <Breadcrumbs items={[{ label: "회원 정보" }]} />
         
-        {/* 회원 통계 및 활동 내역 */}
-        <div className="mb-6">
-          <UserStats userId={user.id} />
-        </div>
-
-        {/* 개인화 추천 */}
-        <div className="mb-6">
-          <PersonalizedRecommendations userId={user.id} />
-        </div>
-
         {/* 회원 정보 수정 */}
         <div className="bg-white rounded-lg shadow p-6 sm:p-8">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl sm:text-3xl font-medium">회원 정보</h1>
             <div className="flex gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/my-reviews" className="flex items-center gap-2">
-                  <Star className="w-4 h-4" />
-                  내 후기
-                </Link>
-              </Button>
               <Button asChild variant="outline" size="sm">
                 <Link href="/my-inquiries" className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />

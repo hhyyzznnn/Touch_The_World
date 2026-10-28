@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Calendar, ChevronLeft, ChevronRight, MapPin, Quote, Star, Users } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, MapPin, Quote, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { getCategoryDisplayName } from "@/lib/category-utils";
@@ -80,23 +80,6 @@ async function getLinkedCardNews(cardNewsId: string | null) {
   });
 }
 
-async function getProgramReviews(programId: string) {
-  const [aggregate, latest] = await Promise.all([
-    prisma.review.aggregate({ where: { programId }, _avg: { rating: true }, _count: true }),
-    prisma.review.findMany({
-      where: { programId },
-      orderBy: { createdAt: "desc" },
-      take: 2,
-      include: { user: { select: { name: true } } },
-    }),
-  ]);
-  return {
-    count: aggregate._count,
-    average: aggregate._avg.rating ? Math.round(aggregate._avg.rating * 10) / 10 : 0,
-    latest,
-  };
-}
-
 async function getRelatedPrograms(programId: string, category: string) {
   return await prisma.program.findMany({
     where: { category, id: { not: programId } },
@@ -155,21 +138,6 @@ export async function generateMetadata({
   };
 }
 
-function RatingStars({ value, className = "w-4 h-4" }: { value: number; className?: string }) {
-  return (
-    <div className="flex" aria-label={`평점 ${value}점`}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`${className} ${
-            star <= Math.round(value) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-          }`}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default async function EventDetailPage({
   params,
 }: {
@@ -182,15 +150,14 @@ export default async function EventDetailPage({
     notFound();
   }
 
-  const [relatedEvents, { older, newer }, programReviews, relatedPrograms, linkedCardNews] = await Promise.all([
+  const [relatedEvents, { older, newer }, relatedPrograms, linkedCardNews] = await Promise.all([
     getRelatedEvents(event),
     getNeighborEvents(event),
-    getProgramReviews(event.programId),
     getRelatedPrograms(event.programId, event.program.category),
     getLinkedCardNews(event.cardNewsId),
   ]);
   const thumbnailUrl = getEventThumbnailUrl(event);
-  // 카드뉴스로 이미 다뤄진 행사의 프로그램은, 견적·후기 기능이 있는 빈 프로그램 페이지 대신
+  // 카드뉴스로 이미 다뤄진 행사의 프로그램은, 빈 프로그램 페이지 대신
   // 실제 사진·본문이 담긴 카드뉴스로 바로 연결한다.
   const programHref = linkedCardNews ? `/news/${linkedCardNews.id}` : `/programs/${event.programId}`;
 
@@ -401,17 +368,6 @@ export default async function EventDetailPage({
               {event.program.summary && (
                 <p className="text-sm text-text-gray leading-relaxed">{event.program.summary}</p>
               )}
-              {programReviews.count > 0 && (
-                <Link
-                  href={`${programHref}#reviews`}
-                  className="mt-3 inline-flex items-center gap-2 text-sm text-text-gray hover:text-brand-green-primary"
-                >
-                  <RatingStars value={programReviews.average} />
-                  <span>
-                    {programReviews.average.toFixed(1)} · 후기 {programReviews.count}개
-                  </span>
-                </Link>
-              )}
             </div>
             <div className="flex flex-wrap gap-2">
               <Button asChild>
@@ -427,31 +383,6 @@ export default async function EventDetailPage({
 
         </div>
       </div>
-
-      {programReviews.latest.length > 0 && (
-        <section className="mb-10" aria-label="프로그램 후기">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl sm:text-2xl font-semibold">이 프로그램을 다녀온 분들의 후기</h2>
-            <Link
-              href={`/programs/${event.programId}#reviews`}
-              className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
-            >
-              전체 보기
-            </Link>
-          </div>
-          <ul className="space-y-3">
-            {programReviews.latest.map((review) => (
-              <li key={review.id} className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">{review.user.name}</span>
-                  <RatingStars value={review.rating} />
-                </div>
-                <p className="text-sm text-gray-700 leading-relaxed line-clamp-4">{review.content}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {relatedEvents.length > 0 && (
         <section className="mb-10" aria-label="다른 행사">
