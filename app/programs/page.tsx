@@ -323,7 +323,8 @@ export default async function ProgramsPage({
                 <h2 className="text-lg font-bold text-text-dark">지금 가장 많이 찾는 프로그램</h2>
               </div>
               <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
-                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-3 md:pb-0">
+                {/* 아래 카테고리 카드(lg 4열)와 같은 너비로 3장씩 2줄, 가운데 정렬해 양옆 여백을 둔다 */}
+                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-2 lg:grid-cols-[repeat(3,calc((100%-3rem)/4))] lg:justify-center md:pb-0">
                   {popularPrograms!.map((item) => (
                     <ProgramCard
                       key={item.id}
