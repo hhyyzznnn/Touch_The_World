@@ -232,7 +232,11 @@ export async function processG2BNotifications() {
     // 국외연수·해외연수·캠프는 대학·관공서 공고가 대부분이라 발주처가 학교·교육청인 것만 남긴다.
     const keywords = ["교육여행", "수학여행", "체험학습", "현장체험", "수련활동", "수련회", "졸업여행"];
     const schoolOnlyKeywords = ["국외연수", "해외연수", "캠프"];
-    const isSchoolBuyer = (n: any) => /학교|교육청|교육지원청/.test(`${n.dminsttNm ?? ""} ${n.ntceInsttNm ?? ""}`);
+    // "대학교"도 "학교"를 포함하므로 대학(산학협력단 등)은 따로 걸러낸다 — 초·중·고와 교육청만
+    const isSchoolBuyer = (n: any) => {
+      const buyer = `${n.dminsttNm ?? ""} ${n.ntceInsttNm ?? ""}`;
+      return /교육청|교육지원청|학교/.test(buyer) && !/대학/.test(buyer);
+    };
     let allNotices: any[] = [];
 
     for (const keyword of [...keywords, ...schoolOnlyKeywords]) {
