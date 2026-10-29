@@ -228,10 +228,14 @@ export async function processG2BNotifications() {
     };
     
     // 교육여행 관련 키워드로 검색
-    const keywords = ["교육여행", "수학여행", "체험학습", "현장체험"];
+    // 2026-10: 수련활동·졸업여행 공고가 기존 4개 키워드에 안 걸려 2주간 학교 공고 8건을 놓친 것을 확인해 추가.
+    // 국외연수·해외연수·캠프는 대학·관공서 공고가 대부분이라 발주처가 학교·교육청인 것만 남긴다.
+    const keywords = ["교육여행", "수학여행", "체험학습", "현장체험", "수련활동", "수련회", "졸업여행"];
+    const schoolOnlyKeywords = ["국외연수", "해외연수", "캠프"];
+    const isSchoolBuyer = (n: any) => /학교|교육청|교육지원청/.test(`${n.dminsttNm ?? ""} ${n.ntceInsttNm ?? ""}`);
     let allNotices: any[] = [];
-    
-    for (const keyword of keywords) {
+
+    for (const keyword of [...keywords, ...schoolOnlyKeywords]) {
       const notices = await fetchG2BNotices("Servc", {
         pageNo: 1,
         numOfRows: 50,
@@ -241,7 +245,8 @@ export async function processG2BNotifications() {
         bidNtceNm: keyword,
         useSearchApi: true, // 검색 API 사용 (키워드 검색 지원)
       });
-      allNotices = [...allNotices, ...notices];
+      const kept = schoolOnlyKeywords.includes(keyword) ? notices.filter(isSchoolBuyer) : notices;
+      allNotices = [...allNotices, ...kept];
     }
     
     // 중복 제거 (noticeId 기준)
