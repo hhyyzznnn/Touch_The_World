@@ -9,8 +9,8 @@ export interface ShortsVideo {
 
 export const SHORTS_VIDEOS: ShortsVideo[] = [
   {
-    youtubeUrl: "https://youtube.com/shorts/aDdDYKOQlbw",
-    title: "국내비용으로 가는 일본 오사카 수학여행",
+    youtubeUrl: "https://youtube.com/shorts/6u54HswKnNo",
+    title: "2026 일본 에듀트립 교육여행",
   },
 ];
 
