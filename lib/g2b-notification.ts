@@ -110,11 +110,7 @@ export async function sendDailyNotificationEmail(
     return `${year}년 ${month}월 ${day}일`;
   };
 
-  const dateDisplay = formatDateDisplay(dateRange.start);
-  if (dateRange.start !== dateRange.end) {
-    const endDisplay = formatDateDisplay(dateRange.end);
-    // 같은 날이면 하나만 표시
-  }
+  const dateDisplay = formatDateDisplay(dateRange.end);
 
   // 공고 목록 HTML 생성
   const noticesHtml = notices.map((notice, index) => {
@@ -202,16 +198,14 @@ export async function sendDailyNotificationEmail(
  */
 export async function processG2BNotifications() {
   try {
-    // 1. 어제 오전 9시 이후 ~ 오늘 오전 9시 이전 공고 조회
-    // (매일 오전 9시 실행 기준: 전날 9시 이후 ~ 당일 9시 이전)
+    // 1. 최근 4일치 공고 조회 — 이미 보낸 공고는 아래에서 DB로 걸러지므로 중복 발송되지 않는다.
+    // 하루치만 보면 조달청 시스템 점검(2026-10-30~31)처럼 실행이 실패한 날의 공고를 영영 놓친다.
+    // 저장된 공고는 7일 뒤 삭제되므로(크론 라우트) 조회 기간은 7일보다 짧아야 한다.
+    const LOOKBACK_DAYS = 4;
     const now = new Date();
-    const today9am = new Date(now);
-    today9am.setHours(9, 0, 0, 0);
-    const yesterday9am = new Date(today9am.getTime() - 24 * 60 * 60 * 1000);
-
-    // 항상 "어제 9시 ~ 오늘 9시" 구간으로 조회 (크론이 9시에 돌면 전날 등록된 공고 수집)
-    const startDate = yesterday9am;
-    const endDate = today9am;
+    const endDate = new Date(now);
+    endDate.setHours(9, 0, 0, 0);
+    const startDate = new Date(endDate.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
     
     const formatDate = (date: Date): string => {
       const year = date.getFullYear();
@@ -239,18 +233,33 @@ export async function processG2BNotifications() {
     };
     let allNotices: any[] = [];
 
-    for (const keyword of [...keywords, ...schoolOnlyKeywords]) {
-      const notices = await fetchG2BNotices("Servc", {
-        pageNo: 1,
-        numOfRows: 50,
-        inqryDiv: 1,
-        inqryBgnDt: dateRange.start,
-        inqryEndDt: dateRange.end,
-        bidNtceNm: keyword,
-        useSearchApi: true, // 검색 API 사용 (키워드 검색 지원)
-      });
-      const kept = schoolOnlyKeywords.includes(keyword) ? notices.filter(isSchoolBuyer) : notices;
-      allNotices = [...allNotices, ...kept];
+    // 검색어 하나가 실패해도 나머지는 진행한다 (빠진 공고는 다음 날 조회 기간에 다시 잡힘)
+    const allKeywords = [...keywords, ...schoolOnlyKeywords];
+    const failedKeywords: string[] = [];
+    let lastError: unknown;
+
+    for (const keyword of allKeywords) {
+      try {
+        const notices = await fetchG2BNotices("Servc", {
+          pageNo: 1,
+          numOfRows: 100,
+          inqryDiv: 1,
+          inqryBgnDt: dateRange.start,
+          inqryEndDt: dateRange.end,
+          bidNtceNm: keyword,
+          useSearchApi: true, // 검색 API 사용 (키워드 검색 지원)
+        });
+        const kept = schoolOnlyKeywords.includes(keyword) ? notices.filter(isSchoolBuyer) : notices;
+        allNotices = [...allNotices, ...kept];
+      } catch (error) {
+        failedKeywords.push(keyword);
+        lastError = error;
+      }
+    }
+
+    // 전부 실패면 API 장애 — 실패로 끝내서 GitHub Actions에 빨간불이 들어오게 한다
+    if (failedKeywords.length === allKeywords.length) {
+      throw lastError;
     }
     
     // 중복 제거 (noticeId 기준)
@@ -269,7 +278,7 @@ export async function processG2BNotifications() {
 
     if (uniqueNotices.length === 0) {
       console.log("새로운 공고가 없습니다.");
-      return { processed: 0, sent: 0 };
+      return { processed: 0, sent: 0, failedKeywords };
     }
 
     if (!hasSettings && !defaultRecipient) {
@@ -450,7 +459,7 @@ export async function processG2BNotifications() {
       }
     }
 
-    return { processed, sent };
+    return { processed, sent, failedKeywords };
   } catch (error) {
     console.error("나라장터 알림 처리 오류:", error);
     throw error;
