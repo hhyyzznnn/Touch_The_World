@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif_KR, Bona_Nova_SC } from "next/font/google";
-import localFont from "next/font/local";
+// 한 파일(2MB)을 통째로 받던 것을 글자 범위별로 나눈 버전으로 — 화면에 쓰인 글자 조각만 내려받는다
+import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ConditionalFooter } from "@/components/ConditionalFooter";
@@ -29,13 +30,6 @@ const bonaNovaSC = Bona_Nova_SC({
   weight: ["400", "700"],
   variable: "--font-bona-nova",
   display: "swap",
-});
-
-const pretendard = localFont({
-  src: "../node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
-  variable: "--font-pretendard",
-  display: "swap",
-  weight: "45 920",
 });
 
 const siteUrl = getSiteUrl();
@@ -174,7 +168,7 @@ export default function RootLayout({
       </head>
       <GoogleAnalytics />
       <MicrosoftClarity />
-      <body className={`${notoSerif.variable} ${bonaNovaSC.variable} ${pretendard.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${notoSerif.variable} ${bonaNovaSC.variable} font-sans`} suppressHydrationWarning>
         <ToastProvider>
           <KakaoScript />
           <AttributionCapture />

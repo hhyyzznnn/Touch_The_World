@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Next 15의 메타데이터 스트리밍은 Googlebot·일반 브라우저에 제목·설명을 <head>가 아닌 본문 뒤쪽에 끼워 보낸다
+  // (2026-11 확인: 카드뉴스 상세의 description이 Googlebot 응답에서 body에 있었음). 모든 요청에 <head>로 보낸다.
+  htmlLimitedBots: /.*/,
   async redirects() {
     return [
       // 2026-09 삭제한 SEO 랜딩페이지 4개(japan-edu-trip 등)의 리다이렉트는 목적지 쿼리에

@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    /* app/layout.tsx에서 불러오는 Pretendard 글자 범위별 분할본의 글꼴 이름 */
+    --font-pretendard: "Pretendard Variable";
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;

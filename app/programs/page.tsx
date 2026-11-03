@@ -172,7 +172,7 @@ const getPopularProgramsCached = unstable_cache(
 
 const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"];
 
-function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?: string }) {
+function ProgramCard({ item, className = "", priority = false }: { item: CardNewsItem; className?: string; priority?: boolean }) {
   const href = item.link?.trim() || `/news/${item.id}`;
   const isExternal = !!item.link?.trim()?.startsWith("http");
   const ended = isEnded(item.endDate);
@@ -223,6 +223,7 @@ function ProgramCard({ item, className = "" }: { item: CardNewsItem; className?:
             alt={item.title}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            priority={priority}
             className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
           />
         ) : null}
@@ -302,8 +303,9 @@ export default async function ProgramsPage({
       ) : currentCategory ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-            {flat!.items.map((item) => (
-              <ProgramCard key={item.id} item={item} />
+            {/* 첫 화면에 보이는 카드는 지연 로딩하지 않는다 (모바일 첫 화면 표시가 늦어지던 원인) */}
+            {flat!.items.map((item, i) => (
+              <ProgramCard key={item.id} item={item} priority={i < 2} />
             ))}
           </div>
 
@@ -325,10 +327,11 @@ export default async function ProgramsPage({
               <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
                 {/* 아래 카테고리 카드(lg 4열)와 같은 너비로 3장씩 2줄, 가운데 정렬해 양옆 여백을 둔다 */}
                 <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-2 lg:grid-cols-[repeat(3,calc((100%-3rem)/4))] lg:justify-center md:pb-0">
-                  {popularPrograms!.map((item) => (
+                  {popularPrograms!.map((item, i) => (
                     <ProgramCard
                       key={item.id}
                       item={item}
+                      priority={i < 3}
                       className="w-[42vw] sm:w-52 md:w-auto flex-shrink-0"
                     />
                   ))}
