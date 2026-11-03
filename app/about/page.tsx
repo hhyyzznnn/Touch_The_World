@@ -174,7 +174,7 @@ function resolveKakaoUrl() {
 function SectionTitle({ label, title, desc }: { label: string; title: string; desc: string }) {
   return (
     <div className="max-w-3xl">
-      <p className="text-sm font-semibold text-brand-green">{label}</p>
+      <p className="text-sm font-semibold text-brand-green-primary">{label}</p>
       <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">{title}</h2>
       <p className="mt-3 break-keep text-sm leading-relaxed text-text-gray sm:text-base">{desc}</p>
     </div>
@@ -190,7 +190,7 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div>
-              <p className="inline-flex items-center rounded-full border border-brand-green/20 bg-white px-4 py-1.5 text-sm font-medium text-brand-green">
+              <p className="inline-flex items-center rounded-full border border-brand-green/20 bg-white px-4 py-1.5 text-sm font-medium text-brand-green-primary">
                 학교·기관·지자체를 위한 교육 프로그램 파트너
               </p>
               <h1 className="mt-5 break-keep text-3xl font-semibold leading-tight text-text-dark sm:text-5xl">
@@ -212,14 +212,14 @@ export default function AboutPage() {
                   </Link>
                 </Button>
                 {kakaoUrl ? (
-                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green-primary hover:bg-brand-green/5">
                     <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2">
                       카카오 상담하기
                       <MessageCircle className="h-4 w-4" />
                     </a>
                   </Button>
                 ) : (
-                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green-primary hover:bg-brand-green/5">
                     <Link href="/inquiry" className="inline-flex items-center gap-2">
                       상담 문의하기
                       <MessageCircle className="h-4 w-4" />
@@ -233,20 +233,20 @@ export default function AboutPage() {
               <h2 className="text-lg font-semibold text-text-dark">회사 기본 정보</h2>
               <div className="mt-4 space-y-3 text-sm text-text-gray">
                 <p className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-brand-green" />
+                  <Phone className="h-4 w-4 text-brand-green-primary" />
                   대표번호 {CONTACT.phone}
                 </p>
                 <p className="flex items-center gap-2 break-all">
-                  <Mail className="h-4 w-4 text-brand-green" />
+                  <Mail className="h-4 w-4 text-brand-green-primary" />
                   {CONTACT.email}
                 </p>
                 <p className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-brand-green" />
+                  <Globe className="h-4 w-4 text-brand-green-primary" />
                   {CONTACT.website}
                 </p>
               </div>
               <div className="mt-5 rounded-xl bg-brand-green/5 p-4">
-                <p className="text-xs font-semibold text-brand-green">Core Message</p>
+                <p className="text-xs font-semibold text-brand-green-primary">Core Message</p>
                 <p className="mt-1 break-keep text-base font-medium text-text-dark">“{CONTACT.message}”</p>
               </div>
               <p className="mt-4 text-xs text-text-gray">
@@ -347,7 +347,7 @@ export default function AboutPage() {
               <li key={`${item.year}-${item.detail}`} className="relative">
                 <span className="absolute -left-[31px] top-1.5 h-3 w-3 rounded-full bg-brand-green" />
                 <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                  <p className="text-sm font-semibold text-brand-green">{item.year}</p>
+                  <p className="text-sm font-semibold text-brand-green-primary">{item.year}</p>
                   <p className="mt-1 break-keep text-sm text-text-dark sm:text-base">{item.detail}</p>
                 </div>
               </li>
@@ -398,7 +398,7 @@ export default function AboutPage() {
               return (
                 <div key={service.title} className="rounded-xl border border-gray-200 bg-white p-5">
                   <div className="inline-flex rounded-lg bg-brand-green/10 p-2">
-                    <Icon className="h-5 w-5 text-brand-green" />
+                    <Icon className="h-5 w-5 text-brand-green-primary" />
                   </div>
                   <p className="mt-3 text-base font-semibold text-text-dark">{service.title}</p>
                 </div>
@@ -421,7 +421,7 @@ export default function AboutPage() {
               return (
                 <div key={item.title} className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6">
                   <div className="inline-flex rounded-lg bg-brand-green/10 p-2">
-                    <Icon className="h-5 w-5 text-brand-green" />
+                    <Icon className="h-5 w-5 text-brand-green-primary" />
                   </div>
                   <h3 className="mt-3 text-lg font-semibold text-text-dark">{item.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-text-gray">{item.description}</p>
@@ -466,7 +466,7 @@ export default function AboutPage() {
           <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6 sm:p-8 lg:p-10">
             <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
               <div>
-                <p className="text-sm font-semibold text-brand-green">Final CTA</p>
+                <p className="text-sm font-semibold text-brand-green-primary">Final CTA</p>
                 <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">
                   학교와 기관의 다음 프로그램,{" "}
                   <br className="hidden sm:block" />
@@ -477,11 +477,11 @@ export default function AboutPage() {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3 text-sm text-text-gray">
                   <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5">
-                    <Phone className="h-4 w-4 text-brand-green" />
+                    <Phone className="h-4 w-4 text-brand-green-primary" />
                     {CONTACT.phone}
                   </span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5">
-                    <Mail className="h-4 w-4 text-brand-green" />
+                    <Mail className="h-4 w-4 text-brand-green-primary" />
                     {CONTACT.email}
                   </span>
                 </div>
@@ -495,14 +495,14 @@ export default function AboutPage() {
                   </Link>
                 </Button>
                 {kakaoUrl ? (
-                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green-primary hover:bg-brand-green/5">
                     <a href={kakaoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2">
                       카카오 상담하기
                       <MessageCircle className="h-4 w-4" />
                     </a>
                   </Button>
                 ) : (
-                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green hover:bg-brand-green/5">
+                  <Button asChild size="lg" variant="outline" className="border-brand-green/30 text-brand-green-primary hover:bg-brand-green/5">
                     <Link href="/inquiry" className="inline-flex items-center gap-2">
                       상담 문의하기
                       <MessageCircle className="h-4 w-4" />

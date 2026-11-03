@@ -338,7 +338,7 @@ export default async function NewsDetailPage({
                   {news.hashtags.map((tag) => (
                     <span
                       key={tag}
-                      className="text-sm text-brand-green-primary/80 hover:text-brand-green-primary transition-colors"
+                      className="text-sm text-brand-green-primary"
                     >
                       {tag}
                     </span>
@@ -400,7 +400,7 @@ export default async function NewsDetailPage({
                   href={`/programs?category=${encodeURIComponent(news.categories[0])}`}
                   className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
                 >
-                  전체 보기
+                  <span className="sr-only">{news.categories[0]} </span>전체 보기
                 </Link>
               )}
             </div>
@@ -440,7 +440,7 @@ export default async function NewsDetailPage({
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
-                          alt={item.title}
+                          alt={`${item.title} 카드뉴스 표지`}
                           fill
                           sizes="(max-width: 640px) 50vw, 25vw"
                           className="object-contain group-hover:scale-[1.03] transition-transform duration-200"

@@ -156,7 +156,7 @@ export default async function HomePage() {
             </p>
 
             <div className="pt-4 sm:pt-6">
-              <Suspense fallback={<div className="h-14 w-full max-w-3xl mx-auto rounded-2xl bg-gray-100 animate-pulse" />}>
+              <Suspense fallback={<div className="h-[315px] sm:h-[248px] w-full max-w-3xl mx-auto rounded-2xl bg-gray-100 animate-pulse" />}>
                 <DynamicHeroChat />
               </Suspense>
             </div>
@@ -203,9 +203,10 @@ export default async function HomePage() {
               </div>
               <Link
                 href="/programs"
-                className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base flex-shrink-0 mt-1"
+                className="text-brand-green-primary hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base flex-shrink-0 mt-1"
               >
-                전체 보기
+                {/* 검색엔진·화면 낭독기가 "전체 보기"만 읽지 않도록 무엇의 전체인지 숨은 글자로 덧붙인다 */}
+                <span className="sr-only">카드뉴스 </span>전체 보기
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
@@ -256,7 +257,8 @@ export default async function HomePage() {
                       {item.imageUrl ? (
                         <Image
                           src={item.imageUrl}
-                          alt={item.title}
+                          // 바로 아래 카드 제목과 같은 문구가 되지 않게 (화면 낭독기가 두 번 읽음)
+                          alt={`${item.title} 카드뉴스 표지`}
                           fill
                           sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                           className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
@@ -343,7 +345,7 @@ export default async function HomePage() {
               </span>
               <Link
                 href="/achievements"
-                className="inline-flex items-center rounded-full border border-brand-green/30 bg-white px-3 py-1 text-brand-green hover:bg-brand-green/5 transition-colors"
+                className="inline-flex items-center rounded-full border border-brand-green/30 bg-white px-3 py-1 text-brand-green-primary hover:bg-brand-green/5 transition-colors"
               >
                 실적 보기
                 <ChevronRight className="w-3 h-3 ml-0.5" />
@@ -370,7 +372,7 @@ export default async function HomePage() {
             ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="text-center p-4 sm:p-8">
                 <div className="w-14 h-14 sm:w-20 sm:h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6">
-                  <Icon className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green" />
+                  <Icon className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green-primary" />
                 </div>
                 <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">{title}</h3>
                 <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
@@ -400,7 +402,7 @@ export default async function HomePage() {
             </h2>
             <Link
               href="/events"
-              className="text-brand-green hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base"
+              className="text-brand-green-primary hover:text-brand-green/80 font-medium flex items-center gap-1 text-sm sm:text-base"
             >
               더보기
               <ChevronRight className="w-4 h-4" />
@@ -441,7 +443,7 @@ export default async function HomePage() {
                         <ImagePlaceholder className="h-36 sm:h-48 text-sm" text="현장 사진" />
                       )}
                       <div className="p-4 sm:p-6">
-                        <div className="text-xs sm:text-sm text-brand-green font-medium mb-1 sm:mb-2">
+                        <div className="text-xs sm:text-sm text-brand-green-primary font-medium mb-1 sm:mb-2">
                           {getCategoryDisplayName(event.program.category)}
                         </div>
                         <div className="text-xs sm:text-sm text-text-gray mb-1 sm:mb-2">

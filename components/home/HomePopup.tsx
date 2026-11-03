@@ -102,7 +102,7 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
             onClick={close}
             className="mt-3 flex items-center justify-center gap-1.5 w-full rounded-xl bg-brand-green-primary hover:bg-brand-green text-white text-sm font-semibold py-2.5 transition-colors"
           >
-            자세히 보기 <ArrowRight className="w-4 h-4" />
+            <span className="sr-only">{title} </span>자세히 보기 <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -110,7 +110,7 @@ export function HomePopup({ id, title, summary, imageUrl, link }: HomePopupProps
         <div className="flex justify-center px-5 pt-2 pb-5">
           <button
             onClick={hideToday}
-            className="text-xs text-text-gray/70 hover:text-text-gray transition-colors"
+            className="text-xs text-text-gray hover:text-text-dark transition-colors"
           >
             오늘 하루 보지 않기
           </button>

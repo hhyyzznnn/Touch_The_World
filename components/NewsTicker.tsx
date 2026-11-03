@@ -86,7 +86,7 @@ export function NewsTicker({ items }: { items: NewsItem[] }) {
           {/* 우측 카운터 */}
           <div className="shrink-0 w-8 text-right">
             {items.length > 1 && (
-              <span className="text-xs text-text-gray/60 tabular-nums">
+              <span className="text-xs text-text-gray tabular-nums">
                 {index + 1}/{items.length}
               </span>
             )}

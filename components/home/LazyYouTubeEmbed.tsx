@@ -84,7 +84,7 @@ export function LazyYouTubeEmbed({ videoId, title, className }: LazyYouTubeEmbed
     <div ref={containerRef} className={className}>
       <Image
         src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
-        alt={title}
+        alt={`${title} 영상 썸네일`}
         fill
         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
         className="object-cover"

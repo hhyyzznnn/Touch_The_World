@@ -384,7 +384,7 @@ export default async function SearchPage({
                       <h3 className="text-lg font-semibold text-text-dark">
                         {achievement.institution}
                       </h3>
-                      <span className="text-sm text-brand-green font-semibold bg-brand-green/10 px-3 py-1 rounded-full whitespace-nowrap ml-4">
+                      <span className="text-sm text-brand-green-primary font-semibold bg-brand-green/10 px-3 py-1 rounded-full whitespace-nowrap ml-4">
                         {achievement.year}년
                       </span>
                     </div>

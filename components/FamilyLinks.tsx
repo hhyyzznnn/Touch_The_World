@@ -26,7 +26,7 @@ const FAMILY: {
     current: false,
     brands: [
       // 아소 한국사무소 사이트의 로고가 이미지가 아닌 금색 "ASO" 글자 상자라 같은 모양으로 맞춘다
-      { name: "아소전문학교", href: "https://www.asojuku.co.kr", sub: "전문학교 진학", logo: { badge: "ASO", className: "bg-[#C9A227] text-white" } },
+      { name: "아소전문학교", href: "https://www.asojuku.co.kr", sub: "전문학교 진학", logo: { badge: "ASO", className: "bg-[#8A6D12] text-white" } },
       { name: "야나기가우라고", href: "https://www.yanagigaura.co.kr", sub: "고등학교 유학", logo: { src: "/logos/partners/yanagigaura-emblem.png", alt: "야나기가우라 고등학교 교표" } },
     ],
   },

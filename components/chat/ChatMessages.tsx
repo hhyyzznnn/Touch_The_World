@@ -23,7 +23,7 @@ export function CategoryButtons({
             aria-label={`${category.name} 카테고리 선택`}
           >
             <div className="w-9 h-9 bg-brand-green/10 rounded-full flex items-center justify-center mb-1">
-              <Icon className="w-4 h-4 text-brand-green" />
+              <Icon className="w-4 h-4 text-brand-green-primary" />
             </div>
             <span className="text-sm font-medium text-gray-500 text-center leading-tight whitespace-pre-line">
               {category.name}

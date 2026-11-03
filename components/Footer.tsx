@@ -53,12 +53,12 @@ export function Footer() {
               <p className="text-xs font-semibold tracking-wide text-text-gray uppercase">Contact</p>
               <div className="mt-3 space-y-3">
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-brand-green flex-shrink-0" />
+                  <Phone className="h-5 w-5 text-brand-green-primary flex-shrink-0" />
                   <span className="text-sm text-text-gray">대표전화</span>
                   <PhoneLink phone={COMPANY_INFO.phone} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-brand-green flex-shrink-0" />
+                  <Mail className="h-4 w-4 text-brand-green-primary flex-shrink-0" />
                   <a
                     href={`mailto:${COMPANY_INFO.email}`}
                     className="text-base text-text-gray hover:text-brand-green transition-colors"

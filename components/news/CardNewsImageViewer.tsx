@@ -1,7 +1,21 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
+// next.config.ts images.remotePatterns에 있는 업로드 저장소만 리사이즈·WebP 변환을 거친다.
+// 목록에 없는 주소를 next/image로 넘기면 이미지가 깨지므로 원본을 그대로 쓴다.
+const OPTIMIZABLE_HOSTS = /(^|\.)(ufs\.sh|utfs\.io|supabase\.co|pstatic\.net)$/;
+function canOptimize(url: string) {
+  try {
+    return OPTIMIZABLE_HOSTS.test(new URL(url).hostname);
+  } catch {
+    return false; // /images/... 같은 사이트 내부 경로
+  }
+}
+// 뷰어 최대 폭이 max-w-lg(512px)라 그 이상은 받을 필요가 없다
+const SIZES = "(max-width: 640px) 100vw, 512px";
 
 interface Props {
   images: string[];
@@ -28,12 +42,17 @@ export function CardNewsImageViewer({ images, title, className }: Props) {
   };
 
   if (images.length === 1) {
+    // 원본 비율을 몰라 width/height는 카드뉴스 기본 비율(3:4)로 주고, 실제 높이는 h-auto로 맞춘다
     return (
-      /* eslint-disable-next-line @next/next/no-img-element */
-      <img
+      <Image
         src={images[0]}
         alt={title}
-        className={`mx-auto block w-full rounded-xl border bg-gray-100 ${className ?? "max-w-md sm:max-w-lg"}`}
+        width={1080}
+        height={1440}
+        sizes={SIZES}
+        priority
+        unoptimized={!canOptimize(images[0])}
+        className={`mx-auto block h-auto w-full rounded-xl border bg-gray-100 ${className ?? "max-w-md sm:max-w-lg"}`}
       />
     );
   }
@@ -57,12 +76,14 @@ export function CardNewsImageViewer({ images, title, className }: Props) {
             className="relative w-full flex-shrink-0 snap-center aspect-[3/4] bg-gray-100"
             style={{ scrollSnapAlign: "center" }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={url}
               alt={`${title} ${i + 1}/${images.length}`}
-              loading={i === 0 ? "eager" : "lazy"}
-              className="absolute inset-0 h-full w-full object-contain"
+              fill
+              sizes={SIZES}
+              priority={i === 0}
+              unoptimized={!canOptimize(url)}
+              className="object-contain"
             />
           </div>
         ))}
@@ -91,18 +112,22 @@ export function CardNewsImageViewer({ images, title, className }: Props) {
       )}
 
       {/* 페이지 인디케이터 */}
-      <div className="mt-3 flex items-center justify-center gap-1.5">
+      <div className="mt-2 flex items-center justify-center">
         {images.map((_, i) => (
           <button
             key={i}
             onClick={() => scrollTo(i)}
-            className={`rounded-full transition-all duration-200 ${
-              i === current
-                ? "w-4 h-1.5 bg-brand-green-primary"
-                : "w-1.5 h-1.5 bg-gray-300"
-            }`}
+            // 점은 작게 두고 누르는 영역만 24px로 넓힌다 (모바일에서 손가락으로 누르기 어려웠음)
+            className="flex h-6 min-w-6 items-center justify-center"
             aria-label={`${i + 1}번째 이미지`}
-          />
+            aria-current={i === current ? "true" : undefined}
+          >
+            <span
+              className={`block rounded-full transition-all duration-200 ${
+                i === current ? "w-4 h-1.5 bg-brand-green-primary" : "w-1.5 h-1.5 bg-gray-300"
+              }`}
+            />
+          </button>
         ))}
         <span className="ml-2 text-xs text-text-gray">
           {current + 1} / {images.length}
