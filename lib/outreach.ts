@@ -86,6 +86,16 @@ export function planTrips(events: ScheduleEvent[], today = new Date()): TripPlan
   return merged.sort((a, b) => a.contactFrom.localeCompare(b.contactFrom));
 }
 
+/**
+ * 나라장터 발주기관명에서 학교 이름만 뽑는다 — "경기도교육청 불곡고등학교" → "불곡고등학교".
+ * 초·중·고가 아니면(교육청 본청·대학 산학협력단 등) null.
+ */
+export function schoolFromAgency(agency: string): string | null {
+  const last = agency.trim().split(/\s+/).pop() ?? "";
+  // 대학은 "○○대학교" 또는 "○○대학교 산학협력단"으로 끝난다 (사범대학부설고등학교는 학교로 남긴다)
+  return /학교$/.test(last) && !/대학교$/.test(last) ? last : null;
+}
+
 const STATUS_ORDER: Record<TripPlan["status"], number> = { now: 0, soon: 1, later: 2, late: 3 };
 /** 학교 목록 정렬용 — 가장 급한 행사 기준 */
 export function urgency(plans: TripPlan[]): number {

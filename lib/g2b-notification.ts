@@ -200,7 +200,7 @@ export async function processG2BNotifications() {
   try {
     // 1. 최근 4일치 공고 조회 — 이미 보낸 공고는 아래에서 DB로 걸러지므로 중복 발송되지 않는다.
     // 하루치만 보면 조달청 시스템 점검(2026-10-30~31)처럼 실행이 실패한 날의 공고를 영영 놓친다.
-    // 저장된 공고는 7일 뒤 삭제되므로(크론 라우트) 조회 기간은 7일보다 짧아야 한다.
+    // 저장된 공고는 7일 뒤(마감 지난 것부터) 삭제되므로(크론 라우트) 조회 기간은 7일보다 짧아야 한다.
     const LOOKBACK_DAYS = 4;
     const now = new Date();
     const endDate = new Date(now);

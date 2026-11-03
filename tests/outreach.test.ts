@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isTripEvent, planTrips, urgency } from "@/lib/outreach";
+import { isTripEvent, planTrips, schoolFromAgency, urgency } from "@/lib/outreach";
 
 test("교육여행성 행사만 고르고 개인 결석·사전 안내는 뺀다", () => {
   assert.equal(isTripEvent("2학년 수학여행"), true);
@@ -62,4 +62,13 @@ test("교내 특강·발표회·창의캠프는 교육여행으로 보지 않는
   for (const name of ["소규모 테마형 교육여행", "미국 방문 체험학습", "간부수련회", "숙박형 교과연계 현장체험학습"]) {
     assert.equal(isTripEvent(name), true, name);
   }
+});
+
+test("나라장터 발주기관명에서 초·중·고 학교 이름만 뽑는다", () => {
+  assert.equal(schoolFromAgency("경기도교육청 불곡고등학교"), "불곡고등학교");
+  assert.equal(schoolFromAgency("서울특별시강남교육청 진선여자중학교"), "진선여자중학교");
+  assert.equal(schoolFromAgency("경상국립대학교사범대학부설고등학교"), "경상국립대학교사범대학부설고등학교");
+  assert.equal(schoolFromAgency("대림대학교 산학협력단"), null);
+  assert.equal(schoolFromAgency("계명대학교"), null);
+  assert.equal(schoolFromAgency("충청남도교육청"), null);
 });

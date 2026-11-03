@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getSchoolTrips, hasNeisKey } from "@/lib/neis";
-import { CONTACT_END_DAYS, CONTACT_START_DAYS, planTrips, urgency, type TripPlan } from "@/lib/outreach";
+import { CONTACT_END_DAYS, CONTACT_START_DAYS, planTrips, schoolFromAgency, urgency, type TripPlan } from "@/lib/outreach";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -37,13 +37,27 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
   const today = new Date();
   const { from, to } = scheduleRange(today);
 
-  const [schools, inquiries] = await Promise.all([
+  const [schools, inquiries, notices] = await Promise.all([
     prisma.school.findMany({ select: { name: true, events: { select: { date: true }, orderBy: { date: "desc" }, take: 1 } } }),
     prisma.inquiry.findMany({ select: { schoolName: true, createdAt: true }, orderBy: { createdAt: "desc" } }),
+    // 나라장터 입찰 알림이 모은 공고 중 아직 마감 전인 것 — 지금 업체를 찾고 있는 학교
+    prisma.g2BNotice.findMany({
+      where: { deadline: { gte: today } },
+      select: { noticeId: true, title: true, agency: true, budget: true, deadline: true, url: true },
+      orderBy: { deadline: "asc" },
+    }),
   ]);
   const relation = new Map<string, string>();
   for (const s of schools) if (s.events[0]) relation.set(s.name, `진행 ${s.events[0].date.toISOString().slice(0, 10)}`);
   for (const i of inquiries) if (!relation.has(i.schoolName)) relation.set(i.schoolName, `문의 ${i.createdAt.toISOString().slice(0, 10)}`);
+
+  const openBids = notices.flatMap((n) => {
+    const school = schoolFromAgency(n.agency);
+    return school ? [{ ...n, school }] : [];
+  });
+  const biddingSchools = new Set(openBids.map((b) => b.school));
+  const kstDate = (d: Date) => d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }).slice(5).replace("-", "/");
+  const budgetText = (b: bigint | null) => (b ? `${(Number(b) / 100_000_000).toFixed(2)}억` : "-");
 
   // 키가 없으면 학교 하나 조회에도 수십 번 호출해야 해, 목록 전체 대신 검색한 학교만 본다
   const targets = q?.trim()
@@ -79,6 +93,44 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
         </div>
       )}
 
+      <section className="rounded-xl border border-gray-200 bg-white">
+        <div className="border-b border-gray-100 px-4 py-3">
+          <h2 className="font-semibold">지금 입찰 진행 중인 학교 <span className="text-sm font-normal text-text-gray">{openBids.length}건</span></h2>
+          <p className="mt-0.5 text-xs text-text-gray">나라장터 입찰 알림이 모은 초·중·고 공고 중 마감 전인 것입니다. 학교 이름을 누르면 학사일정을 조회합니다.</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="bg-gray-50 text-left text-xs text-text-gray">
+              <tr>
+                <th className="px-4 py-2">마감</th>
+                <th className="px-4 py-2">학교</th>
+                <th className="px-4 py-2">공고</th>
+                <th className="px-4 py-2 text-right">추정 금액</th>
+                <th className="px-4 py-2">우리와의 이력</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {openBids.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-6 text-center text-text-gray">마감 전인 학교 공고가 없습니다.</td></tr>
+              )}
+              {openBids.map((b) => (
+                <tr key={b.noticeId}>
+                  <td className="px-4 py-2 whitespace-nowrap">{b.deadline ? kstDate(b.deadline) : "-"}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    <Link href={`/admin/outreach?q=${encodeURIComponent(b.school)}`} className="font-medium text-brand-green-primary hover:underline">{b.school}</Link>
+                  </td>
+                  <td className="px-4 py-2">
+                    <a href={b.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{b.title}</a>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-right">{budgetText(b.budget)}</td>
+                  <td className="px-4 py-2 whitespace-nowrap text-xs text-text-gray">{relation.get(b.school) ?? "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <form className="flex gap-2" action="/admin/outreach">
         <input name="q" defaultValue={q ?? ""} placeholder="학교 이름으로 검색 (예: 안양문화고등학교)" className="h-10 w-full max-w-md rounded-lg border border-gray-300 px-3 text-sm" />
         <button className="h-10 rounded-lg bg-brand-green-primary px-4 text-sm font-semibold text-white">조회</button>
@@ -105,6 +157,9 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
               const info = (
                 <td className="px-4 py-3 align-top" rowSpan={Math.max(1, plans.length)}>
                   <p className="font-medium">{data?.school.name ?? name}</p>
+                  {biddingSchools.has(data?.school.name ?? name) && (
+                    <span className="mt-1 inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">입찰 진행 중</span>
+                  )}
                   {data && <p className="text-xs text-text-gray">{data.school.officeName} · {data.school.kind}</p>}
                   {data?.school.phone && <p className="text-xs text-text-gray">☎ {data.school.phone}</p>}
                   {data?.school.homepage && <a href={data.school.homepage} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-green-primary hover:underline">학교 홈페이지</a>}

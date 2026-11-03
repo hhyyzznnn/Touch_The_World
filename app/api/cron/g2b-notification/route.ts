@@ -26,9 +26,15 @@ export async function GET(request: NextRequest) {
   try {
     const result = await processG2BNotifications();
 
-    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    // 7일 지난 공고 중 마감도 지난(또는 마감일 없는) 것만 지운다 —
+    // 마감 전 공고는 관리자 "학교별 연락 시기"의 입찰 진행 중 목록에 계속 보여야 한다.
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const { count: deleted } = await prisma.g2BNotice.deleteMany({
-      where: { createdAt: { lt: cutoff } },
+      where: {
+        createdAt: { lt: cutoff },
+        OR: [{ deadline: { lt: now } }, { deadline: null }],
+      },
     });
 
     return NextResponse.json({
