@@ -110,7 +110,7 @@ function buildChatContext(
   const hasCategory =
     Boolean(landingCategory) ||
     normalizedCategories.some((cat) => compactUserText.includes(cat)) ||
-    /(수학여행|체험학습|교사연수|수련활동|교육여행|유학|취업|RISE|특성화고)/.test(userText);
+    /(수학여행|체험학습|교사연수|교직원\s*연수|수련활동|수련회|교육여행|유학|취업|RISE|특성화고)/.test(userText);
   const hasParticipantCount = /\d{1,4}\s*명/.test(userText);
   const hasRegion =
     /(서울|경기|인천|부산|대구|광주|대전|울산|세종|제주|강원|충북|충남|전북|전남|경북|경남|해외|일본|대만|싱가포르|베트남|중국|미국|유럽)/.test(
@@ -134,6 +134,31 @@ function buildChatContext(
     hasConsultingIntent,
     userWantsToEnd,
   };
+}
+
+const DOMESTIC_PLACE_REGEX =
+  /(제주|경주|서울|경기|인천|부산|대구|광주|대전|울산|세종|강원|충북|충남|전북|전남|경북|경남|전주|여수|안동|강릉|속초|춘천|평창|통영|거제|포항|공주|부여|단양|남해|순천|목포)/;
+const OVERSEAS_PLACE_REGEX =
+  /(해외|국외|일본|후쿠오카|오사카|도쿄|교토|규슈|대만|중국|베트남|싱가포르|미국|유럽|호주|뉴질랜드|필리핀)/;
+
+/**
+ * 해외·일본 교육여행을 고른 뒤 국내 지역을 말한 경우, 답변 직전에 넣을 안내문을 만든다.
+ * 시스템 프롬프트 규칙만으로는 모델이 "제주도는 국내라 어렵다"고 지적하거나 되묻는 일이 반복돼(2026-11 실제 상담),
+ * 이 경우를 서버에서 직접 감지해 마지막에 한 번 더 짚어 준다.
+ */
+function buildCategoryMismatchHint(messages: ChatRequestMessage[]): string | null {
+  const userMessages = messages.filter((msg) => msg.role === "user").map((msg) => msg.content);
+  const last = userMessages[userMessages.length - 1];
+  if (!last || userMessages.length < 2) return null;
+  const pickedOverseas = userMessages.slice(0, -1).some((m) => OVERSEAS_PLACE_REGEX.test(m));
+  const place = last.match(DOMESTIC_PLACE_REGEX)?.[0];
+  if (!pickedOverseas || !place || OVERSEAS_PLACE_REGEX.test(last)) return null;
+  return (
+    `사용자가 앞에서 해외·일본 쪽 유형을 골랐지만 방금 국내 지역(${place})을 말했습니다. ` +
+    `${place} 교육여행 상담으로 바로 이어가세요. 유형이 바뀌었다거나 국내라서 다르다는 설명은 한 문장도 쓰지 마세요. ` +
+    "일정 구성을 요청했다면 참고 게시물에 맞는 프로그램이 없어도 일차별 활동 유형을 한 줄씩 '예시'로 보여 주고(업체·가격·확정 일정은 쓰지 않음), " +
+    "사용자가 말하지 않은 기간·인원은 지어내지 말고 질문으로 확인하세요."
+  );
 }
 
 function wantsCategoryRedisplay(messages: ChatRequestMessage[]): boolean {
@@ -230,7 +255,11 @@ const getSystemPrompt = (knowledgeBlock: string, landingCategory?: string): stri
     "3. 사용자가 대화 종료 의사를 보이면 추가 질문을 강요하지 말고 간결히 마무리하세요.\n" +
     "4. 조건에 맞는 프로그램을 추천할 때는 아래 참고 게시물 중에서 고르고, 맞는 것이 없으면 조건 변경을 강하게 요구하지 말고 상담 접수(연락처/희망 연락 시간)로 우선 유도하세요.\n" +
     "5. 사용자가 전화번호/이메일/담당자명을 남기면 반드시 인식해 확인하고, 상담 마무리 또는 견적 의사 표현 시 saveConsultingLog를 호출하세요. 비로그인 사용자도 연락처가 있으면 저장을 시도하세요.\n" +
-    "6. 식사 항목은 기본 질문에서 과하게 묻지 마세요. 할랄/채식 여부는 사용자가 먼저 언급한 경우에만 확인하고, 기본은 알러지/건강상 유의사항만 간단히 확인하세요.\n\n" +
+    "6. 식사 항목은 기본 질문에서 과하게 묻지 마세요. 할랄/채식 여부는 사용자가 먼저 언급한 경우에만 확인하고, 기본은 알러지/건강상 유의사항만 간단히 확인하세요.\n" +
+    // 2026-11: "국외 교육여행" 버튼을 누른 뒤 "제주도 2박3일"을 말하자 "제주도는 국내라 어렵다"며 되묻고 끝난 상담이 있었다.
+    "7. 사용자가 고른 프로그램 유형과 나중에 말한 지역·내용이 맞지 않으면(예: 해외·일본 교육여행을 고른 뒤 제주도·경주 같은 국내 지역을 말함) 나중에 말한 구체적인 내용을 기준으로 알맞은 유형(국내 교육여행·체험학습·수련활동 등)으로 바로 바꿔 이어가세요. '국내라서 어렵다', '해외 교육여행과는 다르다'처럼 지적하거나 어느 쪽인지 되묻지 말고, '제주도 2박 3일 교육여행으로 안내드릴게요'처럼 자연스럽게 받아 진행하세요. 유형이 바뀌었다는 설명 자체를 하지 마세요(나쁜 예: '제주도는 국내 지역이어서 해외 교육여행 대신 국내로 안내드리겠습니다' / 좋은 예: '제주도 2박 3일 교육여행 예시를 먼저 보여드릴게요').\n" +
+    "   사용자가 말하지 않은 기간·인원·학년을 지어내 덧붙이지 마세요(경주만 말했으면 '경주 교육여행'이라고만 쓰고 기간은 질문으로 확인).\n" +
+    "8. '프로그램 만들어줘', '일정 짜줘'처럼 구성을 요청하면, 참고 게시물에 맞는 프로그램이 있으면 그것을 소개하고, 없으면 그 지역·기간에 맞는 일반적인 구성 예시(일차별 활동 유형 한 줄씩)를 '예시'라고 밝혀 간단히 보여 주세요. 예시에는 업체명·가격·확정 일정처럼 게시물에 없는 사실을 넣지 말고, 이어서 학년·인원·목적을 알려주시면 맞춤 일정과 견적을 드린다고 안내하세요.\n\n" +
     "**우선 수집할 핵심 정보:**\n" +
     "- 프로그램 유형(이미 주어졌다면 재질문 금지)\n" +
     "- 예상 인원\n" +
@@ -322,7 +351,8 @@ function extractFallbackLeadDetails(
     categoryFromMessages ||
     findLatestPattern(
       userText,
-      /(수학여행|체험학습|교사연수|수련활동|교육여행|해외 취업 및 유학|지자체 및 대학 RISE 사업|특성화고교 프로그램)/g
+      // 2026-10-28 재정비한 카테고리 이름 기준 (예전 "해외 취업 및 유학"·"RISE 사업" 등은 더 이상 없음)
+      /(수학여행|체험학습|교직원\s*연수|교사연수|수련활동|수련회|교육여행|일본\s*유학|유학|특성화고)/g
     );
 
   const participantCountRaw = findLatestPattern(userText, /(\d{1,4})\s*명/g);
@@ -550,6 +580,8 @@ export async function POST(request: NextRequest) {
       },
       ...effectiveMessages.map(toOpenAIMessage),
     ];
+    const mismatchHint = buildCategoryMismatchHint(effectiveMessages);
+    if (mismatchHint) openaiMessages.push({ role: "system", content: mismatchHint });
 
     // Function Calling 정의
     const saveConsultingLogFunction: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function = {
