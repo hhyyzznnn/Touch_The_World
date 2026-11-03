@@ -96,9 +96,10 @@ test("근거 블록에는 상세 주소·외부 링크·마감 상태가 들어�
   assert.doesNotMatch(withLink, /마감일/);
 });
 
-test("근거 블록은 관련 게시물이 없어도 전체 제목 목록은 제공한다", () => {
+test("근거 블록은 관련 게시물이 없어도 전체 프로그램 목록(분류·요약 포함)은 제공한다", () => {
   const index = buildKnowledgeIndex(rows);
   const block = formatKnowledgeBlock(index, [], "https://example.kr");
   assert.match(block, /관련 게시물을 찾지 못했습니다/);
-  assert.match(block, /- 2027 학교단체 수련활동 2차 사전예약/);
+  assert.match(block, /- \[[^\]]+\] 2027 학교단체 수련활동 2차 사전예약/);
+  assert.match(block, /https:\/\/example\.kr\/news\//);
 });

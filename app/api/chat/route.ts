@@ -14,18 +14,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// gpt-4o-mini는 여러 게시물의 내용을 한 프로그램처럼 섞어 답하는 일이 잦아, 근거 자료를
-// 구분해서 따르는 능력이 더 나은 모델을 기본값으로 쓴다.
-const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-4.1-mini";
-
-const DEFAULT_SERVICE_CTA =
-  "원하시면 지금 바로 상담 접수를 도와드릴게요. 인원, 희망 지역, 이동수단(전세버스/KTX/항공) 중 가능한 항목부터 알려주세요.";
-
-const hasActionPrompt = (text: string): boolean =>
-  /(문의|접수|견적|연락|진행|재검색|조건|선택|알려주시면|말씀해주시면)/.test(text);
-
-const hasQuestionEnding = (text: string): boolean =>
-  text.includes("?") || /(까요|할까요|해주세요|주실 수 있을까요)\s*$/.test(text.trim());
+// 2026-11 같은 대화 5개로 비교: gpt-4.1-mini는 게시물 내용을 섞어 답하는 일이 있었고, gpt-5.5는 자세하지만
+// 느리고(5~11초) 근거 없는 말을 덧붙였다. gpt-5.4-mini가 자연스러우면서 게시물을 정확히 쓰고 빨랐다(1~5초).
+const CHAT_MODEL = process.env.OPENAI_CHAT_MODEL || "gpt-5.4-mini";
 
 const EMAIL_MATCH_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 const PHONE_MATCH_REGEX = /(?:\+?82[-\s]?)?0?1[016789][-\s]?\d{3,4}[-\s]?\d{4}/g;
@@ -38,16 +29,6 @@ type ChatRequestMessage = {
   role: "system" | "user" | "assistant";
   content: string;
 };
-
-interface ChatContextSnapshot {
-  hasCategory: boolean;
-  hasParticipantCount: boolean;
-  hasRegion: boolean;
-  hasPurpose: boolean;
-  hasContact: boolean;
-  hasConsultingIntent: boolean;
-  userWantsToEnd: boolean;
-}
 
 interface ExtractedContact {
   contactName?: string;
@@ -94,73 +75,6 @@ function extractContactInfo(messages: ChatRequestMessage[]): ExtractedContact {
   };
 }
 
-function buildChatContext(
-  messages: ChatRequestMessage[],
-  landingCategory?: string
-): ChatContextSnapshot {
-  const userMessages = messages
-    .filter((msg) => msg.role === "user")
-    .map((msg) => msg.content);
-  const userText = userMessages.join("\n");
-  const compactUserText = userText.replace(/\s+/g, "");
-  const normalizedCategories = PROGRAM_CATEGORIES.map((cat) =>
-    cat.name.replace(/\n/g, "").replace(/\s+/g, "")
-  );
-
-  const hasCategory =
-    Boolean(landingCategory) ||
-    normalizedCategories.some((cat) => compactUserText.includes(cat)) ||
-    /(수학여행|체험학습|교사연수|교직원\s*연수|수련활동|수련회|교육여행|유학|취업|RISE|특성화고)/.test(userText);
-  const hasParticipantCount = /\d{1,4}\s*명/.test(userText);
-  const hasRegion =
-    /(서울|경기|인천|부산|대구|광주|대전|울산|세종|제주|강원|충북|충남|전북|전남|경북|경남|해외|일본|대만|싱가포르|베트남|중국|미국|유럽)/.test(
-      userText
-    );
-  const hasPurpose =
-    /(목적|진로|탐방|체험|연수|행사|프로그램|캠프|교육)/.test(userText) &&
-    userText.length > 8;
-  const hasContact = EMAIL_TEST_REGEX.test(userText) || PHONE_TEST_REGEX.test(userText);
-  const hasConsultingIntent = /(상담|문의|견적|연락|접수|진행)/.test(userText);
-  const userWantsToEnd = /(고마워|감사해|여기까지|종료|마칠게|끝낼게|됐어)/.test(
-    userText
-  );
-
-  return {
-    hasCategory,
-    hasParticipantCount,
-    hasRegion,
-    hasPurpose,
-    hasContact,
-    hasConsultingIntent,
-    userWantsToEnd,
-  };
-}
-
-const DOMESTIC_PLACE_REGEX =
-  /(제주|경주|서울|경기|인천|부산|대구|광주|대전|울산|세종|강원|충북|충남|전북|전남|경북|경남|전주|여수|안동|강릉|속초|춘천|평창|통영|거제|포항|공주|부여|단양|남해|순천|목포)/;
-const OVERSEAS_PLACE_REGEX =
-  /(해외|국외|일본|후쿠오카|오사카|도쿄|교토|규슈|대만|중국|베트남|싱가포르|미국|유럽|호주|뉴질랜드|필리핀)/;
-
-/**
- * 해외·일본 교육여행을 고른 뒤 국내 지역을 말한 경우, 답변 직전에 넣을 안내문을 만든다.
- * 시스템 프롬프트 규칙만으로는 모델이 "제주도는 국내라 어렵다"고 지적하거나 되묻는 일이 반복돼(2026-11 실제 상담),
- * 이 경우를 서버에서 직접 감지해 마지막에 한 번 더 짚어 준다.
- */
-function buildCategoryMismatchHint(messages: ChatRequestMessage[]): string | null {
-  const userMessages = messages.filter((msg) => msg.role === "user").map((msg) => msg.content);
-  const last = userMessages[userMessages.length - 1];
-  if (!last || userMessages.length < 2) return null;
-  const pickedOverseas = userMessages.slice(0, -1).some((m) => OVERSEAS_PLACE_REGEX.test(m));
-  const place = last.match(DOMESTIC_PLACE_REGEX)?.[0];
-  if (!pickedOverseas || !place || OVERSEAS_PLACE_REGEX.test(last)) return null;
-  return (
-    `사용자가 앞에서 해외·일본 쪽 유형을 골랐지만 방금 국내 지역(${place})을 말했습니다. ` +
-    `${place} 교육여행 상담으로 바로 이어가세요. 유형이 바뀌었다거나 국내라서 다르다는 설명은 한 문장도 쓰지 마세요. ` +
-    "일정 구성을 요청했다면 참고 게시물에 맞는 프로그램이 없어도 일차별 활동 유형을 한 줄씩 '예시'로 보여 주고(업체·가격·확정 일정은 쓰지 않음), " +
-    "사용자가 말하지 않은 기간·인원은 지어내지 말고 질문으로 확인하세요."
-  );
-}
-
 function wantsCategoryRedisplay(messages: ChatRequestMessage[]): boolean {
   const lastUserMessage = [...messages]
     .reverse()
@@ -173,122 +87,42 @@ function wantsCategoryRedisplay(messages: ChatRequestMessage[]): boolean {
   return CATEGORY_REDISPLAY_REGEX.test(lastUserMessage);
 }
 
-const withServiceGuidance = (
-  content: string,
-  opts?: {
-    savedConsulting?: boolean;
-    context?: ChatContextSnapshot;
-    contactProvided?: boolean;
-  }
-): string => {
-  let next = content.trim();
-  const context = opts?.context;
-
-  if (opts?.savedConsulting) {
-    if (!opts.contactProvided) {
-      next = `${next}\n\n빠른 진행을 위해 연락처(전화 또는 이메일)를 남겨주실 수 있을까요?`;
-    }
-    return next;
-  }
-
-  if (context?.userWantsToEnd) {
-    if (!/언제든|필요하시면/.test(next)) {
-      next = `${next}\n\n필요하실 때 같은 창에서 바로 다시 이어서 도와드리겠습니다.`;
-    }
-    return next;
-  }
-
-  // 단순 정보 질문("사전예약 언제까지예요?")에는 유도 문구를 덧붙이지 않는다.
-  // 인원을 말했거나 견적·상담 의사를 보이는 등 실제 준비 신호가 있을 때만 다음 단계를 안내한다.
-  if (!context?.hasConsultingIntent && !context?.hasParticipantCount) {
-    return next;
-  }
-
-  if (!hasActionPrompt(next)) {
-    next = `${next}\n\n${DEFAULT_SERVICE_CTA}`;
-  }
-
-  if (!hasQuestionEnding(next)) {
-    if (!context?.hasCategory) {
-      next = `${next}\n\n원하시는 프로그램 유형(예: 체험학습, 교사연수)부터 알려주실 수 있을까요?`;
-    } else if (!context.hasParticipantCount) {
-      next = `${next}\n\n예상 인원은 몇 명인지 알려주실 수 있을까요?`;
-    } else if (!context.hasRegion) {
-      next = `${next}\n\n희망 지역(국내/해외 포함)을 알려주시면 바로 맞춰보겠습니다.`;
-    } else if (!context.hasPurpose) {
-      next = `${next}\n\n이번 행사의 핵심 목적(진로/체험/연수 등)을 알려주실 수 있을까요?`;
-    } else if (context.hasConsultingIntent && !context.hasContact) {
-      next = `${next}\n\n상담 접수를 위해 연락받으실 휴대폰 또는 이메일을 남겨주실 수 있을까요?`;
-    } else {
-      next = `${next}\n\n추가로 꼭 반영해야 할 조건(일정, 안전, 이동수단, 알러지 유의사항)이 있을까요?`;
-    }
-  }
-
-  return next;
-};
-
-// 카테고리 목록 문자열 생성 (줄바꿈 문자를 공백으로 변환)
-const categoryList = PROGRAM_CATEGORIES.map((cat, idx) => {
-  const name = cat.name.replace(/\n/g, " ");
-  return `${idx + 1}. ${name}`;
-}).join("\n");
 
 const getSystemPrompt = (knowledgeBlock: string, landingCategory?: string): string => {
-  const categoryContext = landingCategory
-    ? `\n**중요 맥락:** 사용자가 랜딩 페이지에서 "${landingCategory}"로 진입했습니다. 카테고리를 다시 강요하지 말고, 해당 맥락부터 자연스럽게 이어가세요.`
+  const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
+  const landing = landingCategory
+    ? `\n- 상대는 "${landingCategory}" 페이지에서 들어왔습니다. 유형을 다시 묻지 말고 그 맥락에서 시작하세요.`
     : "";
 
-  return (
-    "당신은 '터치더월드'의 전문 교육 컨설턴트입니다. 친절하고 신뢰감 있는 말투로, 안전과 교육 목적을 중심으로 상담하세요.\n\n" +
-    "**회사 정보:**\n" +
-    "- 회사명: 주식회사 터치더월드 (Touch The World)\n" +
-    "- 설립: 1996년\n" +
-    "- 업종: 종합여행업, 유학 및 교육\n" +
-    "- 대표 연락처: 1800-8078\n\n" +
-    "**제공 카테고리(참고):**\n" +
-    categoryList +
-    categoryContext +
-    "\n\n" +
-    "**상담 운영 원칙:**\n" +
-    "1. 템플릿을 기계적으로 따르지 말고, 사용자가 이미 준 정보(카테고리/인원/지역/연락처)를 우선 활용해 자연스럽게 이어가세요.\n" +
-    "2. 이미 받은 정보를 반복 질문하지 마세요. 특히 카테고리, 연락처, 인원, 지역 재질문을 최소화하세요.\n" +
-    "3. 사용자가 대화 종료 의사를 보이면 추가 질문을 강요하지 말고 간결히 마무리하세요.\n" +
-    "4. 조건에 맞는 프로그램을 추천할 때는 아래 참고 게시물 중에서 고르고, 맞는 것이 없으면 조건 변경을 강하게 요구하지 말고 상담 접수(연락처/희망 연락 시간)로 우선 유도하세요.\n" +
-    "5. 사용자가 전화번호/이메일/담당자명을 남기면 반드시 인식해 확인하고, 상담 마무리 또는 견적 의사 표현 시 saveConsultingLog를 호출하세요. 비로그인 사용자도 연락처가 있으면 저장을 시도하세요.\n" +
-    "6. 식사 항목은 기본 질문에서 과하게 묻지 마세요. 할랄/채식 여부는 사용자가 먼저 언급한 경우에만 확인하고, 기본은 알러지/건강상 유의사항만 간단히 확인하세요.\n" +
-    // 2026-11: "국외 교육여행" 버튼을 누른 뒤 "제주도 2박3일"을 말하자 "제주도는 국내라 어렵다"며 되묻고 끝난 상담이 있었다.
-    "7. 사용자가 고른 프로그램 유형과 나중에 말한 지역·내용이 맞지 않으면(예: 해외·일본 교육여행을 고른 뒤 제주도·경주 같은 국내 지역을 말함) 나중에 말한 구체적인 내용을 기준으로 알맞은 유형(국내 교육여행·체험학습·수련활동 등)으로 바로 바꿔 이어가세요. '국내라서 어렵다', '해외 교육여행과는 다르다'처럼 지적하거나 어느 쪽인지 되묻지 말고, '제주도 2박 3일 교육여행으로 안내드릴게요'처럼 자연스럽게 받아 진행하세요. 유형이 바뀌었다는 설명 자체를 하지 마세요(나쁜 예: '제주도는 국내 지역이어서 해외 교육여행 대신 국내로 안내드리겠습니다' / 좋은 예: '제주도 2박 3일 교육여행 예시를 먼저 보여드릴게요').\n" +
-    "   사용자가 말하지 않은 기간·인원·학년을 지어내 덧붙이지 마세요(경주만 말했으면 '경주 교육여행'이라고만 쓰고 기간은 질문으로 확인).\n" +
-    "8. '프로그램 만들어줘', '일정 짜줘'처럼 구성을 요청하면, 참고 게시물에 맞는 프로그램이 있으면 그것을 소개하고, 없으면 그 지역·기간에 맞는 일반적인 구성 예시(일차별 활동 유형 한 줄씩)를 '예시'라고 밝혀 간단히 보여 주세요. 예시에는 업체명·가격·확정 일정처럼 게시물에 없는 사실을 넣지 말고, 이어서 학년·인원·목적을 알려주시면 맞춤 일정과 견적을 드린다고 안내하세요.\n\n" +
-    "**우선 수집할 핵심 정보:**\n" +
-    "- 프로그램 유형(이미 주어졌다면 재질문 금지)\n" +
-    "- 예상 인원\n" +
-    "- 희망 지역\n" +
-    "- 희망 일정\n" +
-    "- 행사 목적/성격\n" +
-    "- 인솔자 필요 여부\n" +
-    "- 선호 이동수단\n" +
-    "- 안전/알러지(건강상 유의사항) 등 필수 운영 정보\n\n" +
-    "**응답 스타일:**\n" +
-    "- 간결하고 명확하게 답변\n" +
-    "- 매 턴에서 다음 행동을 1개 제안\n" +
-    "- 필요한 경우에만 질문하고, 질문은 최대 1~2개로 제한\n" +
-    "- 과도한 카테고리 나열/선택 강요 금지\n" +
-    "- 마크다운 문법(**굵게**, #제목, [텍스트](링크))을 쓰지 말고 일반 텍스트로 작성. 링크는 주소(https://...)를 그대로 한 줄에 적기\n\n" +
-    "**답변 근거 규칙 (가장 중요):**\n" +
-    `- 오늘 날짜는 ${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })} 입니다.\n` +
-    "- 터치더월드의 프로그램, 일정, 방문지, 지원사업, 제휴 혜택, 신청 조건·기간에 대한 내용은 반드시 아래 '참고 게시물' 본문에 적힌 사실만 사용해 답하세요.\n" +
-    "- 본문에 적힌 항목만 전달하세요. 지원 대상, 가격, 날짜, 일정, 신청 방법, 연락처처럼 본문에 없는 항목을 형식을 맞추려고 만들어 넣지 마세요. 없는 내용을 물으면 '게시물에 안내되지 않은 내용'이라고 밝히고 담당자 확인(1800-8078) 또는 상담 접수로 안내하세요.\n" +
-    "- 게시물마다 따로 구분해서 설명하고, 어느 게시물의 내용인지 제목을 밝히세요. 서로 다른 게시물의 일정·코스를 하나의 프로그램인 것처럼 섞지 마세요. 특정 학교의 진행 사례는 '진행 사례'라고 밝히세요.\n" +
-    "- 게시물에 적힌 신청·지원·모집 기간이 오늘 날짜 기준으로 이미 지났다면(연도가 없으면 게시물 등록일의 연도로 해석) 답변 첫 문장에서 그 기간이 지났다는 점과 현재 가능 여부는 확인이 필요하다는 점을 먼저 알리세요.\n" +
-    "- 게시물을 근거로 답했다면 답변 끝에 '자세히 보기'로 근거 게시물의 제목과 상세 페이지 주소를 반드시 적으세요(최대 2건).\n" +
-    "- 본문이 제공되지 않고 '전체 게시물 제목 목록'에만 있는 글은 그런 안내가 있다는 사실까지만 말하고, 세부 내용은 지어내지 마세요.\n\n" +
-    knowledgeBlock +
-    "\n\n===== 답변 전 확인 =====\n" +
-    "1. 위 참고 게시물 본문에 없는 사실은 답변에 쓰지 마세요.\n" +
-    "2. 게시물에 적힌 기간·마감이 오늘 날짜보다 이전이면 첫 문장에서 '게시물 기준 기간이 지났다'고 먼저 알리세요.\n" +
-    "3. 게시물을 근거로 답했다면 마지막에 '자세히 보기'와 상세 페이지 주소를 적으세요."
-  );
+  // 2026-11: 예외 상황마다 규칙을 덧붙이던 지침이 수십 줄로 늘어 대화가 딱딱해져(지적·되묻기·정해진 질문 반복),
+  // "경험 많은 상담 실장" 역할과 원칙만 남기고 사실 근거 규칙 하나만 엄격하게 둔다.
+  return [
+    "당신은 1996년부터 학교 교육여행을 만들어 온 (주)터치더월드의 상담 실장입니다. 선생님과 통화하듯 자연스럽고 따뜻하게 대화하세요.",
+    "",
+    "[대화 방식]",
+    "- 상대가 방금 한 말에 먼저 답하세요. 버튼으로 고른 유형보다 실제로 말한 내용(지역·학년·인원·기간·목적)이 우선이고, 둘이 맞지 않으면 지적하지 말고 말한 내용에 맞춰 이어가세요.",
+    "- 이미 들은 정보는 다시 묻지 말고, 다음에 꼭 필요한 것 한두 가지만 물으세요. 답이 충분하면 질문 없이 마쳐도 됩니다.",
+    "- 일정이나 구성을 부탁받으면 바로 초안을 보여 주세요(일차별 한 줄). 맞는 우리 프로그램이 있으면 그것을 바탕으로, 없으면 일반적인 예시로 보여 주고 '예시'라고 밝히세요.",
+    "- 짧게 답하세요(대개 3~6문장, 필요할 때만 목록). 마크다운 기호(**, #, [텍스트](링크))는 쓰지 말고 링크는 주소를 그대로 적으세요.",
+    landing,
+    "",
+    "[우리 프로그램 정보]",
+    "- 아래 '전체 프로그램·소식 목록'은 홈페이지에 올라간 터치더월드의 모든 프로그램입니다. 상대 조건에 맞는 것이 있으면 먼저 소개하고 제목과 주소를 알려 주세요.",
+    "- 우리 프로그램의 일정·가격·혜택·신청 기간·대상은 게시물에 적힌 내용만 말하세요. 적혀 있지 않으면 '담당자가 확인해 드릴게요(1800-8078)'라고 하세요. 일반적인 여행지 정보나 준비 요령은 상식 수준에서 말해도 됩니다.",
+    "- 게시물마다 구분해 말하고 서로 섞지 마세요. 특정 학교 사례는 '진행 사례'라고 밝히세요.",
+    `- 오늘은 ${today}입니다. 마감·신청 기간이 지난 게시물을 말할 때는 그 사실을 먼저 알리세요.`,
+    "",
+    "[상담 접수]",
+    "- 견적·상담을 원하면 먼저 알맞은 프로그램이나 다음 단계를 짧게 안내하고, 담당자가 연락드릴 수 있게 성함과 연락처(전화 또는 이메일)를 자연스럽게 한 번 요청하세요.",
+    "- 상대가 연락처를 남기면 saveConsultingLog를 호출해 상담을 접수하세요. 연락처 없이 대화를 마치겠다고 하면 그때도 호출해 내용만 저장하세요.",
+    "",
+    `회사: 주식회사 터치더월드 / 대표전화 1800-8078 / 프로그램 분류: ${PROGRAM_CATEGORIES.map((c) => c.name).join(", ")}`,
+    "",
+    knowledgeBlock,
+  ]
+    .filter((line) => line !== "")
+    .join("\n")
+    .replace(/\n\[/g, "\n\n[");
 };
 
 const chatMessageSchema = z.object({
@@ -552,7 +386,6 @@ export async function POST(request: NextRequest) {
 
     // 비로그인도 현재 세션 맥락을 유지할 수 있도록 최근 대화를 제한적으로 포함
     const effectiveMessages = isAuthenticated ? messages : messages.slice(-16);
-    const chatContext = buildChatContext(effectiveMessages, landingCategory);
     const inferredContact = extractContactInfo(effectiveMessages);
     const shouldRedisplayCategories = wantsCategoryRedisplay(effectiveMessages);
 
@@ -580,13 +413,13 @@ export async function POST(request: NextRequest) {
       },
       ...effectiveMessages.map(toOpenAIMessage),
     ];
-    const mismatchHint = buildCategoryMismatchHint(effectiveMessages);
-    if (mismatchHint) openaiMessages.push({ role: "system", content: mismatchHint });
 
     // Function Calling 정의
     const saveConsultingLogFunction: OpenAI.Chat.Completions.ChatCompletionCreateParams.Function = {
       name: "saveConsultingLog",
-      description: "상담 내용을 저장하고 요약 이메일을 발송합니다. 사용자가 상담을 마무리하거나 견적 요청을 할 때 호출하세요.",
+      description:
+        "상담 내용을 저장하고 담당자에게 요약 메일을 보냅니다. 사용자가 연락처(전화 또는 이메일)를 남겼을 때 호출하세요. " +
+        "견적·상담 요청만 있고 연락처가 아직 없으면 호출하지 말고 먼저 연락처를 요청하세요. 연락처 없이 대화를 끝내겠다고 할 때만 예외로 호출합니다.",
       parameters: {
         type: "object",
         properties: {
@@ -669,7 +502,8 @@ export async function POST(request: NextRequest) {
       messages: openaiMessages,
       functions: functions,
       function_call: "auto",
-      temperature: 0.2,
+      // gpt-5 계열은 temperature를 받지 않는다(기본값만 허용)
+      ...(CHAT_MODEL.startsWith("gpt-4") ? { temperature: 0.4 } : {}),
     });
 
     const assistantMessage = completion.choices[0].message;
@@ -779,14 +613,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           message: {
             role: "assistant",
-            content: withServiceGuidance(
-              saveConfirmationMessage,
-              {
-                savedConsulting: true,
-                context: chatContext,
-                contactProvided: Boolean(contactPhone || contactEmail),
-              }
-            ),
+            content: saveConfirmationMessage,
             showCategoryButtons: false,
           },
           functionCall: {
@@ -802,12 +629,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 일반 응답
-    const responseContent = withServiceGuidance(
-      appendMissingSourceLinks(
-        stripMarkdown(assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."),
-        knowledge.sources
-      ),
-      { context: chatContext }
+    const responseContent = appendMissingSourceLinks(
+      stripMarkdown(assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."),
+      knowledge.sources
     );
 
     void maybeAutoCaptureLead({

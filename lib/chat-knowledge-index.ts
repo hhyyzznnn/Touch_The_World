@@ -31,6 +31,7 @@ export interface KnowledgeIndex {
 
 const MAX_SOURCES = 4;
 const MAX_CONTENT_CHARS = 1800;
+const CATALOG_SUMMARY_CHARS = 140;
 const MIN_RELATIVE_SCORE = 0.35;
 
 /** 형태소 분석기 없이 한국어를 매칭하기 위해 글자 2-gram을 쓴다 ("버스비 지원" → 버스, 스비, 지원). */
@@ -156,13 +157,21 @@ export function formatKnowledgeBlock(index: KnowledgeIndex, sources: KnowledgeDo
     ].join("\n");
   });
 
-  const titleList = index.docs.map((doc) => `- ${doc.title}`).join("\n");
+  // 질문과 관련도가 낮아 본문이 빠진 게시물도 "어떤 프로그램이 있는지"는 알고 대화할 수 있도록
+  // 전체 게시물을 한 줄씩(분류·요약·마감·주소) 함께 준다. 98건 기준 약 2만 자.
+  const catalog = index.docs
+    .map((doc) => {
+      const summary = doc.summary.length > CATALOG_SUMMARY_CHARS ? `${doc.summary.slice(0, CATALOG_SUMMARY_CHARS)}…` : doc.summary;
+      const status = doc.endDate ? (isEnded(doc.endDate) ? " / 종료" : ` / 마감 ${formatEndDate(doc.endDate)}`) : "";
+      return `- [${doc.categories.join(", ") || "회사 소식"}] ${doc.title}${status} — ${summary} (${siteUrl}/news/${doc.id})`;
+    })
+    .join("\n");
 
   return [
     "===== 참고 게시물 (이번 질문과 관련도가 높은 홈페이지 게시물 본문) =====",
     sourceBlocks.length > 0 ? sourceBlocks.join("\n\n---\n\n") : "(관련 게시물을 찾지 못했습니다)",
     "",
-    "===== 전체 게시물 제목 목록 (최신순, 제목만) =====",
-    titleList,
+    "===== 전체 프로그램·소식 목록 (최신순, 한 줄 요약 — 자세한 내용은 위 본문이 있는 글만 확실함) =====",
+    catalog,
   ].join("\n");
 }
