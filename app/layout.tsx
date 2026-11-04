@@ -95,6 +95,21 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
+        {/* next/image의 fill 이미지는 부모의 relative(Tailwind CSS)에 기대는데, 배포 직후 등 스타일 파일이 늦거나
+            못 받아지면 부모 기준이 사라져 이미지가 화면 전체를 덮었다(새로고침하면 정상). 스타일 파일 없이도
+            부모 칸 안에 머물도록 우선순위 0(:where)으로 기본값만 깔아 둔다 — 스타일 파일이 오면 그대로 덮어쓴다. */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: ':where(:has(> img[data-nimg="fill"])){position:relative;overflow:hidden}',
+          }}
+        />
+        {/* 스타일 파일을 못 받으면 한 번만 자동 새로고침 (30초 안에 반복되면 멈춤) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='LINK'||t.rel!=='stylesheet')return;try{var k='ttw_css_reload',l=+sessionStorage.getItem(k)||0;if(Date.now()-l<30000)return;sessionStorage.setItem(k,String(Date.now()))}catch(_){}location.reload()},true);",
+          }}
+        />
         {/* 네이버 검색 최적화를 위한 구조화된 데이터 */}
         <script
           type="application/ld+json"
