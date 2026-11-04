@@ -33,8 +33,14 @@ async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promis
   return out;
 }
 
-export default async function OutreachPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q } = await searchParams;
+const BIDS_PER_PAGE = 10;
+
+export default async function OutreachPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; bidPage?: string; bids?: string }>;
+}) {
+  const { q, bidPage, bids } = await searchParams;
   const today = new Date();
   const { from, to } = scheduleRange(today);
 
@@ -60,6 +66,24 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
   const biddingSchools = new Set(openBids.map((b) => b.school));
   const kstDate = (d: Date) => d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" }).slice(5).replace("-", "/");
   const budgetText = (b: bigint | null) => (b ? `${(Number(b) / 100_000_000).toFixed(2)}억` : "-");
+  // 마감일까지 남은 날 — 시각은 빼고 한국 날짜끼리 비교한다
+  const kstDay = (d: Date) => new Date(d.toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" })).getTime();
+  const dday = (d: Date) => Math.round((kstDay(d) - kstDay(today)) / 86_400_000);
+
+  // 공고가 수십 건이라 한 표에 몰아 두면 읽기 어려워 10건씩 나눠 카드로 보여 준다
+  const eligibleOnly = bids === "eligible";
+  const shownBids = eligibleOnly ? openBids.filter((b) => b.eligible) : openBids;
+  const bidPages = Math.max(1, Math.ceil(shownBids.length / BIDS_PER_PAGE));
+  const currentBidPage = Math.min(bidPages, Math.max(1, Number(bidPage) || 1));
+  const pageBids = shownBids.slice((currentBidPage - 1) * BIDS_PER_PAGE, currentBidPage * BIDS_PER_PAGE);
+  const bidHref = (page: number, filter = bids) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (filter) params.set("bids", filter);
+    if (page > 1) params.set("bidPage", String(page));
+    const qs = params.toString();
+    return `/admin/outreach${qs ? `?${qs}` : ""}#bids`;
+  };
 
   // 키가 없으면 학교 하나 조회에도 수십 번 호출해야 해, 목록 전체 대신 검색한 학교만 본다
   const targets = q?.trim()
@@ -95,55 +119,111 @@ export default async function OutreachPage({ searchParams }: { searchParams: Pro
         </div>
       )}
 
-      <section className="rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="font-semibold">지금 입찰 진행 중인 학교 <span className="text-sm font-normal text-text-gray">{openBids.length}건</span></h2>
-          <p className="mt-0.5 text-xs text-text-gray">나라장터 입찰 알림이 모은 초·중·고 공고 중 마감 전인 것입니다. 첨부 공고문을 AI가 요약했고, 참여 칸은 지역 제한 기준 서울 본점 참여 가능 여부입니다(원문 확인 필수). 학교 이름을 누르면 학사일정을 조회합니다.</p>
+      <section id="bids" className="scroll-mt-20 rounded-xl border border-gray-200 bg-white">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-gray-100 px-5 py-4">
+          <div>
+            <h2 className="text-lg font-semibold">
+              지금 입찰 진행 중인 학교{" "}
+              <span className="text-sm font-normal text-text-gray">
+                {openBids.length}건 · 서울 본점 참여 가능 {openBids.filter((b) => b.eligible).length}건
+              </span>
+            </h2>
+            <p className="mt-1 text-xs text-text-gray leading-relaxed">
+              나라장터 입찰 알림이 모은 초·중·고 공고 중 마감 전인 것입니다. 아래 요약은 첨부 공고문을 AI가 정리한 것이라 참여 전 원문을 꼭 확인하세요.
+            </p>
+          </div>
+          <div className="flex gap-1 rounded-lg bg-gray-100 p-1 text-sm">
+            <Link href={bidHref(1, undefined)} className={`rounded-md px-3 py-1.5 ${!eligibleOnly ? "bg-white font-semibold shadow-sm" : "text-text-gray"}`}>전체</Link>
+            <Link href={bidHref(1, "eligible")} className={`rounded-md px-3 py-1.5 ${eligibleOnly ? "bg-white font-semibold shadow-sm" : "text-text-gray"}`}>참여 가능만</Link>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-gray-50 text-left text-xs text-text-gray">
-              <tr>
-                <th className="px-4 py-2">마감</th>
-                <th className="px-4 py-2">학교</th>
-                <th className="px-4 py-2">공고 · 첨부 공고문 요약</th>
-                <th className="px-4 py-2">참여</th>
-                <th className="px-4 py-2 text-right">추정 금액</th>
-                <th className="px-4 py-2">우리와의 이력</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {openBids.length === 0 && (
-                <tr><td colSpan={6} className="px-4 py-6 text-center text-text-gray">마감 전인 학교 공고가 없습니다.</td></tr>
-              )}
-              {openBids.map((b) => (
-                <tr key={b.noticeId}>
-                  <td className="px-4 py-2 whitespace-nowrap">{b.deadline ? kstDate(b.deadline) : "-"}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">
+
+        {pageBids.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-text-gray">
+            {eligibleOnly ? "서울 본점이 참여할 수 있는 마감 전 공고가 없습니다." : "마감 전인 학교 공고가 없습니다."}
+          </p>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {pageBids.map((b) => {
+              const left = b.deadline ? dday(b.deadline) : null;
+              const fields: [string, string | null | undefined][] = b.summary
+                ? [
+                    ["기간", b.summary.기간],
+                    ["장소", b.summary.장소],
+                    ["인원", b.summary.인원],
+                    ["1인당", b.summary["1인당"]],
+                    ["지역 제한", b.summary.지역제한],
+                    ["제안서 마감", b.summary.제안서마감],
+                  ]
+                : [];
+              return (
+                <li key={b.noticeId} className="px-5 py-5 sm:px-6">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className={`rounded-full px-2.5 py-1 font-semibold ${left !== null && left <= 3 ? "bg-red-50 text-red-700" : "bg-gray-100 text-text-dark"}`}>
+                      마감 {b.deadline ? kstDate(b.deadline) : "-"}
+                      {left !== null && ` · D-${Math.max(0, left)}`}
+                    </span>
+                    {b.eligible === true && <span className="rounded-full bg-brand-green-primary/10 px-2.5 py-1 font-semibold text-brand-green-primary">서울 본점 참여 가능</span>}
+                    {b.eligible === false && <span className="rounded-full bg-red-50 px-2.5 py-1 font-semibold text-red-700">지역 제한으로 참여 불가</span>}
+                    <span className="ml-auto text-sm font-semibold text-text-dark">추정 {budgetText(b.budget)}</span>
+                  </div>
+
+                  <a href={b.url} target="_blank" rel="noopener noreferrer" className="mt-3 block text-base font-semibold leading-snug text-text-dark hover:underline break-keep">
+                    {b.title}
+                  </a>
+                  <p className="mt-1 text-sm text-text-gray">
                     <Link href={`/admin/outreach?q=${encodeURIComponent(b.school)}`} className="font-medium text-brand-green-primary hover:underline">{b.school}</Link>
-                  </td>
-                  <td className="px-4 py-2">
-                    <a href={b.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{b.title}</a>
-                    {b.summary && (
-                      <p className="mt-0.5 text-xs text-text-gray">
-                        {[b.summary.기간, b.summary.인원, b.summary["1인당"] && `1인당 ${b.summary["1인당"]}`, b.summary.지역제한 && `지역 제한: ${b.summary.지역제한}`]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-xs">
-                    {b.eligible === true && <span className="rounded-full bg-brand-green-primary/10 px-2 py-0.5 font-semibold text-brand-green-primary">가능</span>}
-                    {b.eligible === false && <span className="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">지역 제한</span>}
-                    {b.eligible === null && <span className="text-text-gray">-</span>}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap text-right">{budgetText(b.budget)}</td>
-                  <td className="px-4 py-2 whitespace-nowrap text-xs text-text-gray">{relation.get(b.school) ?? "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {relation.get(b.school) && <span className="ml-2">우리와의 이력: {relation.get(b.school)}</span>}
+                  </p>
+
+                  {b.summary ? (
+                    <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                      <dl className="grid gap-x-8 gap-y-2.5 text-sm sm:grid-cols-2">
+                        {fields.filter(([, v]) => v).map(([label, v]) => (
+                          <div key={label} className="flex gap-3">
+                            <dt className="w-20 flex-shrink-0 text-text-gray">{label}</dt>
+                            <dd className={`text-text-dark break-keep ${label === "지역 제한" && b.eligible === false ? "font-semibold text-red-700" : ""}`}>{v}</dd>
+                          </div>
+                        ))}
+                        {b.summary.평가방식 && (
+                          <div className="flex gap-3 sm:col-span-2">
+                            <dt className="w-20 flex-shrink-0 text-text-gray">평가 방식</dt>
+                            <dd className="text-text-dark break-keep">{b.summary.평가방식}</dd>
+                          </div>
+                        )}
+                        {b.summary.특이사항 && (
+                          <div className="flex gap-3 sm:col-span-2">
+                            <dt className="w-20 flex-shrink-0 text-text-gray">특이사항</dt>
+                            <dd className="text-text-dark break-keep">{b.summary.특이사항}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-sm text-text-gray">첨부 공고문이 PDF가 아니라(HWP 등) 요약하지 않았습니다. 공고 원문에서 확인해 주세요.</p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {bidPages > 1 && (
+          <nav className="flex items-center justify-center gap-1 border-t border-gray-100 px-5 py-4 text-sm" aria-label="입찰 공고 페이지">
+            {currentBidPage > 1 && <Link href={bidHref(currentBidPage - 1)} className="rounded-md px-3 py-1.5 hover:bg-gray-100">이전</Link>}
+            {Array.from({ length: bidPages }, (_, i) => i + 1).map((n) => (
+              <Link
+                key={n}
+                href={bidHref(n)}
+                aria-current={n === currentBidPage ? "page" : undefined}
+                className={`min-w-9 rounded-md px-3 py-1.5 text-center ${n === currentBidPage ? "bg-brand-green-primary font-semibold text-white" : "hover:bg-gray-100"}`}
+              >
+                {n}
+              </Link>
+            ))}
+            {currentBidPage < bidPages && <Link href={bidHref(currentBidPage + 1)} className="rounded-md px-3 py-1.5 hover:bg-gray-100">다음</Link>}
+          </nav>
+        )}
       </section>
 
       <form className="flex gap-2" action="/admin/outreach">
