@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { processG2BNotifications } from "@/lib/g2b-notification";
 import { prisma } from "@/lib/prisma";
 
+// 첨부 공고문 요약(lib/g2b-summary.ts)까지 하므로 기본 시간보다 길게
+export const maxDuration = 300;
+
 export async function GET(request: NextRequest) {
   // 보안: Vercel은 CRON_SECRET, 프로젝트는 CRON_SECRET_KEY 사용 가능
   const authHeader = request.headers.get("authorization");

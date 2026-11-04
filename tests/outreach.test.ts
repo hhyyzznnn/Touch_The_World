@@ -72,3 +72,16 @@ test("나라장터 발주기관명에서 초·중·고 학교 이름만 뽑는�
   assert.equal(schoolFromAgency("계명대학교"), null);
   assert.equal(schoolFromAgency("충청남도교육청"), null);
 });
+
+test("입찰 공고 요약의 지역 제한으로 서울 본점 참여 가능 여부를 판단한다", async () => {
+  const { seoulEligible, pickPdfAttachment } = await import("@/lib/g2b-summary");
+  assert.equal(seoulEligible({ 지역제한: "없음" }), true);
+  assert.equal(seoulEligible({ 지역제한: "경기도, 서울특별시" }), true);
+  assert.equal(seoulEligible({ 지역제한: "인천광역시" }), false);
+  assert.equal(seoulEligible({ 지역제한: null }), null);
+  assert.deepEqual(
+    pickPdfAttachment({ ntceSpecFileNm1: "공고문.hwp", ntceSpecDocUrl1: "u1", ntceSpecFileNm2: "과업지시서.pdf", ntceSpecDocUrl2: "u2", ntceSpecFileNm3: "입찰 공고문.pdf", ntceSpecDocUrl3: "u3" }),
+    { name: "입찰 공고문.pdf", url: "u3" }
+  );
+  assert.equal(pickPdfAttachment({ ntceSpecFileNm1: "공고문.hwp", ntceSpecDocUrl1: "u1" }), null);
+});

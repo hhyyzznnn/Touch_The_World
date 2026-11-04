@@ -3,6 +3,8 @@
  */
 
 import { prisma } from "./prisma";
+import { SUMMARY_ROWS, seoulEligible, summarizeNotice, type NoticeSummary } from "./g2b-summary";
+import { schoolFromAgency } from "./outreach";
 import { fetchG2BNotices, parseG2BNotice } from "./g2b-api";
 import { Resend } from "resend";
 
@@ -76,6 +78,34 @@ function matchesNotificationSetting(
   return { matched: true, matchedKeywords };
 }
 
+const escapeHtml = (v: string) =>
+  v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function eligibilityBadge(summary: NoticeSummary): string {
+  const eligible = seoulEligible(summary);
+  if (eligible === null) return "";
+  return eligible
+    ? ` <span style="margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #E8F5E9; color: #2E6D45; font-weight: bold;">서울 본점 참여 가능</span>`
+    : ` <span style="margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: #FDECEA; color: #C62828; font-weight: bold;">지역 제한으로 참여 불가</span>`;
+}
+
+/** 첨부 공고문 요약 — 지역 제한은 참여 가능 여부를 가르므로 눈에 띄게 */
+function renderSummary(summary: NoticeSummary): string {
+  const rows = SUMMARY_ROWS.filter(([key]) => summary[key]).map(([key, label]) => {
+    const value = escapeHtml(String(summary[key]));
+    const eligible = seoulEligible(summary);
+    const highlight =
+      key === "지역제한" && eligible === false ? " color: #C62828; font-weight: bold;" : key === "지역제한" && eligible ? " color: #2E6D45; font-weight: bold;" : " color: #444;";
+    return `<tr><td style="padding: 3px 0; width: 100px; color: #2E6D45; font-weight: bold; vertical-align: top;">${label}</td><td style="padding: 3px 0;${highlight}">${value}</td></tr>`;
+  });
+  if (rows.length === 0) return "";
+  return `
+        <div style="margin-top: 10px; padding: 10px 12px; background: #fff; border: 1px solid #e3ece7; border-radius: 6px;">
+          <div style="font-size: 12px; color: #888; margin-bottom: 4px;">첨부 공고문 AI 요약 — 참여 전 원문을 꼭 확인하세요${eligibilityBadge(summary)}</div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">${rows.join("")}</table>
+        </div>`;
+}
+
 /**
  * 일일 알림 이메일 발송 (여러 공고를 하나의 메일로)
  */
@@ -90,6 +120,7 @@ export async function sendDailyNotificationEmail(
     deadline: Date | null;
     url: string;
     matchedKeywords: string[];
+    aiSummary?: NoticeSummary | null;
   }>,
   dateRange: { start: string; end: string }
 ) {
@@ -151,6 +182,7 @@ export async function sendDailyNotificationEmail(
           </tr>
           ` : ''}
         </table>
+        ${notice.aiSummary ? renderSummary(notice.aiSummary) : ""}
         <div style="margin-top: 10px;">
           <a href="${notice.url}" 
              style="color: #2E6D45; text-decoration: none; font-size: 13px;">
@@ -191,6 +223,34 @@ export async function sendDailyNotificationEmail(
   }
 
   return { success: true, data };
+}
+
+// 크론 라우트 maxDuration(300초) 안에서 메일까지 보내야 하므로 요약에 쓰는 시간을 제한한다
+const SUMMARY_TIME_BUDGET_MS = 150_000;
+const SUMMARY_CONCURRENCY = 3;
+
+/** 초·중·고 공고만 첨부 공고문을 요약해 DB에 저장하고, 공고 id → 요약을 돌려준다 */
+async function summarizeNewNotices(
+  notices: { id: string; agency: string; item: Record<string, string | undefined> }[]
+): Promise<Map<string, NoticeSummary>> {
+  const out = new Map<string, NoticeSummary>();
+  const queue = notices.filter((n) => schoolFromAgency(n.agency));
+  const deadline = Date.now() + SUMMARY_TIME_BUDGET_MS;
+  await Promise.all(
+    Array.from({ length: SUMMARY_CONCURRENCY }, async () => {
+      for (let n = queue.shift(); n && Date.now() < deadline; n = queue.shift()) {
+        try {
+          const summary = await summarizeNotice(n.item);
+          if (!summary) continue;
+          out.set(n.id, summary);
+          await prisma.g2BNotice.update({ where: { id: n.id }, data: { aiSummary: summary as object } });
+        } catch (error) {
+          console.error("공고문 요약 실패(요약 없이 발송):", n.id, error instanceof Error ? error.message : error);
+        }
+      }
+    })
+  );
+  return out;
 }
 
 /**
@@ -301,7 +361,10 @@ export async function processG2BNotifications() {
       matchedKeywords: string[];
       noticeId: string;
       userId?: string;
+      aiSummary?: NoticeSummary | null;
     }>>();
+    // 이번에 새로 저장한 공고 — 발송 전에 첨부 공고문을 요약한다
+    const newNotices: { id: string; agency: string; item: Record<string, string | undefined> }[] = [];
 
     // 3. 각 공고에 대해 알림 설정과 매칭
     for (const noticeItem of uniqueNotices) {
@@ -330,6 +393,7 @@ export async function processG2BNotifications() {
           status: "new",
         },
       });
+      newNotices.push({ id: savedNotice.id, agency: parsed.agency, item: noticeItem as Record<string, string | undefined> });
 
       processed++;
 
@@ -399,6 +463,12 @@ export async function processG2BNotifications() {
           userId: recipient.userId,
         });
       }
+    }
+
+    // 3-1. 학교 공고의 첨부 공고문 요약 (기간·인원·지역 제한·평가 방식) — 실패하거나 시간이 모자라면 요약 없이 보낸다
+    const summaries = await summarizeNewNotices(newNotices);
+    for (const list of recipientNoticesMap.values()) {
+      for (const n of list) n.aiSummary = summaries.get(n.noticeId) ?? null;
     }
 
     // 4. 수신자별로 일괄 이메일 발송 (하루 분량을 하나의 메일로)

@@ -392,6 +392,7 @@ model G2BNotice {
   url             String
   status          String   @default("new") // new, notified, archived
   matchedKeywords String[] @default([])
+  aiSummary       Json?    // 첨부 공고문(PDF)을 AI가 요약한 결과 (lib/g2b-summary.ts) — 2026-11 추가
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
