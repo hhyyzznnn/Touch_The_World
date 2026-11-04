@@ -111,6 +111,7 @@ export function Footer() {
           <Link href="/about" className="hover:text-brand-green transition-colors">회사 소개</Link>
           <Link href="/company-news" className="hover:text-brand-green transition-colors">회사 소식</Link>
           <Link href="/faq" className="hover:text-brand-green transition-colors">자주 묻는 질문</Link>
+          <Link href="/guides/field-trip" className="hover:text-brand-green transition-colors">체험학습 준비 기준</Link>
           <Link href="/inquiry" className="hover:text-brand-green transition-colors">문의하기</Link>
         </div>
 
