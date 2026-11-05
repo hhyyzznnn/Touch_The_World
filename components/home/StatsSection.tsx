@@ -35,44 +35,38 @@ function AnimatedNumber({ value, format }: { value: number; format?: (n: number)
   return <span ref={ref}>{format ? format(display) : display.toLocaleString()}</span>;
 }
 
-const STATS = [
-  {
-    value: YEARS_OF_EXPERIENCE,
-    suffix: "년+",
-    label: "교육여행 업력",
-    sub: "1996년 창립",
-  },
-  {
-    value: 500,
-    suffix: "+",
-    label: "협력 학교",
-    sub: "전국 초·중·고 및 대학",
-  },
-  {
-    value: 30000,
-    suffix: "+",
-    label: "누적 참가 인원",
-    sub: "안전하게 함께한 학생들",
-    format: (n: number) => (n >= 10000 ? `${Math.floor(n / 10000)}만` : n.toLocaleString()),
-  },
-  {
-    value: 100,
-    suffix: "%",
-    label: "안전 운영",
-    sub: "무사고 현장 운영",
-  },
-];
+// 2026-11 수치 정리: 협력 학교는 회사소개서(2026)의 "누적 협력 학교 1,500개 이상"으로 회사 소개 페이지와 맞추고,
+// 근거 자료가 없던 "누적 참가 인원 3만+", "안전 운영 100%"는 확인할 수 있는 값(운영 프로그램 수·수상)으로 바꿨다.
+type Stat = { label: string; sub: string } & ({ value: number; suffix: string } | { text: string });
 
-export function StatsSection() {
+function buildStats(programCount: number | null): Stat[] {
+  return [
+    { value: YEARS_OF_EXPERIENCE, suffix: "년+", label: "교육여행 업력", sub: "1996년 창립" },
+    { value: 1500, suffix: "+", label: "누적 협력 학교", sub: "전국 초·중·고 및 대학" },
+    programCount
+      ? { value: programCount, suffix: "개", label: "운영 중인 프로그램", sub: "국내·해외 교육여행부터 교직원 연수까지" }
+      : { text: "8개 분야", label: "운영 프로그램", sub: "국내·해외 교육여행부터 교직원 연수까지" },
+    { text: "2025", label: "인천시장상 수상", sub: "교육여행 부문" },
+  ];
+}
+
+export function StatsSection({ programCount }: { programCount: number | null }) {
+  const stats = buildStats(programCount);
   return (
     <section className="bg-white border-b border-gray-100">
       <div className="container mx-auto px-4 py-12 sm:py-16">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
-          {STATS.map((stat) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-brand-green-primary tabular-nums">
-                <AnimatedNumber value={stat.value} format={stat.format} />
-                {stat.suffix}
+                {"text" in stat ? (
+                  stat.text
+                ) : (
+                  <>
+                    <AnimatedNumber value={stat.value} />
+                    {stat.suffix}
+                  </>
+                )}
               </div>
               <div className="mt-2 text-sm sm:text-base font-medium text-text-dark">{stat.label}</div>
               <div className="mt-0.5 text-xs text-text-gray">{stat.sub}</div>

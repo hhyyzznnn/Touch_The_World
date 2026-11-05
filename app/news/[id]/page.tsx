@@ -270,7 +270,7 @@ export default async function NewsDetailPage({
             </time>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-text-dark mb-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-text-dark mb-3 break-keep">
             {news.title}
           </h1>
           {news.endDate && isEnded(news.endDate) && (

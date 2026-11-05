@@ -198,7 +198,8 @@ function ProgramCard({ item, className = "", priority = false }: { item: CardNew
               NEW
             </span>
           )}
-          {item.categories.map((cat) => (
+          {/* 카드 폭이 좁아(모바일 2열) 카테고리가 여러 개면 태그가 3줄까지 늘어 이미지를 밀어냈다 — 첫 카테고리만 */}
+          {item.categories.slice(0, 1).map((cat) => (
             <span
               key={cat}
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${

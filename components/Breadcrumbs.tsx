@@ -45,7 +45,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
       
       {/* 시각적 Breadcrumb */}
       <nav aria-label="Breadcrumb" className="mb-6">
-        <ol className="flex items-center gap-2 text-sm text-text-gray">
+        <ol className="flex min-w-0 items-center gap-2 text-sm text-text-gray">
           <li>
             <Link
               href="/"
@@ -56,8 +56,8 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
             </Link>
           </li>
           {items.map((item, index) => (
-            <li key={index} className="flex items-center gap-2">
-              <ChevronRight className="w-4 h-4 text-gray-400" />
+            <li key={index} className={`flex items-center gap-2 ${index === items.length - 1 ? "min-w-0" : "flex-shrink-0 whitespace-nowrap"}`}>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 text-gray-400" />
               {item.href ? (
                 <Link
                   href={item.href}
@@ -66,7 +66,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
                   {item.label}
                 </Link>
               ) : (
-                <span className="text-text-dark font-medium">{item.label}</span>
+                <span className="truncate text-text-dark font-medium">{item.label}</span>
               )}
             </li>
           ))}

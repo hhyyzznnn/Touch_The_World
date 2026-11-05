@@ -24,7 +24,7 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COMPANY_INFO, YEARS_OF_EXPERIENCE } from "@/lib/constants";
+import { COMPANY_INFO, PROGRAM_CATEGORIES, YEARS_OF_EXPERIENCE } from "@/lib/constants";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -101,17 +101,6 @@ const missions = [
   },
 ];
 
-const services = [
-  { title: "국내외 교육여행", icon: MapPin },
-  { title: "체험학습", icon: BookOpen },
-  { title: "수련활동", icon: Mountain },
-  { title: "교직원 연수", icon: GraduationCap },
-  { title: "해외 취업 및 유학", icon: Plane },
-  { title: "지자체/대학 RISE", icon: Building2 },
-  { title: "특성화고 프로그램", icon: School },
-  { title: "기타 프로그램", icon: Sparkles },
-];
-
 const strengths = [
   {
     title: `${YEARS_OF_EXPERIENCE}년의 신뢰와 경험`,
@@ -146,7 +135,7 @@ const strengths = [
 ];
 
 const trustStats = [
-  { label: "누적 협력 학교", value: "1,800+" },
+  { label: "누적 협력 학교", value: "1,500+" },
   { label: "교육여행 노하우", value: `${YEARS_OF_EXPERIENCE} Years` },
   { label: "수상", value: "2025 인천시장상" },
   { label: "설립", value: "1996" },
@@ -171,11 +160,10 @@ function resolveKakaoUrl() {
   return `https://pf.kakao.com/_${value.replace(/^_+/, "")}`;
 }
 
-function SectionTitle({ label, title, desc }: { label: string; title: string; desc: string }) {
+function SectionTitle({ title, desc }: { title: string; desc: string }) {
   return (
     <div className="max-w-3xl">
-      <p className="text-sm font-semibold text-brand-green-primary">{label}</p>
-      <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">{title}</h2>
+      <h2 className="break-keep text-2xl font-semibold text-text-dark sm:text-3xl">{title}</h2>
       <p className="mt-3 break-keep text-sm leading-relaxed text-text-gray sm:text-base">{desc}</p>
     </div>
   );
@@ -246,7 +234,6 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="mt-5 rounded-xl bg-brand-green/5 p-4">
-                <p className="text-xs font-semibold text-brand-green-primary">Core Message</p>
                 <p className="mt-1 break-keep text-base font-medium text-text-dark">“{CONTACT.message}”</p>
               </div>
               <p className="mt-4 text-xs text-text-gray">
@@ -260,7 +247,6 @@ export default function AboutPage() {
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="Company Overview"
             title="교육여행을 넘어, 기관 맞춤형 교육 운영을 함께합니다"
             desc="학교·교육청·지자체·공공기관의 운영 맥락을 이해하고, 교육 효과와 운영 안정성을 동시에 달성할 수 있도록 설계합니다."
           />
@@ -281,7 +267,6 @@ export default function AboutPage() {
       <section className="border-y border-gray-100 bg-gray-50/70 py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="CEO"
             title="현장을 아는 리더십으로 교육여행의 기준을 높입니다"
             desc="교육·관광·운영 경험을 바탕으로 고객 기관이 신뢰할 수 있는 실행 중심 시스템을 구축해 왔습니다."
           />
@@ -338,7 +323,6 @@ export default function AboutPage() {
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="History"
             title="터치더월드의 발자취"
             desc="1996년 설립 이후 학교·기관 교육 프로그램 운영에 집중하며 전문성을 확장해왔습니다."
           />
@@ -359,7 +343,6 @@ export default function AboutPage() {
       <section className="border-y border-gray-100 bg-gray-50/70 py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="Vision & Mission"
             title="학생이 세상과 연결되는 교육"
             desc="여행을 교육의 수단으로 활용해 학생의 성장과 기관의 목표 달성을 함께 지원합니다."
           />
@@ -388,20 +371,24 @@ export default function AboutPage() {
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="Services"
             title="8대 교육 솔루션"
             desc="학교·기관의 목적과 상황에 맞춰 단독 또는 조합형으로 운영할 수 있습니다."
           />
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {services.map((service) => {
-              const Icon = service.icon;
+            {/* 프로그램 카테고리(lib/news-constants.ts)와 같은 목록 — 카테고리를 바꾸면 여기도 함께 바뀐다 */}
+            {PROGRAM_CATEGORIES.map((category) => {
+              const Icon = category.icon;
               return (
-                <div key={service.title} className="rounded-xl border border-gray-200 bg-white p-5">
+                <Link
+                  key={category.name}
+                  href={category.href}
+                  className="rounded-xl border border-gray-200 bg-white p-5 hover:border-brand-green-primary transition-colors"
+                >
                   <div className="inline-flex rounded-lg bg-brand-green/10 p-2">
                     <Icon className="h-5 w-5 text-brand-green-primary" />
                   </div>
-                  <p className="mt-3 text-base font-semibold text-text-dark">{service.title}</p>
-                </div>
+                  <p className="mt-3 text-base font-semibold text-text-dark">{category.name}</p>
+                </Link>
               );
             })}
           </div>
@@ -411,7 +398,6 @@ export default function AboutPage() {
       <section className="border-y border-gray-100 bg-gray-50/70 py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="Strength"
             title="기관이 다시 찾는 이유"
             desc="오랜 운영 경험과 맞춤형 실행력으로 교육 현장에서 반복 신뢰를 만듭니다."
           />
@@ -435,7 +421,6 @@ export default function AboutPage() {
       <section className="py-12 sm:py-16">
         <div className="container mx-auto px-4">
           <SectionTitle
-            label="Trust"
             title="수치와 이력으로 증명하는 신뢰"
             desc="교육 현장에서 검증된 운영 경험을 바탕으로 안정적인 파트너십을 제공합니다."
           />
@@ -466,8 +451,7 @@ export default function AboutPage() {
           <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6 sm:p-8 lg:p-10">
             <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
               <div>
-                <p className="text-sm font-semibold text-brand-green-primary">Final CTA</p>
-                <h2 className="mt-2 break-keep text-2xl font-semibold text-text-dark sm:text-3xl">
+                <h2 className="break-keep text-2xl font-semibold text-text-dark sm:text-3xl">
                   학교와 기관의 다음 프로그램,{" "}
                   <br className="hidden sm:block" />
                   터치더월드와 함께 준비하세요.

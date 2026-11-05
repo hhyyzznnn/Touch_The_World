@@ -115,14 +115,24 @@ async function getPopupNews() {
   }
 }
 
+/** 지금 홈페이지에 올라가 있는 프로그램 카드뉴스 수 — 메인 수치 칸에 쓴다 */
+async function getProgramCount() {
+  try {
+    return await prisma.companyNews.count({ where: { type: "PROGRAM_CARD_NEWS" } });
+  } catch {
+    return null;
+  }
+}
+
 export const revalidate = 600;
 
 export default async function HomePage() {
-  const [recentEvents, newsTickerItems, cardNewsItems, popupNews] = await Promise.all([
+  const [recentEvents, newsTickerItems, cardNewsItems, popupNews, programCount] = await Promise.all([
     getRecentEvents(),
     getNewsForTicker(),
     getCardNewsForHome(),
     getPopupNews(),
+    getProgramCount(),
   ]);
 
   return (
@@ -187,7 +197,7 @@ export default async function HomePage() {
       <MembershipBanner />
 
       {/* ── Stats (숫자 애니메이션) ── */}
-      <StatsSection />
+      <StatsSection programCount={programCount} />
 
       {/* ── 회사 소식 ── */}
       <NewsTicker items={newsTickerItems} />
@@ -275,7 +285,7 @@ export default async function HomePage() {
                               NEW
                             </span>
                           )}
-                          {item.categories.slice(0, 2).map((cat) => (
+                          {item.categories.slice(0, 1).map((cat) => (
                             <span key={cat} className="rounded-full bg-white/85 backdrop-blur-sm text-brand-green-primary px-2 py-0.5 text-xs font-medium shadow-sm">
                               #{cat}
                             </span>
