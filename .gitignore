@@ -50,3 +50,8 @@ next-env.d.ts
 # 보고서 (로컬 전용)
 /reports/
 .env*
+
+# 업로드 스크립트가 올릴 때마다 남기는 기록용 SQL (DB에는 이미 반영됨) — 로컬에만 둔다
+scripts/sql/upload_*.sql
+# 내부 조사 자료
+research_notes/
