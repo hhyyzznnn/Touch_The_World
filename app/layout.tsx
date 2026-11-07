@@ -103,11 +103,14 @@ export default function RootLayout({
             __html: ':where(:has(> img[data-nimg="fill"])){position:relative;overflow:hidden}',
           }}
         />
-        {/* 스타일 파일을 못 받으면 한 번만 자동 새로고침 (30초 안에 반복되면 멈춤) */}
+        {/* 스타일 파일이 적용되지 않은 채 화면이 뜨면 한 번만 자동 새로고침 (30초 안에 반복되면 멈춤).
+            이 스크립트는 앞쪽 스타일 파일을 다 받은(또는 실패한) 뒤에야 실행되므로, 실패 신호(error)를 기다리면
+            이미 지나가 버린다. 그래서 실행되는 순간 globals.css의 변수(--background)가 실제로 적용됐는지 직접 확인하고,
+            탭으로 돌아왔을 때·뒤로가기로 복원됐을 때·나중에 붙는 스타일 파일이 실패했을 때도 다시 확인한다. */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "addEventListener('error',function(e){var t=e.target;if(!t||t.tagName!=='LINK'||t.rel!=='stylesheet')return;try{var k='ttw_css_reload',l=+sessionStorage.getItem(k)||0;if(Date.now()-l<30000)return;sessionStorage.setItem(k,String(Date.now()))}catch(_){}location.reload()},true);",
+              "(function(){var k='ttw_css_reload';function ok(){try{return getComputedStyle(document.documentElement).getPropertyValue('--background').trim()!==''}catch(_){return true}}function reload(){try{var l=+sessionStorage.getItem(k)||0;if(Date.now()-l<30000)return;sessionStorage.setItem(k,String(Date.now()))}catch(_){}location.reload()}function check(){if(!ok())reload()}check();addEventListener('DOMContentLoaded',check);addEventListener('pageshow',function(e){if(e.persisted)check()});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')check()});addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='LINK'&&t.rel==='stylesheet')reload()},true)})();",
           }}
         />
         {/* 네이버 검색 최적화를 위한 구조화된 데이터 */}

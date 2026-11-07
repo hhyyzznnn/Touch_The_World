@@ -5,14 +5,15 @@ import Image from "next/image";
 import { Pagination } from "@/components/Pagination";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { CompanyNewsType } from "@prisma/client";
-import { CATEGORY_COLORS, PROGRAM_CATEGORIES } from "@/lib/news-constants";
+import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
+import { CATEGORY_CARDS } from "@/lib/category-cards";
 import { isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 
 const KEYWORDS = mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]);
 
-// 카테고리별 목록(?category=, ?category=&page=)은 각자 주소로 색인되게 한다. "전체" 탭은 카테고리당
-// 미리보기 4건만 보여주므로, 이 목록이 색인에서 빠지면 검색엔진이 나머지 카드뉴스로 갈 길이 사이트맵뿐이다.
+// 카테고리별 목록(?category=, ?category=&page=)은 각자 주소로 색인되게 한다. "전체" 탭은 분야 타일과 인기·최근 글만
+// 보여주므로, 이 목록이 색인에서 빠지면 검색엔진이 나머지 카드뉴스로 갈 길이 사이트맵뿐이다.
 // 그 밖의 쿼리 파라미터가 붙은 URL만 /programs와 중복되지 않도록 noindex 처리한다.
 export async function generateMetadata({
   searchParams,
@@ -55,8 +56,6 @@ export async function generateMetadata({
 }
 
 const ITEMS_PER_PAGE = 12;
-// "전체" 탭에서 카테고리별 한 줄에 미리보기로 보여줄 최대 개수 — 그 이상은 "전체 보기"로 유도
-const GROUP_PREVIEW_LIMIT = 4;
 
 const CARD_SELECT = {
   id: true,
@@ -115,29 +114,28 @@ const getProgramCardNewsCached = unstable_cache(
   { revalidate: 600 },
 );
 
-// "전체" 탭 전용: 카테고리 8개 순서대로 한 줄씩 묶어서 보여주기 위한 그룹핑.
-// 카드 한 건이 여러 카테고리에 걸칠 수 있어(예: 특성화고 프로그램 + 일본 교육여행),
-// 같은 카드가 해당하는 모든 줄에 각각 노출될 수 있다 — 의도된 동작.
-async function getProgramCardNewsGrouped() {
+// "전체" 탭 전용: 분야별 글 수(분야 타일)와 최근 글 8건.
+// 카드 한 건이 여러 분야에 걸칠 수 있어(예: 특성화고 프로그램 + 일본 교육여행) 분야별 수의 합은 전체보다 클 수 있다.
+const LATEST_LIMIT = 8;
+
+async function getProgramsOverview() {
   const items = await prisma.companyNews.findMany({
     where: { type: CompanyNewsType.PROGRAM_CARD_NEWS },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     select: CARD_SELECT,
   });
-
-  return PROGRAM_CATEGORIES.map((cat) => {
-    const matched = items.filter((item) => item.categories.includes(cat));
-    return {
-      category: cat,
-      items: matched.slice(0, GROUP_PREVIEW_LIMIT),
-      total: matched.length,
-    };
-  }).filter((group) => group.items.length > 0);
+  const counts = Object.fromEntries(
+    PROGRAM_CATEGORIES.map((cat) => [cat, items.filter((item) => item.categories.includes(cat)).length]),
+  ) as Record<(typeof PROGRAM_CATEGORIES)[number], number>;
+  const latest = [...items]
+    .sort((x, y) => y.createdAt.getTime() - x.createdAt.getTime())
+    .slice(0, LATEST_LIMIT);
+  return { total: items.length, counts, latest };
 }
 
-const getProgramCardNewsGroupedCached = unstable_cache(
-  getProgramCardNewsGrouped,
-  ["programs-card-news-grouped"],
+const getProgramsOverviewCached = unstable_cache(
+  getProgramsOverview,
+  ["programs-overview"],
   { revalidate: 600 },
 );
 
@@ -172,70 +170,80 @@ const getPopularProgramsCached = unstable_cache(
 
 const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"];
 
-function ProgramCard({ item, className = "", priority = false }: { item: CardNewsItem; className?: string; priority?: boolean }) {
+// 카드뉴스 표지는 4:5(1080×1350) — 같은 비율 칸에 꽉 채우고, 분야·지역은 사진 아래 한 줄 글자로
+function ProgramCard({
+  item,
+  className = "",
+  priority = false,
+  rank,
+}: {
+  item: CardNewsItem;
+  className?: string;
+  priority?: boolean;
+  rank?: number;
+}) {
   const href = item.link?.trim() || `/news/${item.id}`;
   const isExternal = !!item.link?.trim()?.startsWith("http");
   const ended = isEnded(item.endDate);
   const isNew = !ended && isRecentlyAdded(item.createdAt);
-  const regionTag = item.hashtags.find((t) => REGION_TAGS.includes(t)) ?? null;
-  const showTagRow = ended || isNew || item.categories.length > 0 || regionTag;
+  const region = item.hashtags.find((t) => REGION_TAGS.includes(t))?.slice(1) ?? null;
+  const meta = [item.categories[0], region].filter(Boolean).join(" · ");
 
   return (
     <Link
       href={href}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
-      className={`group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow ${className}`}
+      className={`group flex flex-col gap-2.5 ${className}`}
     >
-      {/* 태그 행 — NEW + 카테고리(초록) + 지역(회색) */}
-      {showTagRow && (
-        <div className="px-3 pt-2.5 pb-0 flex flex-wrap items-center gap-1">
-          {ended && (
-            <span className="rounded bg-gray-500 text-white px-2.5 py-0.5 text-xs font-bold">종료</span>
-          )}
-          {isNew && (
-            <span className="rounded bg-brand-green-primary text-white px-2.5 py-0.5 text-xs font-bold">
-              NEW
-            </span>
-          )}
-          {/* 카드 폭이 좁아(모바일 2열) 카테고리가 여러 개면 태그가 3줄까지 늘어 이미지를 밀어냈다 — 첫 카테고리만 */}
-          {item.categories.slice(0, 1).map((cat) => (
-            <span
-              key={cat}
-              className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] ??
-                "bg-[#64748B] text-white"
-              }`}
-            >
-              #{cat}
-            </span>
-          ))}
-          {regionTag && (
-            <span className="rounded-full bg-gray-100 text-text-gray px-2.5 py-0.5 text-xs">
-              {regionTag}
-            </span>
-          )}
-        </div>
-      )}
-      <div className={`relative aspect-[3/4] bg-gray-50 ${showTagRow ? "mt-2" : ""}`}>
+      <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
-            alt={item.title}
+            alt={`${stripBrandFromTitle(item.title)} 카드뉴스 표지`}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             priority={priority}
-            className="object-contain group-hover:scale-[1.03] transition-transform duration-200"
+            className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
           />
         ) : null}
+        <div className="absolute left-2 top-2 flex gap-1">
+          {rank && (
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#1B4332] text-sm font-bold text-white">
+              {rank}
+            </span>
+          )}
+          {ended && <span className="rounded-full bg-gray-600 px-2.5 py-1 text-xs font-bold text-white">종료</span>}
+          {isNew && <span className="rounded-full bg-brand-green-primary px-2.5 py-1 text-xs font-bold text-white">NEW</span>}
+        </div>
       </div>
-      <div className="p-3 sm:p-4">
-        <p className="text-sm sm:text-base font-medium text-text-dark line-clamp-2">{stripBrandFromTitle(item.title)}</p>
-        {item.summary && (
-          <p className="mt-1 text-xs sm:text-sm text-text-gray line-clamp-2">{item.summary}</p>
-        )}
+      <div className="flex flex-col gap-1">
+        {meta && <span className="text-xs sm:text-[13px] font-bold text-brand-green-primary">{meta}</span>}
+        <span className="text-sm sm:text-base font-bold leading-snug text-text-dark line-clamp-2 break-keep group-hover:underline">
+          {stripBrandFromTitle(item.title)}
+        </span>
       </div>
     </Link>
+  );
+}
+
+function SearchBox({ className = "" }: { className?: string }) {
+  return (
+    <form action="/search" role="search" className={className}>
+      <label className="flex h-12 items-center gap-2.5 rounded-xl border border-gray-300 bg-white px-4 focus-within:border-brand-green-primary focus-within:ring-2 focus-within:ring-brand-green-primary/20">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.5-3.5" />
+        </svg>
+        <span className="sr-only">프로그램 검색</span>
+        <input
+          type="search"
+          name="q"
+          placeholder="지역·학년·프로그램 이름 (예: 후쿠오카, 초등)"
+          className="min-w-0 flex-1 bg-transparent text-[15px] text-text-dark outline-none placeholder:text-gray-500"
+        />
+      </label>
+    </form>
   );
 }
 
@@ -248,132 +256,159 @@ export default async function ProgramsPage({
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
   const currentCategory = params.category || "";
 
-  const flat = currentCategory
-    ? await getProgramCardNewsCached(currentPage, currentCategory)
-    : null;
-  const groupedSections = currentCategory
-    ? null
-    : await getProgramCardNewsGroupedCached();
+  const flat = currentCategory ? await getProgramCardNewsCached(currentPage, currentCategory) : null;
+  const overview = currentCategory ? null : await getProgramsOverviewCached();
   const popularPrograms = currentCategory ? null : await getPopularProgramsCached();
 
-  const isEmpty = currentCategory ? flat!.items.length === 0 : groupedSections!.length === 0;
-
-  return (
-    <div className="container mx-auto px-4 py-8 sm:py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-3">프로그램 카드뉴스</h1>
-        <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl">
-          가격표보다 교육 목표와 운영 철학을 먼저 확인하세요.
-          구체적인 일정·견적은 상담 후 기관별 맞춤형으로 안내드립니다.
-        </p>
-
-        {/* 카테고리 필터 */}
-        <div className="mt-5 flex flex-wrap gap-1.5">
-          <Link
-            href="/programs"
-            className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-              !currentCategory
-                ? "bg-gray-900 text-white shadow-sm"
-                : "bg-gray-100 text-text-gray hover:bg-gray-200"
-            }`}
-          >
-            전체
-          </Link>
-          {PROGRAM_CATEGORIES.map((cat) => (
+  // ── 분야별 목록 ──
+  if (currentCategory) {
+    return (
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-keep">{currentCategory}</h1>
+          <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl break-keep">
+            구체적인 일정·견적은 상담 후 학교별 맞춤형으로 안내드립니다.
+          </p>
+          <nav aria-label="분야" className="mt-5 -mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap sm:overflow-visible">
             <Link
-              key={cat}
-              href={`/programs?category=${encodeURIComponent(cat)}`}
-              className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-                currentCategory === cat
-                  ? "bg-gray-900 text-white shadow-sm"
-                  : `${CATEGORY_COLORS[cat]} hover:brightness-110`
-              }`}
+              href="/programs"
+              className="inline-flex h-10 flex-shrink-0 items-center rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-text-dark hover:border-brand-green-primary"
             >
-              {cat}
+              전체
             </Link>
-          ))}
+            {PROGRAM_CATEGORIES.map((cat) => {
+              const active = currentCategory === cat;
+              return (
+                <Link
+                  key={cat}
+                  href={`/programs?category=${encodeURIComponent(cat)}`}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm transition-colors ${
+                    active
+                      ? "border-brand-green-primary bg-brand-green-primary font-bold text-white"
+                      : "border-gray-300 bg-white font-medium text-text-dark hover:border-brand-green-primary"
+                  }`}
+                >
+                  {cat}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
-      </div>
 
-      {isEmpty ? (
-        <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
-          {currentCategory
-            ? `'${currentCategory}' 카테고리에 등록된 카드뉴스가 없습니다.`
-            : "등록된 카드뉴스가 없습니다."}
+        {flat!.items.length === 0 ? (
+          <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
+            {`'${currentCategory}' 분야에 등록된 프로그램이 없습니다.`}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8">
+              {/* 첫 화면에 보이는 카드는 지연 로딩하지 않는다 (모바일 첫 화면 표시가 늦어지던 원인) */}
+              {flat!.items.map((item, i) => (
+                <ProgramCard key={item.id} item={item} priority={i < 2} />
+              ))}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={flat!.totalPages}
+              baseUrl="/programs"
+              searchParams={{ ...params, page: undefined }}
+            />
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ── 전체: 분야 허브 ──
+  const { total, counts, latest } = overview!;
+  return (
+    <div>
+      <section className="border-b border-gray-200 bg-gray-50">
+        <div className="container mx-auto px-4 py-10 sm:py-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2">프로그램</h1>
+            <p className="text-sm sm:text-base text-text-gray leading-relaxed break-keep">
+              {PROGRAM_CATEGORIES.length}개 분야, {total}개 프로그램을 운영하고 있습니다. 분야를 고르시거나 바로 검색해 보세요.
+            </p>
+          </div>
+          <SearchBox className="hidden sm:block w-full lg:w-[420px]" />
         </div>
-      ) : currentCategory ? (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-            {/* 첫 화면에 보이는 카드는 지연 로딩하지 않는다 (모바일 첫 화면 표시가 늦어지던 원인) */}
-            {flat!.items.map((item, i) => (
-              <ProgramCard key={item.id} item={item} priority={i < 2} />
+      </section>
+
+      <div className="container mx-auto px-4 py-10 sm:py-14 space-y-12 sm:space-y-16">
+        <section aria-labelledby="by-category">
+          <h2 id="by-category" className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5">분야별로 보기</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-5">
+            {CATEGORY_CARDS.map((card, i) => (
+              <Link
+                key={card.name}
+                href={`/programs?category=${encodeURIComponent(card.name)}`}
+                className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
+              >
+                <div className="relative aspect-video overflow-hidden bg-gray-100">
+                  <Image
+                    src={card.image}
+                    alt=""
+                    fill
+                    sizes="(max-width: 1024px) 50vw, 25vw"
+                    priority={i < 4}
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 p-3 sm:p-4">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-sm sm:text-[17px] font-bold text-text-dark break-keep">{card.name}</span>
+                    <span className="flex-shrink-0 text-xs sm:text-sm font-bold text-brand-green-primary">{counts[card.name]}개</span>
+                  </div>
+                  <span className="hidden sm:block text-sm leading-relaxed text-text-gray break-keep line-clamp-2">
+                    {card.description}
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
+        </section>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={flat!.totalPages}
-            baseUrl="/programs"
-            searchParams={{ ...params, page: undefined }}
-          />
-        </>
-      ) : (
-        <div className="space-y-10">
-          {popularPrograms!.length > 0 && (
-            <section>
-              <div className="mb-3 flex items-center gap-2">
-                <span aria-hidden>🔥</span>
-                <h2 className="text-lg font-bold text-text-dark">지금 가장 많이 찾는 프로그램</h2>
+        {popularPrograms!.length > 0 && (
+          <section aria-labelledby="popular">
+            <h2 id="popular" className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5">선생님들이 많이 찾는 프로그램</h2>
+            <div className="-mx-4 px-4 overflow-x-auto scrollbar-hide lg:mx-0 lg:px-0 lg:overflow-visible">
+              <div className="flex gap-3 sm:gap-4 pb-1 w-max lg:w-auto lg:grid lg:grid-cols-6">
+                {popularPrograms!.map((item, i) => (
+                  <ProgramCard key={item.id} item={item} rank={i + 1} className="w-[38vw] sm:w-44 lg:w-auto flex-shrink-0" />
+                ))}
               </div>
-              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
-                {/* 아래 카테고리 카드(lg 4열)와 같은 너비로 3장씩 2줄, 가운데 정렬해 양옆 여백을 둔다 */}
-                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-2 lg:grid-cols-[repeat(3,calc((100%-3rem)/4))] lg:justify-center md:pb-0">
-                  {popularPrograms!.map((item, i) => (
-                    <ProgramCard
-                      key={item.id}
-                      item={item}
-                      priority={i < 3}
-                      className="w-[42vw] sm:w-52 md:w-auto flex-shrink-0"
-                    />
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-          {groupedSections!.map((section) => (
-            <section key={section.category}>
-              <div className="flex items-center justify-between mb-3">
-                <h2
-                  className={`inline-flex items-center rounded-full px-3.5 py-1.5 text-sm font-semibold ${CATEGORY_COLORS[section.category]}`}
-                >
-                  {section.category}
-                </h2>
-                {section.total > section.items.length && (
-                  <Link
-                    href={`/programs?category=${encodeURIComponent(section.category)}`}
-                    className="text-sm text-brand-green-primary hover:underline flex-shrink-0"
-                  >
-                    전체 {section.total}개 보기
-                  </Link>
-                )}
-              </div>
+            </div>
+          </section>
+        )}
 
-              {/* 모바일: 가로 스크롤 / 데스크탑: 그리드 */}
-              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 md:overflow-visible md:mx-0 md:px-0">
-                <div className="flex flex-nowrap gap-3 sm:gap-4 pb-2 w-max md:w-auto md:grid md:grid-cols-2 lg:grid-cols-4 md:pb-0">
-                  {section.items.map((item) => (
-                    <ProgramCard
-                      key={item.id}
-                      item={item}
-                      className="w-[42vw] sm:w-52 md:w-auto flex-shrink-0"
-                    />
-                  ))}
-                </div>
-              </div>
-            </section>
-          ))}
-        </div>
-      )}
+        {latest.length > 0 && (
+          <section aria-labelledby="latest">
+            <h2 id="latest" className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5">새로 올라온 프로그램</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8">
+              {latest.map((item) => (
+                <ProgramCard key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="rounded-2xl bg-[#1B4332] px-6 py-7 sm:px-8 sm:py-8 text-white flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-lg sm:text-xl font-bold break-keep">찾으시는 일정이 없으신가요?</p>
+            <p className="mt-1 text-sm sm:text-[15px] text-[#D1E7DA] break-keep">
+              학년·인원·예산을 알려 주시면 학교에 맞춰 일정을 새로 짜 드립니다.
+            </p>
+          </div>
+          <Link
+            href="/inquiry"
+            className="inline-flex h-12 flex-shrink-0 items-center justify-center rounded-lg bg-white px-6 text-[15px] font-bold text-[#1B4332] hover:bg-gray-100"
+          >
+            맞춤 일정 상담하기
+          </Link>
+        </section>
+      </div>
     </div>
   );
 }

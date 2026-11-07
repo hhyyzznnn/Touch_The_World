@@ -3,33 +3,43 @@
 import { useEffect, useRef, useState } from "react";
 import { YEARS_OF_EXPERIENCE } from "@/lib/constants";
 
+// 서버가 그린 HTML(검색엔진·미리보기·캡처·JS 꺼진 화면)에는 처음부터 최종값을 보여 준다.
+// 0부터 세는 효과는 브라우저에서, 아직 화면 밖에 있는 숫자에만 — 보이기 전에 0으로 바꿔 두었다가 들어올 때 올린다.
 function AnimatedNumber({ value, format }: { value: number; format?: (n: number) => string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(value);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) return; // 이미 보이는 숫자는 그대로 둔다
 
+    setDisplay(0);
+    let frame = 0;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         observer.disconnect();
-
         const startTime = performance.now();
         const duration = 1800;
         const tick = (now: number) => {
           const p = Math.min((now - startTime) / duration, 1);
           const ease = 1 - (1 - p) ** 3; // cubic ease-out
           setDisplay(Math.round(ease * value));
-          if (p < 1) requestAnimationFrame(tick);
+          if (p < 1) frame = requestAnimationFrame(tick);
         };
-        requestAnimationFrame(tick);
+        frame = requestAnimationFrame(tick);
       },
       { rootMargin: "-80px" }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      setDisplay(value);
+    };
   }, [value]);
 
   return <span ref={ref}>{format ? format(display) : display.toLocaleString()}</span>;
