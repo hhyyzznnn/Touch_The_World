@@ -9,6 +9,7 @@ import { PROGRAM_CATEGORIES } from "@/lib/news-constants";
 import { CATEGORY_CARDS } from "@/lib/category-cards";
 import { isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
+import { AUDIENCES, audienceLabel, getAudiences, isAudienceKey, type AudienceKey } from "@/lib/news-audience";
 
 const KEYWORDS = mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]);
 
@@ -168,6 +169,61 @@ const getPopularProgramsCached = unstable_cache(
   { revalidate: 600 },
 );
 
+// "누구와 가시나요"(?audience=) 전용: 전체 글에 대상 학교급을 붙여 둔다.
+// 해시태그 + 본문의 "초·중·고" 같은 표현으로 판정(lib/news-audience.ts). 본문은 판정에만 쓰고 넘기지 않는다.
+async function getAudienceIndex() {
+  const items = await prisma.companyNews.findMany({
+    where: { type: CompanyNewsType.PROGRAM_CARD_NEWS },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    select: { ...CARD_SELECT, content: true },
+  });
+  return items.map(({ content, ...item }) => ({ ...item, audiences: getAudiences({ ...item, content }) }));
+}
+
+const getAudienceIndexCached = unstable_cache(getAudienceIndex, ["programs-audience-index"], { revalidate: 600 });
+
+function AudiencePicker({
+  current,
+  category,
+  counts,
+  className = "",
+}: {
+  current: AudienceKey | null;
+  category: string;
+  counts: Record<AudienceKey, number>;
+  className?: string;
+}) {
+  const href = (audience: AudienceKey | null) => {
+    const q = new URLSearchParams();
+    if (category) q.set("category", category);
+    if (audience) q.set("audience", audience);
+    const qs = q.toString();
+    return qs ? `/programs?${qs}` : "/programs";
+  };
+  const chip = (active: boolean) =>
+    `inline-flex h-11 flex-shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors ${
+      active
+        ? "border-brand-green-primary bg-brand-green-primary font-bold text-white"
+        : "border-gray-300 bg-white font-medium text-text-dark hover:border-brand-green-primary"
+    }`;
+  return (
+    <div className={className}>
+      <p id="audience-label" className="mb-2.5 text-sm sm:text-base font-bold text-text-dark">누구와 가시나요?</p>
+      <nav aria-labelledby="audience-label" className="-mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap sm:overflow-visible">
+        <Link href={href(null)} aria-current={!current ? "page" : undefined} className={chip(!current)}>
+          전체
+        </Link>
+        {AUDIENCES.map(({ key, label }) => (
+          <Link key={key} href={href(key)} aria-current={current === key ? "page" : undefined} className={chip(current === key)}>
+            {label}
+            <span className={current === key ? "text-white/80" : "text-text-gray"}>{counts[key]}</span>
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
 const REGION_TAGS = ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"];
 
 // 카드뉴스 표지는 4:5(1080×1350) — 같은 비율 칸에 꽉 채우고, 분야·지역은 사진 아래 한 줄 글자로
@@ -250,29 +306,64 @@ function SearchBox({ className = "" }: { className?: string }) {
 export default async function ProgramsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; category?: string }>;
+  searchParams: Promise<{ page?: string; category?: string; audience?: string }>;
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
   const currentCategory = params.category || "";
+  const currentAudience = isAudienceKey(params.audience) ? params.audience : null;
 
-  const flat = currentCategory ? await getProgramCardNewsCached(currentPage, currentCategory) : null;
-  const overview = currentCategory ? null : await getProgramsOverviewCached();
-  const popularPrograms = currentCategory ? null : await getPopularProgramsCached();
+  // 대상 고르기 칸의 글 수는 지금 보고 있는 분야 안에서 센다
+  const audienceIndex = await getAudienceIndexCached();
+  const inCategory = currentCategory ? audienceIndex.filter((item) => item.categories.includes(currentCategory)) : audienceIndex;
+  const audienceCounts = Object.fromEntries(
+    AUDIENCES.map(({ key }) => [key, inCategory.filter((item) => item.audiences.includes(key)).length]),
+  ) as Record<AudienceKey, number>;
 
-  // ── 분야별 목록 ──
-  if (currentCategory) {
+  let flat: { items: CardNewsItem[]; totalPages: number } | null = null;
+  if (currentAudience) {
+    const matched = inCategory.filter((item) => item.audiences.includes(currentAudience));
+    flat = {
+      items: matched.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+      totalPages: Math.max(1, Math.ceil(matched.length / ITEMS_PER_PAGE)),
+    };
+  } else if (currentCategory) {
+    flat = await getProgramCardNewsCached(currentPage, currentCategory);
+  }
+  const overview = flat ? null : await getProgramsOverviewCached();
+  const popularPrograms = flat ? null : await getPopularProgramsCached();
+
+  // ── 분야별·대상별 목록 ──
+  if (flat) {
+    const heading = [currentCategory, currentAudience && audienceLabel(currentAudience)].filter(Boolean).join(" · ");
+    const emptyText = currentAudience
+      ? `${heading}에 맞는 프로그램이 아직 없습니다. 학년·인원을 알려 주시면 맞춤 일정을 짜 드립니다.`
+      : `'${currentCategory}' 분야에 등록된 프로그램이 없습니다.`;
+    const categoryHref = (cat: string) => {
+      const q = new URLSearchParams();
+      if (cat) q.set("category", cat);
+      if (currentAudience) q.set("audience", currentAudience);
+      const qs = q.toString();
+      return qs ? `/programs?${qs}` : "/programs";
+    };
     return (
       <div className="container mx-auto px-4 py-8 sm:py-12">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-keep">{currentCategory}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 break-keep">{heading}</h1>
           <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl break-keep">
             구체적인 일정·견적은 상담 후 학교별 맞춤형으로 안내드립니다.
           </p>
-          <nav aria-label="분야" className="mt-5 -mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap sm:overflow-visible">
+          <AudiencePicker current={currentAudience} category={currentCategory} counts={audienceCounts} className="mt-6" />
+          <p id="category-label" className="mt-5 mb-2.5 text-sm sm:text-base font-bold text-text-dark">분야</p>
+          <nav aria-labelledby="category-label" className="-mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap sm:overflow-visible">
             <Link
-              href="/programs"
-              className="inline-flex h-10 flex-shrink-0 items-center rounded-full border border-gray-300 bg-white px-4 text-sm font-medium text-text-dark hover:border-brand-green-primary"
+              href={categoryHref("")}
+              aria-current={!currentCategory ? "page" : undefined}
+              className={`inline-flex h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm transition-colors ${
+                !currentCategory
+                  ? "border-brand-green-primary bg-brand-green-primary font-bold text-white"
+                  : "border-gray-300 bg-white font-medium text-text-dark hover:border-brand-green-primary"
+              }`}
             >
               전체
             </Link>
@@ -281,7 +372,7 @@ export default async function ProgramsPage({
               return (
                 <Link
                   key={cat}
-                  href={`/programs?category=${encodeURIComponent(cat)}`}
+                  href={categoryHref(cat)}
                   aria-current={active ? "page" : undefined}
                   className={`inline-flex h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm transition-colors ${
                     active
@@ -298,7 +389,10 @@ export default async function ProgramsPage({
 
         {flat!.items.length === 0 ? (
           <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
-            {`'${currentCategory}' 분야에 등록된 프로그램이 없습니다.`}
+            <p className="break-keep px-4">{emptyText}</p>
+            <Link href="/inquiry" className="mt-4 inline-flex h-11 items-center rounded-lg bg-brand-green-primary px-5 text-sm font-bold text-white hover:bg-[#1B4332]">
+              맞춤 일정 상담하기
+            </Link>
           </div>
         ) : (
           <>
@@ -333,6 +427,9 @@ export default async function ProgramsPage({
             </p>
           </div>
           <SearchBox className="hidden sm:block w-full lg:w-[420px]" />
+        </div>
+        <div className="container mx-auto px-4 pb-8 sm:pb-10 -mt-1">
+          <AudiencePicker current={null} category="" counts={audienceCounts} />
         </div>
       </section>
 
