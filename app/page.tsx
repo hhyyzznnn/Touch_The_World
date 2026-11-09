@@ -23,6 +23,7 @@ import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
 import { CategoryQuickNav } from "@/components/home/CategoryQuickNav";
 import { HomeNoticeBar } from "@/components/home/HomeNoticeBar";
+import { HomePopup } from "@/components/home/HomePopup";
 import { MembershipBanner } from "@/components/home/MembershipBanner";
 
 export const metadata: Metadata = {
@@ -137,9 +138,20 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* ── 맨 위 한 줄 알림 (예전 첫 방문 팝업 — 첫 화면을 가리지 않게 바꿈) ── */}
+      {/* ── 첫 방문 팝업(실제 방문자 브라우저에서만) + 맨 위 한 줄 알림(팝업을 닫은 뒤에도 남음) ── */}
       {popupNews && (
-        <HomeNoticeBar id={popupNews.id} title={stripBrandFromTitle(popupNews.title)} link={popupNews.link} />
+        <>
+          {popupNews.imageUrl && (
+            <HomePopup
+              id={popupNews.id}
+              title={stripBrandFromTitle(popupNews.title)}
+              summary={popupNews.summary ?? ""}
+              imageUrl={popupNews.imageUrl}
+              link={popupNews.link}
+            />
+          )}
+          <HomeNoticeBar id={popupNews.id} title={stripBrandFromTitle(popupNews.title)} link={popupNews.link} />
+        </>
       )}
 
       {/* ── Hero ── */}
