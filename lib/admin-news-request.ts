@@ -3,6 +3,7 @@ import { uploadPublicImages } from "@/lib/uploadthing-server";
 import { parseRequestBody } from "@/lib/api-helpers";
 import { CompanyNewsType } from "@prisma/client";
 import { parseEndDate } from "@/lib/news-utils";
+import { normalizeSeasons } from "@/lib/news-seasons";
 
 const IMAGE_FIELD_NAMES = ["images", "image", "file", "thumbnail", "cardNewsImage"];
 
@@ -15,6 +16,7 @@ export interface AdminNewsRequestData {
   imageUrl: string;
   imageUrls: string[];
   hashtags: string[];
+  seasons: string[];
   link: string;
   isPinned: boolean;
   endDate: Date | null;
@@ -109,6 +111,9 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
       imageUrl,
       imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
       hashtags,
+      seasons: type === CompanyNewsType.PROGRAM_CARD_NEWS
+        ? normalizeSeasons([...formData.getAll("seasons"), ...formData.getAll("seasons[]")].flatMap((v) => normalizeStringList(v)))
+        : [],
       link: String(formData.get("link") || "").trim(),
       isPinned: parseBoolean(formData.get("isPinned")),
       endDate: parseEndDate(formData.get("endDate")),
@@ -125,6 +130,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     imageUrl?: string | null;
     imageUrls?: string[];
     hashtags?: string[];
+    seasons?: string[];
     link?: string;
     isPinned?: boolean;
     endDate?: string | null;
@@ -149,6 +155,7 @@ export async function parseAdminNewsRequest(request: NextRequest): Promise<Admin
     imageUrl,
     imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
     hashtags,
+    seasons: type === CompanyNewsType.PROGRAM_CARD_NEWS ? normalizeSeasons(body.seasons) : [],
     link: body.link?.trim() || "",
     isPinned: Boolean(body.isPinned),
     endDate: parseEndDate(body.endDate),

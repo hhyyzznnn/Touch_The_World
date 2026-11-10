@@ -10,6 +10,7 @@ import { CATEGORY_CARDS } from "@/lib/category-cards";
 import { isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { unstable_cache } from "next/cache";
 import { AUDIENCES, audienceLabel, getAudiences, isAudienceKey, type AudienceKey } from "@/lib/news-audience";
+import { SEASONS, currentSeasonKeys, isSeasonKey, seasonLabel, type SeasonKey } from "@/lib/news-seasons";
 
 const KEYWORDS = mergeKeywords(BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS, ["카드뉴스", "프로그램 인사이트"]);
 
@@ -65,6 +66,7 @@ const CARD_SELECT = {
   categories: true,
   imageUrl: true,
   hashtags: true,
+  seasons: true,
   createdAt: true,
   isPinned: true,
   link: true,
@@ -78,6 +80,7 @@ type CardNewsItem = {
   categories: string[];
   imageUrl: string | null;
   hashtags: string[];
+  seasons: string[];
   createdAt: Date;
   isPinned: boolean;
   link: string | null;
@@ -169,37 +172,51 @@ const getPopularProgramsCached = unstable_cache(
   { revalidate: 600 },
 );
 
-// "누구와 가시나요"(?audience=) 전용: 전체 글에 대상 학교급을 붙여 둔다.
-// 해시태그 + 본문의 "초·중·고" 같은 표현으로 판정(lib/news-audience.ts). 본문은 판정에만 쓰고 넘기지 않는다.
+// 대상·시기 고르기 전용 색인: 전체 글에 대상 학교급을 붙여 둔다.
+// 대상은 해시태그 + 본문의 "초·중·고" 같은 표현으로 판정(lib/news-audience.ts), 시기는 CompanyNews.seasons(lib/news-seasons.ts).
+// 본문은 판정에만 쓰고 넘기지 않는다.
 async function getAudienceIndex() {
   const items = await prisma.companyNews.findMany({
     where: { type: CompanyNewsType.PROGRAM_CARD_NEWS },
     orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     select: { ...CARD_SELECT, content: true },
   });
-  return items.map(({ content, ...item }) => ({ ...item, audiences: getAudiences({ ...item, content }) }));
+  return items.map(({ content, ...item }) => ({ ...item, seasons: item.seasons ?? [], audiences: getAudiences({ ...item, content }) }));
 }
 
-const getAudienceIndexCached = unstable_cache(getAudienceIndex, ["programs-audience-index"], { revalidate: 600 });
+const getAudienceIndexCached = unstable_cache(getAudienceIndex, ["programs-audience-index-v2"], { revalidate: 600 }) // v2: seasons 추가(2026-11-10) — 예전 캐시 결과를 쓰지 않게;
 
-function AudiencePicker({
+type Filters = { audience: AudienceKey | null; season: SeasonKey | null; category: string };
+
+/** 지금 고른 조건에서 한 가지만 바꾼 주소 (페이지는 처음으로) */
+function filterHref(f: Filters, patch: Partial<Filters>) {
+  const next = { ...f, ...patch };
+  const q = new URLSearchParams();
+  if (next.audience) q.set("audience", next.audience);
+  if (next.season) q.set("season", next.season);
+  if (next.category) q.set("category", next.category);
+  const qs = q.toString();
+  return qs ? `/programs?${qs}` : "/programs";
+}
+
+type FilterOption = { value: string; label: string; count?: number; hint?: string; now?: boolean };
+
+/** 대상 → 시기 → 분야 고르기 한 줄 */
+function FilterRow({
+  id,
+  label,
+  options,
   current,
-  category,
-  counts,
+  hrefFor,
   className = "",
 }: {
-  current: AudienceKey | null;
-  category: string;
-  counts: Record<AudienceKey, number>;
+  id: string;
+  label: string;
+  options: FilterOption[];
+  current: string | null;
+  hrefFor: (value: string | null) => string;
   className?: string;
 }) {
-  const href = (audience: AudienceKey | null) => {
-    const q = new URLSearchParams();
-    if (category) q.set("category", category);
-    if (audience) q.set("audience", audience);
-    const qs = q.toString();
-    return qs ? `/programs?${qs}` : "/programs";
-  };
   const chip = (active: boolean) =>
     `inline-flex h-11 flex-shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors ${
       active
@@ -208,17 +225,26 @@ function AudiencePicker({
     }`;
   return (
     <div className={className}>
-      <p id="audience-label" className="mb-2.5 text-sm sm:text-base font-bold text-text-dark">누구와 가시나요?</p>
-      <nav aria-labelledby="audience-label" className="-mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap sm:overflow-visible">
-        <Link href={href(null)} aria-current={!current ? "page" : undefined} className={chip(!current)}>
+      <p id={id} className="mb-2.5 text-sm sm:text-base font-bold text-text-dark">{label}</p>
+      <nav aria-labelledby={id} className="flex flex-wrap gap-2">
+        <Link href={hrefFor(null)} aria-current={!current ? "page" : undefined} className={chip(!current)}>
           전체
         </Link>
-        {AUDIENCES.map(({ key, label }) => (
-          <Link key={key} href={href(key)} aria-current={current === key ? "page" : undefined} className={chip(current === key)}>
-            {label}
-            <span className={current === key ? "text-white/80" : "text-text-gray"}>{counts[key]}</span>
-          </Link>
-        ))}
+        {options.map((o) => {
+          const active = current === o.value;
+          return (
+            <Link key={o.value} href={hrefFor(o.value)} aria-current={active ? "page" : undefined} className={chip(active)}>
+              {o.label}
+              {o.hint && <span className={active ? "text-white/80" : "text-text-gray"}>{o.hint}</span>}
+              {o.count !== undefined && <span className={active ? "text-white/80" : "text-text-gray"}>{o.count}</span>}
+              {o.now && (
+                <span className={`rounded px-1.5 py-0.5 text-xs font-bold ${active ? "bg-white text-brand-green-primary" : "bg-brand-green-primary text-white"}`}>
+                  지금
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
@@ -306,46 +332,85 @@ function SearchBox({ className = "" }: { className?: string }) {
 export default async function ProgramsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; category?: string; audience?: string }>;
+  searchParams: Promise<{ page?: string; category?: string; audience?: string; season?: string }>;
 }) {
   const params = await searchParams;
   const currentPage = params.page ? parseInt(params.page, 10) : 1;
-  const currentCategory = params.category || "";
-  const currentAudience = isAudienceKey(params.audience) ? params.audience : null;
+  const f: Filters = {
+    audience: isAudienceKey(params.audience) ? params.audience : null,
+    season: isSeasonKey(params.season) ? params.season : null,
+    category: params.category || "",
+  };
+  const nowSeasons = currentSeasonKeys();
 
-  // 대상 고르기 칸의 글 수는 지금 보고 있는 분야 안에서 센다
-  const audienceIndex = await getAudienceIndexCached();
-  const inCategory = currentCategory ? audienceIndex.filter((item) => item.categories.includes(currentCategory)) : audienceIndex;
+  // 고르기 칸의 글 수는 "그 칸만 바꿨을 때" 보이는 글 수로 센다
+  const index = await getAudienceIndexCached();
+  const byCategory = (list: typeof index) => (f.category ? list.filter((i) => i.categories.includes(f.category)) : list);
+  const byAudience = (list: typeof index) => (f.audience ? list.filter((i) => i.audiences.includes(f.audience!)) : list);
+  // 시기를 고르면 그 시기 글 + 연중 운영 글(시기 미표시)을 함께 보여 준다
+  const bySeason = (list: typeof index) => (f.season ? list.filter((i) => i.seasons.length === 0 || i.seasons.includes(f.season!)) : list);
   const audienceCounts = Object.fromEntries(
-    AUDIENCES.map(({ key }) => [key, inCategory.filter((item) => item.audiences.includes(key)).length]),
+    AUDIENCES.map(({ key }) => [key, bySeason(byCategory(index)).filter((i) => i.audiences.includes(key)).length]),
   ) as Record<AudienceKey, number>;
+  const seasonCounts = Object.fromEntries(
+    SEASONS.map(({ key }) => [key, byAudience(byCategory(index)).filter((i) => i.seasons.includes(key)).length]),
+  ) as Record<SeasonKey, number>;
 
+  const audienceRow = (className = "") => (
+    <FilterRow
+      id="audience-label"
+      label="누구와 가시나요?"
+      options={AUDIENCES.map(({ key, label }) => ({ value: key, label, count: audienceCounts[key] }))}
+      current={f.audience}
+      hrefFor={(v) => filterHref(f, { audience: v as AudienceKey | null })}
+      className={className}
+    />
+  );
+  const seasonRow = (className = "") => (
+    <FilterRow
+      id="season-label"
+      label="언제 가시나요?"
+      options={SEASONS.map(({ key, label, hint }) => ({ value: key, label, hint, now: nowSeasons.includes(key) }))}
+      current={f.season}
+      hrefFor={(v) => filterHref(f, { season: v as SeasonKey | null })}
+      className={className}
+    />
+  );
+
+  const listMode = !!(f.audience || f.season || f.category);
   let flat: { items: CardNewsItem[]; totalPages: number } | null = null;
-  if (currentAudience) {
-    const matched = inCategory.filter((item) => item.audiences.includes(currentAudience));
+  let seasonGroups: { specific: CardNewsItem[]; yearRound: CardNewsItem[] } | null = null;
+  if (f.season) {
+    const base = byAudience(byCategory(index));
+    seasonGroups = {
+      specific: base.filter((i) => i.seasons.includes(f.season!)),
+      yearRound: base.filter((i) => i.seasons.length === 0),
+    };
+  } else if (f.audience) {
+    const matched = byAudience(byCategory(index));
     flat = {
       items: matched.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
       totalPages: Math.max(1, Math.ceil(matched.length / ITEMS_PER_PAGE)),
     };
-  } else if (currentCategory) {
-    flat = await getProgramCardNewsCached(currentPage, currentCategory);
+  } else if (f.category) {
+    flat = await getProgramCardNewsCached(currentPage, f.category);
   }
-  const overview = flat ? null : await getProgramsOverviewCached();
-  const popularPrograms = flat ? null : await getPopularProgramsCached();
+  const overview = listMode ? null : await getProgramsOverviewCached();
+  const popularPrograms = listMode ? null : await getPopularProgramsCached();
 
-  // ── 분야별·대상별 목록 ──
-  if (flat) {
-    const heading = [currentCategory, currentAudience && audienceLabel(currentAudience)].filter(Boolean).join(" · ");
-    const emptyText = currentAudience
-      ? `${heading}에 맞는 프로그램이 아직 없습니다. 학년·인원을 알려 주시면 맞춤 일정을 짜 드립니다.`
-      : `'${currentCategory}' 분야에 등록된 프로그램이 없습니다.`;
-    const categoryHref = (cat: string) => {
-      const q = new URLSearchParams();
-      if (cat) q.set("category", cat);
-      if (currentAudience) q.set("audience", currentAudience);
-      const qs = q.toString();
-      return qs ? `/programs?${qs}` : "/programs";
-    };
+  // ── 대상·시기·분야로 고른 목록 ──
+  if (listMode) {
+    const heading = [f.audience && audienceLabel(f.audience), f.season && seasonLabel(f.season), f.category].filter(Boolean).join(" · ");
+    const total = seasonGroups ? seasonGroups.specific.length + seasonGroups.yearRound.length : flat!.items.length;
+    const emptyText = `${heading}에 맞는 프로그램이 아직 없습니다. 학년·인원·시기를 알려 주시면 맞춤 일정을 짜 드립니다.`;
+    const grid = (items: CardNewsItem[], priorityFirst: boolean) => (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8">
+        {/* 첫 화면에 보이는 카드는 지연 로딩하지 않는다 (모바일 첫 화면 표시가 늦어지던 원인) */}
+        {items.map((item, i) => (
+          <ProgramCard key={item.id} item={item} priority={priorityFirst && i < 2} />
+        ))}
+      </div>
+    );
     return (
       <div className="container mx-auto px-4 py-8 sm:py-12">
         <div className="mb-8">
@@ -353,55 +418,48 @@ export default async function ProgramsPage({
           <p className="text-sm sm:text-base text-text-gray leading-relaxed max-w-3xl break-keep">
             구체적인 일정·견적은 상담 후 학교별 맞춤형으로 안내드립니다.
           </p>
-          <AudiencePicker current={currentAudience} category={currentCategory} counts={audienceCounts} className="mt-6" />
-          <p id="category-label" className="mt-5 mb-2.5 text-sm sm:text-base font-bold text-text-dark">분야</p>
-          <nav aria-labelledby="category-label" className="-mx-4 px-4 flex gap-2 overflow-x-auto scrollbar-hide sm:flex-wrap sm:overflow-visible">
-            <Link
-              href={categoryHref("")}
-              aria-current={!currentCategory ? "page" : undefined}
-              className={`inline-flex h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm transition-colors ${
-                !currentCategory
-                  ? "border-brand-green-primary bg-brand-green-primary font-bold text-white"
-                  : "border-gray-300 bg-white font-medium text-text-dark hover:border-brand-green-primary"
-              }`}
-            >
-              전체
-            </Link>
-            {PROGRAM_CATEGORIES.map((cat) => {
-              const active = currentCategory === cat;
-              return (
-                <Link
-                  key={cat}
-                  href={categoryHref(cat)}
-                  aria-current={active ? "page" : undefined}
-                  className={`inline-flex h-10 flex-shrink-0 items-center rounded-full border px-4 text-sm transition-colors ${
-                    active
-                      ? "border-brand-green-primary bg-brand-green-primary font-bold text-white"
-                      : "border-gray-300 bg-white font-medium text-text-dark hover:border-brand-green-primary"
-                  }`}
-                >
-                  {cat}
-                </Link>
-              );
-            })}
-          </nav>
+          {audienceRow("mt-6")}
+          {seasonRow("mt-5")}
+          <FilterRow
+            id="category-label"
+            label="어떤 분야를 찾으세요?"
+            options={PROGRAM_CATEGORIES.map((cat) => ({ value: cat, label: cat }))}
+            current={f.category || null}
+            hrefFor={(v) => filterHref(f, { category: v ?? "" })}
+            className="mt-5"
+          />
         </div>
 
-        {flat!.items.length === 0 ? (
+        {total === 0 ? (
           <div className="text-center py-16 text-text-gray rounded-xl border border-dashed border-gray-300 bg-gray-50">
             <p className="break-keep px-4">{emptyText}</p>
             <Link href="/inquiry" className="mt-4 inline-flex h-11 items-center rounded-lg bg-brand-green-primary px-5 text-sm font-bold text-white hover:bg-[#1B4332]">
               맞춤 일정 상담하기
             </Link>
           </div>
+        ) : seasonGroups ? (
+          <div className="space-y-12">
+            {seasonGroups.specific.length > 0 && (
+              <section aria-labelledby="season-specific">
+                <h2 id="season-specific" className="text-lg sm:text-2xl font-bold mb-4 sm:mb-5 break-keep">
+                  {seasonLabel(f.season!)}에 맞춘 프로그램 <span className="text-brand-green-primary">{seasonGroups.specific.length}</span>
+                </h2>
+                {grid(seasonGroups.specific, true)}
+              </section>
+            )}
+            {seasonGroups.yearRound.length > 0 && (
+              <section aria-labelledby="season-year-round">
+                <h2 id="season-year-round" className="text-lg sm:text-2xl font-bold mb-1 break-keep">
+                  연중 운영 프로그램 <span className="text-brand-green-primary">{seasonGroups.yearRound.length}</span>
+                </h2>
+                <p className="mb-4 sm:mb-5 text-sm sm:text-base text-text-gray break-keep">시기와 관계없이 학교 일정에 맞춰 진행해 드립니다.</p>
+                {grid(seasonGroups.yearRound, seasonGroups.specific.length === 0)}
+              </section>
+            )}
+          </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-6 sm:gap-y-8">
-              {/* 첫 화면에 보이는 카드는 지연 로딩하지 않는다 (모바일 첫 화면 표시가 늦어지던 원인) */}
-              {flat!.items.map((item, i) => (
-                <ProgramCard key={item.id} item={item} priority={i < 2} />
-              ))}
-            </div>
+            {grid(flat!.items, true)}
             <Pagination
               currentPage={currentPage}
               totalPages={flat!.totalPages}
@@ -423,13 +481,14 @@ export default async function ProgramsPage({
           <div>
             <h1 className="text-2xl sm:text-4xl font-bold mb-2">프로그램</h1>
             <p className="text-sm sm:text-base text-text-gray leading-relaxed break-keep">
-              {PROGRAM_CATEGORIES.length}개 분야, {total}개 프로그램을 운영하고 있습니다. 분야를 고르시거나 바로 검색해 보세요.
+              {PROGRAM_CATEGORIES.length}개 분야, {total}개 프로그램을 운영하고 있습니다. 누구와, 언제 가시는지 고르시거나 바로 검색해 보세요.
             </p>
           </div>
           <SearchBox className="hidden sm:block w-full lg:w-[420px]" />
         </div>
-        <div className="container mx-auto px-4 pb-8 sm:pb-10 -mt-1">
-          <AudiencePicker current={null} category="" counts={audienceCounts} />
+        <div className="container mx-auto px-4 pb-8 sm:pb-10 -mt-1 space-y-5">
+          {audienceRow()}
+          {seasonRow()}
         </div>
       </section>
 

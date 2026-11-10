@@ -23,6 +23,7 @@ import fs from "fs";
 import path from "path";
 import sharp from "sharp";
 import { parseEndDate } from "../lib/news-utils";
+import { normalizeSeasons } from "../lib/news-seasons";
 
 const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
 const prisma = new PrismaClient();
@@ -36,6 +37,7 @@ interface NewsItem {
   summary: string;
   content: string;
   hashtags: string[];
+  seasons?: string[];            // 운영 시기 lib/news-seasons.ts (1학기·여름방학·2학기·수능이후·겨울방학) — 본문에 시기가 있을 때만, 비우면 연중
   link?: string;
   isPinned?: boolean;
   deleteLocalAfterUpload?: boolean;  // true면 업로드 후 로컬 폴더 삭제
@@ -58,6 +60,7 @@ const NEWS_ITEMS: NewsItem[] = [
   //                  //  단, BOOK_CARD_NEWS는 "책 제목 — 저자 저" 형식 유지)
   //   summary: "한 줄 요약",
   //   content: `## 본문 마크다운`,
+  //   seasons: ["겨울방학"], // 본문에 운영 시기가 있을 때만 (1학기·여름방학·2학기·수능이후·겨울방학), 비우면 연중
   //   hashtags: ["#일본", "#특성화고"], // lib/news-constants.ts의 HASHTAG_POOL에서만 골라 쓸 것 (지역 1개 + 대상 1~2개, 총 3개 안팎)
   //   deleteLocalAfterUpload: true,
   //   endDate: "2026-10-16", // 지원사업·모집처럼 마감이 있는 글만 — 지나면 사이트·챗봇에서 "종료"로 안내됨
@@ -215,6 +218,7 @@ async function main() {
         imageUrls: urls,
         link: item.link ?? null,
         hashtags: item.hashtags,
+        seasons: normalizeSeasons(item.seasons),
         isPinned: item.isPinned ?? false,
         endDate: parseEndDate(item.endDate),
         createdAt: itemTimestamp,
@@ -227,6 +231,7 @@ async function main() {
         imageUrl: thumbnailUrl,
         imageUrls: urls,
         hashtags: item.hashtags,
+        seasons: normalizeSeasons(item.seasons),
         endDate: parseEndDate(item.endDate),
         updatedAt: itemTimestamp,
       },

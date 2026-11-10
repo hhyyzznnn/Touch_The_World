@@ -225,6 +225,7 @@ model CompanyNews {
   imageUrl   String?
   imageUrls  String[]        @default([])
   hashtags   String[]        @default([]) // #태그 목록 (카테고리·지역·테마 등)
+  seasons    String[]        @default([]) // 운영 시기(lib/news-seasons.ts: 1학기·여름방학·2학기·수능이후·겨울방학). 비어 있으면 연중
   link       String?
   isPinned   Boolean         @default(false)
   endDate    DateTime?       // 신청·운영 마감일(해당 일 23:59 KST). 지나면 "종료"로 표시

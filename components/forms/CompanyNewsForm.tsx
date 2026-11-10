@@ -11,6 +11,7 @@ import type { CompanyNews } from "@prisma/client";
 import { CompanyNewsType } from "@prisma/client";
 import { PROGRAM_CATEGORIES, HASHTAG_POOL } from "@/lib/news-constants";
 import { formatEndDate } from "@/lib/news-utils";
+import { SEASONS } from "@/lib/news-seasons";
 
 type CompanyNewsWithImages = CompanyNews & {
   imageUrls?: string[];
@@ -49,6 +50,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
   const [imageUrl, setImageUrl] = useState(news?.imageUrl ?? "");
   const [imageUrls, setImageUrls] = useState<string[]>(initialImageUrls);
   const [hashtags, setHashtags] = useState<string[]>((news as any)?.hashtags ?? []);
+  const [seasons, setSeasons] = useState<string[]>((news as any)?.seasons ?? []);
   const [hashtagInput, setHashtagInput] = useState("");
   const [isPinned, setIsPinned] = useState(news?.isPinned ?? false);
   const [endDate, setEndDate] = useState(news?.endDate ? formatEndDate(news.endDate) : "");
@@ -79,6 +81,7 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
           imageUrl: thumbnailUrl || null,
           imageUrls: normalizedImageUrls.length > 0 ? normalizedImageUrls : thumbnailUrl ? [thumbnailUrl] : [],
           hashtags,
+          seasons: type === CompanyNewsType.PROGRAM_CARD_NEWS ? seasons : [],
           isPinned,
           endDate: endDate || null,
         }),
@@ -319,6 +322,30 @@ export function CompanyNewsForm({ news, redirectPath = "/admin/news" }: CompanyN
               </div>
             )}
             <p className="text-xs text-gray-500">게시물 상세 페이지에는 이 이미지들이 순서대로 모두 노출됩니다.</p>
+          </div>
+        </div>
+      )}
+
+      {/* 운영 시기 — 프로그램 탭 "언제 가시나요" */}
+      {type === CompanyNewsType.PROGRAM_CARD_NEWS && (
+        <div>
+          <label className="block text-sm font-medium mb-2">운영 시기 <span className="font-normal text-gray-500">(본문에 시기가 있을 때만 · 비우면 연중)</span></label>
+          <div className="flex flex-wrap gap-2">
+            {SEASONS.map((s) => {
+              const active = seasons.includes(s.key);
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setSeasons((prev) => (active ? prev.filter((k) => k !== s.key) : [...prev, s.key]))}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition ${
+                    active ? "bg-brand-green-primary text-white border-brand-green-primary" : "border-gray-300 text-gray-700 hover:border-brand-green-primary"
+                  }`}
+                >
+                  {s.label} <span className={active ? "text-white/80" : "text-gray-500"}>{s.hint}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

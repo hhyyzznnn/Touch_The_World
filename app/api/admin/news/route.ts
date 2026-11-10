@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   try {
-    const { type, categories, title, summary, content, imageUrl, imageUrls, hashtags, link, isPinned, endDate } =
+    const { type, categories, title, summary, content, imageUrl, imageUrls, hashtags, seasons, link, isPinned, endDate } =
       await parseAdminNewsRequest(request);
 
     if (!title?.trim()) {
@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
         imageUrl: resolvedImageUrl,
         imageUrls,
         hashtags,
+        seasons,
         link: link?.trim() || null,
         isPinned: !!isPinned,
         endDate,
