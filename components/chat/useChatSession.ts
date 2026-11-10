@@ -11,6 +11,9 @@ import { trackEvent, GA_EVENTS } from "@/lib/gtag";
 
 const GENERIC_ERROR = "죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
 
+/** 사용자가 실제로 질문한 대화만 "이전 대화"로 저장·복원한다 — 인사말만 있는 기록을 복원하면 그때 시각이 계속 고정돼 보였다 */
+const hasUserMessage = (list: ChatMessage[]) => list.some((m) => m.role === "user");
+
 function createSessionId(): string {
   return `chat_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
@@ -64,7 +67,7 @@ export function useChatSession({ landingCategory, onSessionReady }: UseChatSessi
 
     if (userId) {
       const loaded = loadChatMessages({ userId, enabled: true });
-      if (loaded.messages.length > 0) {
+      if (hasUserMessage(loaded.messages)) {
         setMessages(loaded.messages);
         if (loaded.sessionId) setSessionId(loaded.sessionId);
         onSessionReadyRef.current?.(true);
@@ -80,7 +83,7 @@ export function useChatSession({ landingCategory, onSessionReady }: UseChatSessi
   }, [authLoaded, userId]);
 
   useEffect(() => {
-    if (userId && messages.length > 0) {
+    if (userId && hasUserMessage(messages)) {
       saveChatMessages(messages, sessionId, { userId, enabled: true });
     }
   }, [messages, sessionId, userId]);

@@ -2,6 +2,14 @@ import { PROGRAM_CATEGORIES } from "@/lib/constants";
 import { ChatMessageText } from "@/components/ChatMessageText";
 import type { ChatMessage } from "@/lib/chat-storage";
 
+/** 오늘 보낸 메시지는 시각만, 지난 대화는 날짜와 함께 (예: 11월 9일 오전 12:27) */
+function formatMessageTime(date: Date): string {
+  const time = date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+  return date.toDateString() === new Date().toDateString()
+    ? time
+    : `${date.toLocaleDateString("ko-KR", { month: "long", day: "numeric" })} ${time}`;
+}
+
 /** 프로그램 카테고리 선택 버튼 묶음 */
 export function CategoryButtons({
   onSelect,
@@ -59,7 +67,7 @@ export function ChatMessages({
             >
               <ChatMessageText content={message.content} className="text-sm whitespace-pre-wrap" />
               <p className="text-xs mt-1 opacity-70">
-                {message.timestamp.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+                {formatMessageTime(message.timestamp)}
               </p>
             </div>
           </div>
