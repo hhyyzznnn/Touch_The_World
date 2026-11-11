@@ -16,6 +16,10 @@ import remarkGfm from "remark-gfm";
 import { formatEndDate, isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CompanyNewsType } from "@prisma/client";
 import { MembershipInlineCta } from "@/components/membership/MembershipInlineCta";
+import { ProgramRecommender } from "@/components/news/ProgramRecommender";
+import { RelatedProgramLink } from "@/components/news/RelatedProgramLink";
+import { getProgramCatalog } from "@/lib/program-catalog";
+import { pickRelated } from "@/lib/news-related";
 
 /** 해시태그에서 목적지 선택지 값을 추출 */
 const HASHTAG_DESTINATION_MAP: Record<string, string> = {
@@ -87,6 +91,12 @@ const getNews = cache(async (id: string) => {
 });
 
 async function getRelatedCardNews(id: string, categories: string[], type: CompanyNewsType) {
+  // 프로그램 카드뉴스: 분야·지역·대상·시기가 많이 겹치는 순, 마감 글 제외 (lib/news-related.ts)
+  if (type === CompanyNewsType.PROGRAM_CARD_NEWS) {
+    const catalog = await getProgramCatalog();
+    const current = catalog.find((c) => c.id === id);
+    if (current) return pickRelated(current, catalog, 4).map((r) => ({ ...r, createdAt: new Date(r.createdAt) }));
+  }
   if (categories.length === 0) return [];
   return await prisma.companyNews.findMany({
     where: { id: { not: id }, type, categories: { hasSome: categories } },
@@ -393,7 +403,7 @@ export default async function NewsDetailPage({
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base sm:text-lg font-semibold text-text-dark">
-                같은 카테고리 다른 카드뉴스
+                {news.type === CompanyNewsType.PROGRAM_CARD_NEWS ? "함께 보면 좋은 프로그램" : "같은 카테고리 다른 카드뉴스"}
               </h2>
               {news.categories[0] && (
                 <Link
@@ -405,9 +415,8 @@ export default async function NewsDetailPage({
               )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {relatedNews.map((item) => {
+              {relatedNews.map((item, rank) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
-                const isExternal = !!item.link?.trim()?.startsWith("http");
                 const isNew = isRecentlyAdded(item.createdAt);
                 const regionTag = item.hashtags.find((t) =>
                   ["#서울", "#인천", "#포천", "#가평", "#충남", "#일본", "#해외", "#국내"].includes(t)
@@ -415,11 +424,12 @@ export default async function NewsDetailPage({
                 const showTagRow = isNew || regionTag;
 
                 return (
-                  <Link
+                  <RelatedProgramLink
                     key={item.id}
                     href={href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    fromId={news.id}
+                    toId={item.id}
+                    rank={rank + 1}
                     className="group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
                     {showTagRow && (
@@ -452,13 +462,14 @@ export default async function NewsDetailPage({
                         {stripBrandFromTitle(item.title)}
                       </p>
                     </div>
-                  </Link>
+                  </RelatedProgramLink>
                 );
               })}
             </div>
           </div>
         )}
       </div>
+      {news.type === CompanyNewsType.PROGRAM_CARD_NEWS && <ProgramRecommender currentId={news.id} />}
     </div>
   );
 }
