@@ -1,10 +1,14 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { InquiryFormData } from "@/lib/inquiry-schema";
 import { useSchoolAutocomplete } from "./useSchoolAutocomplete";
 import { SectionHeader, formatPhoneNumber, inputClass, sectionClass, selectClass, type InquiryMode } from "./shared";
 
-/** 1. 기본 정보 — 빠른 문의에서는 여행 지역·문의 내용까지 여기서 받는다 */
+/**
+ * 1. 기본 정보.
+ * 빠른 문의는 학교명·담당자명·연락처 3칸만 보이고, 이메일·여행 지역·문의 내용은 "더 남기실 내용"을 펼쳐야 보인다 (2026-11-14 —
+ * 30일간 문의 페이지 방문 14건 중 입력을 시작한 사람이 0명이라 첫 화면의 칸 수를 줄였다).
+ */
 export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
   const {
     register,
@@ -14,6 +18,14 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
   const autocomplete = useSchoolAutocomplete();
   const schoolInputRef = useRef<HTMLInputElement>(null);
   const [dropdownAbove, setDropdownAbove] = useState(false);
+  // 접어 둔 "더 남기실 내용" 안의 칸(이메일)이 검사에 걸리면 펼쳐서 오류가 보이게 한다
+  const moreRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (errors.email && moreRef.current) {
+      moreRef.current.open = true;
+      moreRef.current.querySelector<HTMLInputElement>("#email-quick")?.focus();
+    }
+  }, [errors.email]);
 
   const handleSchoolFocus = () => {
     if (autocomplete.suggestions.length > 0) {
@@ -78,8 +90,8 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
         )}
       </div>
 
-      {/* 담당자명 + 직책 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* 담당자명 + 직책(상세 문의만) */}
+      <div className={`grid grid-cols-1 gap-4 ${mode === "detailed" ? "sm:grid-cols-2" : ""}`}>
         <div>
           <label htmlFor="contact" className="block text-sm font-medium mb-2">
             담당자명 <span className="text-red-500">*</span>
@@ -94,6 +106,7 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
             <p className="text-red-500 text-sm mt-1">{errors.contact.message}</p>
           )}
         </div>
+        {mode === "detailed" && (
         <div>
           <label htmlFor="position" className="block text-sm font-medium mb-2">
             직책
@@ -105,10 +118,11 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
             placeholder="예: 교무부장, 담임교사"
           />
         </div>
+        )}
       </div>
 
-      {/* 연락처 + 이메일 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* 연락처 + 이메일(상세 문의만 — 빠른 문의는 아래 "더 남기실 내용"에) */}
+      <div className={`grid grid-cols-1 gap-4 ${mode === "detailed" ? "sm:grid-cols-2" : ""}`}>
         <div>
           <label htmlFor="phone" className="block text-sm font-medium mb-2">
             연락처 <span className="text-red-500">*</span>
@@ -132,6 +146,7 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
             <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
           )}
         </div>
+        {mode === "detailed" && (
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-2">
             이메일
@@ -148,6 +163,7 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
             <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
           )}
         </div>
+        )}
       </div>
 
       {/* 학교 주소 */}
@@ -165,9 +181,30 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
         </div>
       )}
 
-      {/* 빠른 문의: 메시지 바로 노출 */}
+      {/* 빠른 문의: 선택 항목은 접어 둔다 */}
       {mode === "quick" && (
-        <>
+        <details ref={moreRef} className="group rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-1 [&_summary::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between text-sm font-medium text-text-dark">
+            더 남기실 내용 (선택)
+            <span className="text-xs font-normal text-text-gray group-open:hidden">이메일·여행 지역·문의 내용</span>
+          </summary>
+          <div className="space-y-4 pb-4 pt-1">
+          <div>
+            <label htmlFor="email-quick" className="block text-sm font-medium mb-2">
+              이메일
+            </label>
+            <input
+              id="email-quick"
+              type="email"
+              autoComplete="email"
+              {...register("email")}
+              className={inputClass}
+              placeholder="example@school.kr"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            )}
+          </div>
           <div>
             <label htmlFor="destination-quick" className="block text-sm font-medium mb-2">
               여행 지역
@@ -198,7 +235,8 @@ export function BasicInfoSection({ mode }: { mode: InquiryMode }) {
               placeholder="궁금한 점이나 원하는 프로그램을 간단히 적어주세요"
             />
           </div>
-        </>
+          </div>
+        </details>
       )}
     </div>
   );

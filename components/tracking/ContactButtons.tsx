@@ -1,8 +1,8 @@
 "use client";
 
+// 클릭 기록은 components/GoogleAnalytics.tsx가 사이트 전체 tel:·카카오 링크에 한 번에 건다.
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Phone } from "lucide-react";
-import { trackEvent, GA_EVENTS } from "@/lib/gtag";
 import Link from "next/link";
 
 export function KakaoContactButton({ href }: { href: string }) {
@@ -17,7 +17,6 @@ export function KakaoContactButton({ href }: { href: string }) {
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2"
-        onClick={() => trackEvent(GA_EVENTS.KAKAO_CONTACT_CLICK)}
       >
         <MessageCircle className="w-5 h-5" />
         카카오톡 문의
@@ -31,7 +30,6 @@ export function PhoneLink({ phone }: { phone: string }) {
     <a
       href={`tel:${phone.replace(/-/g, "")}`}
       className="text-2xl font-semibold text-text-dark hover:text-brand-green transition-colors"
-      onClick={() => trackEvent(GA_EVENTS.PHONE_CLICK)}
     >
       {phone}
     </a>

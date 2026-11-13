@@ -24,8 +24,14 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getKakaoChannelUrl, telHref } from "@/lib/contact";
+import { getRecentEvents } from "@/lib/recent-events";
+import { formatEventPeriod } from "@/lib/event-utils";
 import { COMPANY_INFO, PROGRAM_CATEGORIES, YEARS_OF_EXPERIENCE } from "@/lib/constants";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
+
+// 최근 함께한 학교 목록을 한 시간마다 새로 만든다 (빌드 때 DB가 잠깐 안 돼 빈 목록이 굳지 않게)
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "회사 소개 | 터치더월드",
@@ -148,17 +154,6 @@ const achievements = [
   "AI 기반 교육 플랫폼",
 ];
 
-function resolveKakaoUrl() {
-  const raw =
-    process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL ||
-    process.env.KAKAO_CHANNEL_URL ||
-    COMPANY_INFO.kakaoChannel;
-
-  const value = raw?.trim();
-  if (!value) return null;
-  if (value.startsWith("http")) return value;
-  return `https://pf.kakao.com/_${value.replace(/^_+/, "")}`;
-}
 
 function SectionTitle({ title, desc }: { title: string; desc: string }) {
   return (
@@ -169,12 +164,14 @@ function SectionTitle({ title, desc }: { title: string; desc: string }) {
   );
 }
 
-export default function AboutPage() {
-  const kakaoUrl = resolveKakaoUrl();
+export default async function AboutPage() {
+  const kakaoUrl = getKakaoChannelUrl();
+  // DB가 잠깐 안 될 때도 회사 소개는 떠야 하므로, 실패하면 이 칸만 숨긴다
+  const recentEvents = await getRecentEvents(4).catch(() => []);
 
   return (
     <div className="bg-gradient-to-b from-brand-green/5 via-white to-white">
-      <section className="border-b border-brand-green/10 py-12 sm:py-16 lg:py-20">
+      <section data-contact-place="about_hero" className="border-b border-brand-green/10 py-12 sm:py-16 lg:py-20">
         <div className="container mx-auto px-4">
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div>
@@ -220,14 +217,14 @@ export default function AboutPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-7">
               <h2 className="text-lg font-semibold text-text-dark">회사 기본 정보</h2>
               <div className="mt-4 space-y-3 text-sm text-text-gray">
-                <p className="flex items-center gap-2">
+                <a href={telHref(CONTACT.phone)} className="flex min-h-[44px] items-center gap-2 hover:text-brand-green-primary">
                   <Phone className="h-4 w-4 text-brand-green-primary" />
-                  대표번호 {CONTACT.phone}
-                </p>
-                <p className="flex items-center gap-2 break-all">
+                  대표번호 <span className="font-semibold text-text-dark underline-offset-4 hover:underline">{CONTACT.phone}</span>
+                </a>
+                <a href={`mailto:${CONTACT.email}`} className="flex min-h-[44px] items-center gap-2 break-all hover:text-brand-green-primary">
                   <Mail className="h-4 w-4 text-brand-green-primary" />
                   {CONTACT.email}
-                </p>
+                </a>
                 <p className="flex items-center gap-2">
                   <Globe className="h-4 w-4 text-brand-green-primary" />
                   {CONTACT.website}
@@ -446,7 +443,47 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="pb-16 pt-4 sm:pb-20">
+      {recentEvents.length > 0 && (
+        <section className="py-12 sm:py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <SectionTitle
+                title="최근 함께한 학교"
+                desc="터치더월드와 다녀온 학교들의 실제 행사 기록입니다."
+              />
+              <Link href="/events" className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-brand-green-primary hover:underline">
+                진행 내역 전체 보기 <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+              {recentEvents.map((ev) => (
+                <li key={ev.id}>
+                  <Link href={`/events/${ev.id}`} className="group block overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    <span className="relative block aspect-[4/5] bg-gray-100">
+                      {ev.imageUrl && (
+                        <Image
+                          src={ev.imageUrl}
+                          alt={`${ev.schoolName} 행사`}
+                          fill
+                          sizes="(max-width: 1024px) 50vw, 25vw"
+                          className={`object-cover ${ev.isSummaryCard ? "object-top" : "object-center"} transition-transform duration-200 group-hover:scale-105`}
+                        />
+                      )}
+                    </span>
+                    <span className="block p-3 sm:p-4">
+                      <span className="block break-keep text-sm font-semibold text-text-dark">{ev.schoolName}</span>
+                      <span className="mt-1 block break-keep text-xs leading-snug text-text-gray line-clamp-2">{ev.programTitle}</span>
+                      <span className="mt-1.5 block text-xs text-text-gray">{formatEventPeriod(ev.date, ev.endDate)}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      <section data-contact-place="about_cta" className="pb-16 pt-4 sm:pb-20">
         <div className="container mx-auto px-4">
           <div className="rounded-2xl border border-brand-green/20 bg-brand-green/5 p-6 sm:p-8 lg:p-10">
             <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
@@ -460,14 +497,14 @@ export default function AboutPage() {
                   인원·지역·일정·목적을 알려주시면 운영 가능한 맞춤 제안으로 빠르게 안내드립니다.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3 text-sm text-text-gray">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5">
+                  <a href={telHref(CONTACT.phone)} className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-4 py-1.5 font-semibold text-text-dark hover:text-brand-green-primary">
                     <Phone className="h-4 w-4 text-brand-green-primary" />
                     {CONTACT.phone}
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5">
+                  </a>
+                  <a href={`mailto:${CONTACT.email}`} className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-4 py-1.5 hover:text-brand-green-primary">
                     <Mail className="h-4 w-4 text-brand-green-primary" />
                     {CONTACT.email}
-                  </span>
+                  </a>
                 </div>
               </div>
 

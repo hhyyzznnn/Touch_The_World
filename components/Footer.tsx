@@ -2,21 +2,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Mail, Phone } from "lucide-react";
 import { COMPANY_INFO } from "@/lib/constants";
+import { getKakaoChannelUrl } from "@/lib/contact";
 import { KakaoContactButton, KakaoContactPlaceholder, PhoneLink } from "@/components/tracking/ContactButtons";
 
 export function Footer() {
-  const configuredKakaoChannel =
-    process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL ||
-    process.env.KAKAO_CHANNEL_URL ||
-    COMPANY_INFO.kakaoChannel;
-
-  const kakaoChannel = configuredKakaoChannel?.trim();
-  const kakaoChannelUrl =
-    kakaoChannel && kakaoChannel.length > 0
-      ? kakaoChannel.startsWith("http")
-        ? kakaoChannel
-        : `https://pf.kakao.com/_${kakaoChannel.replace(/^_+/, "")}`
-      : null;
+  const kakaoChannelUrl = getKakaoChannelUrl();
 
   return (
     <footer className="bg-white text-text-dark mt-auto border-t border-gray-200">

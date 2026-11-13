@@ -17,6 +17,7 @@ import { TravelSection } from "./inquiry/TravelSection";
 import { LodgingSection } from "./inquiry/LodgingSection";
 import { ProgramSection } from "./inquiry/ProgramSection";
 import { SafetySection } from "./inquiry/SafetySection";
+import { ContactOptions } from "./inquiry/ContactOptions";
 import { clearDraft, readDraft, writeDraft, type InquiryDraft } from "./inquiry/draft";
 import { formatPhoneNumber, type InquiryMode } from "./inquiry/shared";
 
@@ -30,9 +31,11 @@ interface InquiryPresets {
 export function InquiryForm({
   initialMode,
   presets,
+  kakaoUrl = null,
 }: {
   initialMode: InquiryMode;
   presets?: InquiryPresets;
+  kakaoUrl?: string | null;
 }) {
   const toast = useToast();
   const [mode, setMode] = useState<InquiryMode>(initialMode);
@@ -97,6 +100,13 @@ export function InquiryForm({
     reset(draft.data);
     setMode(draft.mode);
     setPendingDraft(null);
+    // 이어서 쓸 내용이 접힌 칸에 있으면 펼쳐 둔다
+    setTimeout(() => {
+      document.querySelectorAll<HTMLDetailsElement>("form details").forEach((d) => {
+        const filled = [...d.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")].some((el) => el.value);
+        if (filled) d.open = true;
+      });
+    }, 0);
   };
 
   const dismissDraft = () => {
@@ -162,7 +172,10 @@ export function InquiryForm({
   const onInvalid = (errors: FieldErrors<InquiryFormData>) => {
     trackEvent(GA_EVENTS.INQUIRY_INVALID, { inquiry_mode: mode, fields: Object.keys(errors).join(",").slice(0, 100) });
     toast.error("입력 내용을 다시 확인해주세요.");
-    document.querySelector("form .text-red-500.text-sm")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // 오류 문구가 그려진 뒤 첫 오류 칸으로 이동 (접힌 칸의 오류는 BasicInfoSection이 펼쳐 준다)
+    setTimeout(() => {
+      document.querySelector("form .text-red-500.text-sm")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
   };
 
   if (isSuccess) {
@@ -209,6 +222,15 @@ export function InquiryForm({
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
+        <ContactOptions
+          kakaoUrl={kakaoUrl}
+          onQuickInquiry={() => {
+            setMode("quick");
+            document.getElementById("inquiry-form-start")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            setTimeout(() => document.getElementById("schoolName")?.focus({ preventScroll: true }), 400);
+          }}
+        />
+
         {/* 임시저장 복구 배너 */}
         {pendingDraft && (
           <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
@@ -265,8 +287,7 @@ export function InquiryForm({
         )}
 
         {/* 모드 탭 */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-medium mb-6">문의하기</h1>
+        <div id="inquiry-form-start" className="mb-8 scroll-mt-24">
           <div className="flex rounded-xl border border-gray-200 overflow-hidden">
             <button
               type="button"
@@ -308,7 +329,8 @@ export function InquiryForm({
         )}
 
         <FormProvider {...form}>
-          <form onSubmit={handleSubmit(onSubmit, onInvalid)} onFocusCapture={handleFormFocus} className="space-y-10">
+          {/* noValidate: 브라우저 자체 검사(type="email" 등)가 먼저 막으면 접힌 칸에서는 안내조차 안 보여 "눌러도 반응 없음"이 된다 — 검사는 zod로만 */}
+          <form noValidate onSubmit={handleSubmit(onSubmit, onInvalid)} onFocusCapture={handleFormFocus} className="space-y-10">
             <BasicInfoSection mode={mode} />
 
             {mode === "detailed" && (
