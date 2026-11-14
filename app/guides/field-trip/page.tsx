@@ -6,16 +6,18 @@ import { BRAND_KEYWORDS, mergeKeywords } from "@/lib/seo";
 /**
  * 현장체험학습 준비 기준 정리 — 교사들이 "현장체험학습 운영 지침", "수학여행 안전요원 기준" 등으로 찾는 내용을
  * 교육청 매뉴얼·법령·정부 발표·보도 등 공개 자료를 출처로 달아 정리한 안내 페이지.
- * 2026-11-09 원문 대조 검토: 매뉴얼 PDF(인천 2021·경기 2023·충북 2026)의 안전요원·인솔·계약 기준, 교육부 2026.5.28 발표,
- * 학교안전법 제10조 제5항(2025.12.2 개정), 지자체 지원 제도. 기준이 바뀌면 UPDATED_AT·본문·SOURCES를 함께 고친다.
+ * 2026-11-09 원문 대조 검토 → 2026-11-14 최신판 재확인: 인천은 2021 매뉴얼에서 2026학년도 매뉴얼로 교체(안전요원 기준이 바뀜),
+ * 경기는 2026 매뉴얼 원문이 공개돼 있지 않아 2023 안내 + 이후 발표(2025 학급당 안전요원 지원, 2026.10 조례 개정안)로 표시,
+ * 충북 2026 매뉴얼, 교육부 2026.5.28 발표(11/14 기준 법 개정 미통과), 학교안전법 제10조 제5항(2025.12.2 개정), 지자체 지원.
+ * 2027학년도 매뉴얼이 나오면(보통 2~3월) 지역별 표·SOURCES·UPDATED_AT을 함께 고친다.
  * 입찰 공고 경향 수치는 나라장터 입찰 알림이 모은 학교 공고(G2BNotice.aiSummary)에서 집계한 값이다.
  */
-const UPDATED_AT = "2026년 11월 9일";
+const UPDATED_AT = "2026년 11월 14일";
 
 export const metadata: Metadata = {
-  title: "현장체험학습·수학여행 준비 기준 정리 (안전요원·지역별 지원·계약·버스) | 터치더월드",
+  title: "2027 현장체험학습·수학여행 준비 기준 정리 (안전요원·지역별 지원·계약·버스) | 터치더월드",
   description:
-    "수학여행·수련활동 등 현장체험학습을 준비할 때 확인할 지역별 안전요원 배치 기준, 교육청·지자체 지원 제도, 업체 계약 방법, 전세버스 이용, 교원 면책 규정을 교육청 매뉴얼과 법령 출처와 함께 정리했습니다.",
+    "2027학년도 수학여행·수련활동 등 현장체험학습을 준비할 때 확인할 지역별 안전요원 배치 기준, 교육청·지자체 지원 제도, 업체 계약 방법, 전세버스 이용, 교원 면책 규정을 교육청 매뉴얼과 법령 출처와 함께 정리했습니다.",
   keywords: mergeKeywords(BRAND_KEYWORDS, [
     "현장체험학습 운영 지침",
     "수학여행 안전요원 기준",
@@ -30,8 +32,10 @@ export const metadata: Metadata = {
 };
 
 const SOURCES = {
-  incheonManual: { label: "인천광역시교육청, 안전한 현장체험학습 운영 매뉴얼(2021)", url: "https://www.ice.go.kr/upload/board/3136/2021/02/1613348077269.pdf" },
+  incheonManual: { label: "인천광역시교육청, 2026학년도 초·중·고 수학여행·수련활동 등 현장체험학습 운영 매뉴얼", url: "https://www.ice.go.kr/upload/ice/na/bbs_1719/2026/02/b6d8c28765905cd5ce999f12a77db401.pdf" },
   gyeonggiGuide: { label: "경기도교육청, 현장체험학습 유형별 운영 안내(2023.2)", url: "https://www.goe.go.kr/resource/old/BBSMSTR_000000030137/BBS_202308280846004301.pdf" },
+  gyeonggiStaff: { label: "프레시안, 경기교육청 올 2학기부터 현장체험학습 학급에 안전요원 배치(2025.6.20)", url: "https://www.pressian.com/pages/articles/2025062018193750248" },
+  gyeonggiOrdinance: { label: "경인매일, 체험학습 보조인력 학급당 1명 조례안 추진(2026.10)", url: "https://www.kmaeil.com/news/articleView.html?idxno=654113" },
   chungbukManual: { label: "충청북도교육청, 2026 현장체험학습 운영 매뉴얼", url: "http://mhc.cbe.go.kr/upload/hp-use/na/bbs_1327/2026/02/6BC12A21-9946-0F65-7730-87DEF2AF29B5.pdf" },
   moeBriefing: { label: "교육부, 현장체험학습 지원 방안 브리핑(2026.5.28)", url: "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156764072" },
   moeNews: { label: "한국경제, 수학여행 사고에서 교사 책임 면제…교육부, 현장체험학습 개편(2026.5.28)", url: "https://www.hankyung.com/article/2026052843697" },
@@ -146,20 +150,20 @@ const SAFETY_ITEMS = ["규모 구분", "수학여행 안전요원", "인솔자",
 const SAFETY_BY_REGION: { region: string; source: string; values: React.ReactNode[] }[] = [
   {
     region: "인천",
-    source: "2021 매뉴얼",
+    source: "2026 매뉴얼",
     values: [
       "소규모 100명 미만 / 중규모 100~149명 / 대규모 150명 이상",
-      <>소규모 배치 권장, 중규모 1명 이상, <b>대규모 학생 50명당 1명</b> 의무</>,
-      "학급당 2명 배치 권장 (교감·교사·행정요원·학부모 등)",
-      "대규모는 교육청 점검·컨설팅 후 실시",
+      <>소규모 팀당 1명, <b>중·대규모(100명 이상) 학생 50명당 1명</b>. 국외·수련활동은 규모와 관계없이 50명당 1명</>,
+      "학급(버스 1대)당 2명 또는 학생 25명당 2명 권장. 운영위원회 심의를 거치면 1명 이상 (1명이면 교원)",
+      "중·대규모·국외는 교육청 컨설팅, 소규모는 희망 학교",
     ],
   },
   {
     region: "경기",
-    source: "2023 안내",
+    source: "2023 안내 · 이후 발표",
     values: [
       "소규모: 3학급 이하 또는 100명 미만 / 대규모: 4학급 이상이면서 100명 이상",
-      <><b>규모와 관계없이 학생 50명당 1명 이상</b> 의무 (안전요원 연수를 이수한 교사가 겸할 수 있음)</>,
+      <><b>규모와 관계없이 학생 50명당 1명 이상</b> 의무 (2023 안내). 교육청은 2025년 2학기부터 <b>학급당 1명</b> 안전요원을 지원하겠다고 발표했고(2025.6), 학급당 1명을 조례에 명시하는 개정안이 2026년 10월 입법예고됐습니다</>,
       "학급당 2명. 학교운영위원회 심의를 거치면 학급당 1명 가능 (이때 인솔자는 교사만)",
       "대규모 수학여행·국외는 교육지원청에 세부계획 제출, 컨설팅 대상",
     ],
@@ -221,9 +225,9 @@ const TOC = [
 const articleJsonLd = {
   "@context": "https://schema.org",
   "@type": "Article",
-  headline: "현장체험학습·수학여행 준비 기준 정리",
+  headline: "2027 현장체험학습·수학여행 준비 기준 정리",
   description: "지역별 안전요원 배치 기준, 교육청·지자체 지원 제도, 업체 계약, 전세버스, 교원 면책 규정을 공개 자료 출처와 함께 정리",
-  dateModified: "2026-11-09",
+  dateModified: "2026-11-14",
   author: { "@type": "Organization", name: "터치더월드" },
   publisher: { "@type": "Organization", name: "터치더월드" },
   inLanguage: "ko-KR",
@@ -237,11 +241,12 @@ export default function FieldTripGuidePage() {
         <header>
           <p className="text-sm font-semibold text-brand-green-primary">선생님 업무 안내</p>
           <h1 className="mt-1 text-2xl md:text-4xl font-bold text-text-dark break-keep text-balance">
-            현장체험학습·수학여행 준비 기준 정리
+            2027 현장체험학습·수학여행 준비 기준 정리
           </h1>
           <p className="mt-3 text-base leading-[1.7] text-text-gray break-keep">
             수학여행·수련활동을 준비하실 때 자주 확인하시는 기준과 지원 제도를 교육청 매뉴얼, 법령, 정부 발표를 출처로 모았습니다.
-            기준은 교육청과 학년도마다 다르니, 최종 판단은 소속 교육청의 올해 매뉴얼과 공문을 따라 주세요.
+            2027학년도 계획에 참고하시도록 지금 공개된 가장 최신 매뉴얼(대부분 2026학년도판) 기준으로 정리했고, 2027학년도 매뉴얼이 나오면 다시 반영합니다.
+            기준은 교육청과 학년도마다 다르니, 최종 판단은 소속 교육청의 매뉴얼과 공문을 따라 주세요.
           </p>
           <p className="mt-2 text-sm text-text-gray">정리 기준: {UPDATED_AT}</p>
           <nav className="mt-5 flex flex-wrap gap-2" aria-label="목차">
@@ -261,7 +266,7 @@ export default function FieldTripGuidePage() {
           <h2 className="text-xl md:text-2xl font-bold">한눈에 보기</h2>
           <ul className="mt-4 space-y-3 text-base leading-[1.7] break-keep">
             <li>
-              <b>안전요원 기준은 지역마다 다릅니다.</b> 인천·충북은 학생 150명 이상일 때 50명당 1명, 경기는 수학여행이면 규모와 관계없이 50명당 1명입니다.
+              <b>안전요원 기준은 지역마다 다릅니다.</b> 인천은 숙박형 수학여행 100명 이상, 충북은 150명 이상일 때 학생 50명당 1명입니다. 경기는 규모와 관계없이 50명당 1명이고, 학급당 1명으로 늘리는 방안이 추진되고 있습니다.
             </li>
             <li>
               <b>바뀔 예정인 것</b> — 교육부는 안전보조인력을 학급당 1명 수준으로 늘리고, 고의·중과실이 없으면 교사가 책임지지 않도록 법 개정을 추진합니다(2027년 상반기 시행 목표).
@@ -283,7 +288,7 @@ export default function FieldTripGuidePage() {
           <RegionCompare />
           <ul className="list-disc space-y-1.5 pl-5">
             <li>모든 현장체험학습은 실시 전에 학교운영위원회 심의(자문)를 거칩니다.</li>
-            <li>충북은 숙박형 체험학습에 학생·학부모 동의 80% 이상을 받도록 정하고 있습니다.</li>
+            <li>학부모 동의는 숙박형 수학여행·수련활동 80% 이상(인천·충북), 인천 국외 수학여행은 90% 이상입니다.</li>
             <li>안전요원 최소 기준을 채우기 어려우면, 기타 보조인력을 배치하고 추가 안전대책을 세우도록 안내합니다(충북).</li>
           </ul>
           <Note title="2026년 5월 교육부 발표 — 바뀔 예정인 내용">
@@ -294,7 +299,7 @@ export default function FieldTripGuidePage() {
             </ul>
             <p className="mt-2 text-sm text-text-gray">아직 시행 전입니다. 적용 시기는 소속 교육청 공문으로 확인해 주세요.</p>
           </Note>
-          <Src ids={["incheonManual", "gyeonggiGuide", "chungbukManual", "moeBriefing", "moeNews"]} />
+          <Src ids={["incheonManual", "gyeonggiGuide", "gyeonggiStaff", "gyeonggiOrdinance", "chungbukManual", "moeBriefing", "moeNews"]} />
         </Section>
 
         <Section
@@ -306,14 +311,20 @@ export default function FieldTripGuidePage() {
             <RegionCard region="인천">
               <SupportItem who="지자체" title="인천관광공사 「수요자 맞춤형 인천 교육여행 지원제도」">
                 수학여행·현장체험학습으로 인천을 찾는 <b>인천 외 지역 초·중·고</b>에 차량 임차비를 지원합니다.
-                당일 여행 최대 <b>200만 원</b>, 숙박 여행 최대 <b>500만 원</b>이며 선착순입니다(2026년 3월 발표). 신청은 인천관광공사 누리집에서 합니다.
+                당일 여행 최대 <b>200만 원</b>, 숙박 여행 최대 <b>500만 원</b>이며 선착순입니다(2026년 3월 발표). 신청은 인천관광공사 누리집에서 합니다. 2027년 공고는 아직 나오지 않았습니다.
               </SupportItem>
-              <SupportItem who="교육청" title="대규모 수학여행 사전 점검">
-                학생 150명 이상 수학여행은 시교육청 수학여행안전지원단 등의 점검·컨설팅을 거쳐 실시합니다.
+              <SupportItem who="교육청" title="유·초등 1일형 「버스 및 안전요원」 지원 (2026)">
+                인천 공립 유치원과 초등학교 1~5학년의 1일형 현장체험학습에 <b>학급당 버스 1대와 안전요원 1명</b>을 지원합니다. 인천학교지원서비스 「체험e든든」에서 신청합니다.
+              </SupportItem>
+              <SupportItem who="교육청" title="안전요원 인력풀 매칭·컨설팅">
+                필요한 학교는 안전요원 인력풀에서 일대일로 매칭받을 수 있습니다. 중·대규모(100명 이상)와 국외 수학여행은 교육청 컨설팅을 거칩니다.
               </SupportItem>
             </RegionCard>
 
             <RegionCard region="경기">
+              <SupportItem who="교육청" title="학급당 안전요원 지원">
+                2025년 2학기부터 현장체험학습을 하는 학교에 학급당 1명의 안전요원을 지원한다고 밝혔습니다. 퇴직 공무원(교원·경찰·소방) 인력풀을 활용합니다. 올해 지원 여부와 신청 방법은 교육지원청 공문으로 확인해 주세요.
+              </SupportItem>
               <SupportItem who="교육청" title="외부 안전요원 확보 경로">
                 경기교육모아 현장체험학습 안전요원 인력풀, 크레존, 워크넷 등을 활용하거나, 업체와 계약할 때 안전요원 배치를 계약 조건에 넣습니다.
                 계약 시 자격증·연수이수증을 확인합니다.
@@ -335,14 +346,14 @@ export default function FieldTripGuidePage() {
             <RegionCard region="전국">
               <SupportItem who="정부" title="문화체육관광부·한국관광공사 「청소년 교육여행 지원」">
                 2026년에는 초등 4학년 이상~고등학생 약 9,000명에게 <b>1인당 약 4만 5천 원</b>을 지원했습니다. 입장료, 체험비, 차량 임차료 등에 쓸 수 있습니다.
-                올해 신청은 3월 27일에 마감됐고, 내년 공고는 한국관광공사에서 확인하실 수 있습니다.
+                2026년 신청은 3월 27일에 마감됐고, 2027년 공고는 아직 나오지 않았습니다(보통 2~3월, 한국관광공사).
               </SupportItem>
             </RegionCard>
           </div>
           <Note title="여행사를 통해 받을 수 있는 지원도 확인해 보세요">
             가평·괴산처럼 많은 시·군이 여행사를 대상으로 단체관광 인센티브를 운영합니다. 업체를 정하실 때 방문 지역의 인센티브를 적용할 수 있는지 물어보시면 학생 부담을 줄이는 데 도움이 됩니다.
           </Note>
-          <Src ids={["incheonSupport", "incheonManual", "gyeonggiGuide", "gapyeongIncentive", "chungbukManual", "goesanIncentive", "youthTrip"]} />
+          <Src ids={["incheonSupport", "incheonManual", "gyeonggiStaff", "gyeonggiGuide", "gapyeongIncentive", "chungbukManual", "goesanIncentive", "youthTrip"]} />
         </Section>
 
         <Section id="contract" title="3. 업체 계약 방법" lead="수의계약 견적 기준은 지방계약법 시행령 제30조를 따릅니다. 추정가격은 부가가치세를 뺀 금액입니다.">
@@ -402,7 +413,7 @@ export default function FieldTripGuidePage() {
               ],
               [
                 "개정 추진",
-                <>교육부는 2026년 5월, <b>고의 또는 중과실이 없으면</b> 책임을 지지 않도록 면책 범위를 넓히는 개정을 발표했습니다. 2027년 상반기 시행이 목표이며, 사고가 나면 교육청 전담팀과 전담 변호사가 처음부터 지원하도록 바꿀 계획입니다.</>,
+                <>교육부는 2026년 5월, <b>고의 또는 중과실이 없으면</b> 책임을 지지 않도록 면책 범위를 넓히는 개정을 발표했습니다. 2027년 상반기 시행이 목표이며, 사고가 나면 교육청 전담팀과 전담 변호사가 처음부터 지원하도록 바꿀 계획입니다. 2026년 11월 14일 현재 국회를 통과하지 않았습니다.</>,
               ],
             ]}
           />
