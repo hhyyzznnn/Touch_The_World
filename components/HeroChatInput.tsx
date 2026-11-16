@@ -19,6 +19,7 @@ const BENEFIT_HIGHLIGHTS: { label: string; href: string; until?: string }[] = [
   { label: "국립청소년시설 수련활동 사전예약 (~10/16)", href: "/news/cardnews_kywa_2nd_reservation_2027", until: "2026-10-16" },
   { label: "하나투어 교직원 혜택", href: "/news/cardnews_hanatour_teacher_benefits_2026" },
   { label: "인천 교육여행 지원사업", href: "/news/cardnews_incheon_edu_trip_support_2026" },
+  { label: "체험학습 준비 기준", href: "/guides/field-trip" },
 ];
 
 export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
