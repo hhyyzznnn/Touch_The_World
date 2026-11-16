@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
-import { List, Shield, Lightbulb, Settings, ChevronRight } from "lucide-react";
-import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButton";
+import { Shield, Lightbulb, Settings, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -22,6 +20,7 @@ import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
 import { CategoryQuickNav } from "@/components/home/CategoryQuickNav";
+import { FamilyCards } from "@/components/FamilyLinks";
 import { HomeNoticeBar } from "@/components/home/HomeNoticeBar";
 import { HomePopup } from "@/components/home/HomePopup";
 import { MembershipBanner } from "@/components/home/MembershipBanner";
@@ -155,7 +154,7 @@ export default async function HomePage() {
       )}
 
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
+      <section className="bg-gradient-to-b from-brand-green/5 to-white pt-8 pb-6 sm:pt-10 sm:pb-8 md:pt-12 md:pb-8">
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 sm:space-y-6 max-w-4xl mx-auto">
             <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide mb-2 sm:mb-4">
@@ -167,8 +166,8 @@ export default async function HomePage() {
               <span className="block">프리미엄 교육여행 파트너</span>
             </p>
             <p className="text-sm sm:text-base md:text-lg text-text-gray leading-relaxed">
-              <span className="block">교육자의 시간을 절약하고,</span>
-              <span className="block">학습자의 세계를 확장합니다.</span>
+              <span className="block md:inline">교육자의 시간을 절약하고,</span>{" "}
+              <span className="block md:inline">학습자의 세계를 확장합니다.</span>
             </p>
 
             <div className="pt-4 sm:pt-6">
@@ -177,44 +176,17 @@ export default async function HomePage() {
               </Suspense>
             </div>
 
-            {/* 카테고리 바로가기 */}
-            <div className="pt-4 sm:pt-6">
-              <CategoryQuickNav />
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
-              <Button
-                asChild
-                size="lg"
-                className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200 min-h-11"
-              >
-                <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
-                  <List className="w-4 h-4 sm:w-5 sm:h-5" />
-                  전체 프로그램
-                </Link>
-              </Button>
-              <InquiryDropdownButton />
-            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 교사 멤버십 안내 ── */}
-      <MembershipBanner />
-
-      {/* ── Stats (숫자 애니메이션) ── */}
-      <StatsSection programCount={programCount} />
-
-      {/* ── 회사 소식 ── */}
-      <NewsTicker items={newsTickerItems} />
-
-      {/* ── 카드뉴스 (영상 첫 칸 통합) ── */}
+      {/* ── 새로 올라온 프로그램(카드뉴스, 영상 첫 칸 통합) — A안: 첫 화면 바로 아래로 올림 ── */}
       {(cardNewsItems.length > 0 || SHORTS_VIDEOS.length > 0) && (
-        <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
+        <section className="pt-2 pb-10 sm:pb-14 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex items-start justify-between mb-5 sm:mb-8">
               <div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">카드뉴스</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">새로 올라온 프로그램</h2>
                 <p className="mt-1 text-xs sm:text-sm text-text-gray">최신 교육여행 트렌드와 프로그램을 미리 확인하세요</p>
               </div>
               <Link
@@ -319,6 +291,15 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* ── 교사 멤버십 안내 ── */}
+      <MembershipBanner />
+
+      {/* ── Stats (숫자 애니메이션) ── */}
+      <StatsSection programCount={programCount} />
+
+      {/* ── 회사 소식 ── */}
+      <NewsTicker items={newsTickerItems} />
+
       {/* ── SEO 소개 ── */}
       <section className="py-8 sm:py-10 bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
@@ -344,7 +325,14 @@ export default async function HomePage() {
             </h2>
             <p className="mt-2 text-sm text-text-gray">프로그램을 선택하면 맞춤 견적을 받을 수 있습니다</p>
           </div>
+          {/* 8개 분야 바로가기 — A안에서 첫 화면 대신 이 자리로 옮김 */}
+          <div className="mb-6 sm:mb-10">
+            <CategoryQuickNav />
+          </div>
           <CategoryGrid />
+          <div className="mx-auto mt-8 max-w-3xl sm:mt-12">
+            <FamilyCards />
+          </div>
         </div>
       </section>
 
