@@ -29,6 +29,16 @@ export const metadata: Metadata = {
     "체험학습 교사 면책",
   ]),
   alternates: { canonical: "/guides/field-trip" },
+  // 페이지에 openGraph가 없으면 루트 값(홈 제목·홈 주소)을 그대로 물려받아, 블로그·카톡에 링크를 붙였을 때 홈페이지 카드로 보인다.
+  openGraph: {
+    title: "2027 현장체험학습·수학여행 준비 기준 정리",
+    description: "지역별 안전요원 기준, 교육청·지자체 지원, 업체 계약 방법, 교사 면책 규정을 출처와 함께 한 페이지에 정리했습니다.",
+    url: "/guides/field-trip",
+    siteName: "터치더월드",
+    locale: "ko_KR",
+    type: "article",
+    images: [{ url: "/images/og_image2.png", width: 1376, height: 768, alt: "터치더월드 | 교육여행 전문" }],
+  },
 };
 
 const SOURCES = {
