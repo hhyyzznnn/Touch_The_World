@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     type: "website",
     images: [
-      { url: "/images/og_image2.png", width: 1376, height: 768, alt: "터치더월드 | 교육여행 전문" },
+      { url: "/images/og_image3.png", width: 1376, height: 768, alt: "터치더월드 | 교육여행 전문" },
       { url: "/images/og_image_1x1.png", width: 1024, height: 1024, alt: "터치더월드 | 교육여행 전문" },
     ],
   },
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SEO_TITLE,
     description: SEO_DESCRIPTION,
-    images: ["/images/og_image2.png"],
+    images: ["/images/og_image3.png"],
   },
 };
 
