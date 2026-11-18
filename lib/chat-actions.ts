@@ -3,7 +3,7 @@
 import { prisma } from "./prisma";
 import { Resend } from "resend";
 import { sendConsultingCompleteAlimtalk } from "./kakao-alimtalk";
-import { COMPANY_INFO } from "./constants";
+import { getAdminRecipients } from "./email";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -133,8 +133,8 @@ export async function sendConsultingSummaryEmail(summary: ConsultingSummary) {
       return { success: true, skipped: true };
     }
 
-    const adminEmail =
-      process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL || COMPANY_INFO.email;
+    // 문의 폼 알림과 같은 수신자(ADMIN_EMAIL + ADMIN_CC_EMAILS). 예전엔 ADMIN_CC_EMAILS가 빠져 담당자가 리드 메일을 못 받았다.
+    const adminEmail = getAdminRecipients();
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const adminConsultingUrl = `${baseUrl}/admin`;
     const adminInquiriesUrl = `${baseUrl}/admin/inquiries`;
