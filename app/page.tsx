@@ -3,11 +3,11 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { List, ChevronRight } from "lucide-react";
+import { InquiryDropdownButton } from "@/components/inquiry/InquiryDropdownButton";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
 import { getEventThumbnailUrl, getEventThumbnailPosition } from "@/lib/event-utils";
-import { FamilyCards } from "@/components/FamilyLinks";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
@@ -153,7 +153,7 @@ export default async function HomePage() {
       )}
 
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-b from-brand-green/5 to-white pt-8 pb-6 sm:pt-10 sm:pb-8 md:pt-12 md:pb-8">
+      <section className="bg-gradient-to-b from-brand-green/5 to-white py-12 sm:py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 sm:space-y-6 max-w-4xl mx-auto">
             <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-medium tracking-wide mb-2 sm:mb-4">
@@ -165,8 +165,8 @@ export default async function HomePage() {
               <span className="block">프리미엄 교육여행 파트너</span>
             </p>
             <p className="text-sm sm:text-base md:text-lg text-text-gray leading-relaxed">
-              <span className="block md:inline">교육자의 시간을 절약하고,</span>{" "}
-              <span className="block md:inline">학습자의 세계를 확장합니다.</span>
+              <span className="block">교육자의 시간을 절약하고,</span>
+              <span className="block">학습자의 세계를 확장합니다.</span>
             </p>
 
             <div className="pt-4 sm:pt-6">
@@ -175,36 +175,33 @@ export default async function HomePage() {
               </Suspense>
             </div>
 
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center pt-4 sm:pt-6">
+              <Button
+                asChild
+                size="lg"
+                className="bg-brand-green-primary hover:bg-brand-green-primary/90 hover:scale-[1.02] text-white px-6 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl shadow-sm transition-all duration-200 min-h-11"
+              >
+                <Link href="/programs" className="flex items-center justify-center gap-2 sm:gap-3">
+                  <List className="w-4 h-4 sm:w-5 sm:h-5" />
+                  전체 프로그램
+                </Link>
+              </Button>
+              <InquiryDropdownButton />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 프로그램 8개 분야(사진) — 첫 화면 바로 아래에서 "이런 일을 합니다"를 한눈에. 예전 카드뉴스 자리(2026-11-19) ── */}
-      <section className="pt-6 pb-10 sm:pt-8 sm:pb-16 bg-gray-50">
+      {/* ── 프로그램 8개 분야 — 첫 화면 바로 아래(예전 카드뉴스 자리, 2026-11-20) ── */}
+      <section className="py-10 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-5 sm:mb-8">
+          <div className="text-center mb-6 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
               어떤 프로그램이 필요하신가요?
             </h2>
             <p className="mt-2 text-sm text-text-gray">프로그램을 선택하면 맞춤 견적을 받을 수 있습니다</p>
           </div>
           <CategoryGrid />
-          {/* 제휴 프로그램(아소·야나기가우라·하나투어)도 "이런 일을 합니다"의 일부라 8개 분야 바로 아래에 둔다 */}
-          <div className="mx-auto mt-8 max-w-3xl sm:mt-10">
-            <FamilyCards />
-          </div>
-          <div className="mt-6 text-center sm:mt-8">
-            <Button
-              asChild
-              size="lg"
-              className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 text-sm sm:text-base rounded-xl shadow-sm min-h-11"
-            >
-              <Link href="/programs" className="inline-flex items-center justify-center gap-2">
-                <List className="w-4 h-4 sm:w-5 sm:h-5" />
-                전체 프로그램 보기
-              </Link>
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -217,7 +214,7 @@ export default async function HomePage() {
       {/* ── 회사 소식 ── */}
       <NewsTicker items={newsTickerItems} />
 
-      {/* ── 카드뉴스 (영상 첫 칸 통합) — 예전 8개 분야 자리로 내림(2026-11-19) ── */}
+      {/* ── 카드뉴스 (영상 첫 칸 통합) — 예전 8개 분야 자리(2026-11-20) ── */}
       {(cardNewsItems.length > 0 || SHORTS_VIDEOS.length > 0) && (
         <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
