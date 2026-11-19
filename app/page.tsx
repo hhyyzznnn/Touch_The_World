@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Shield, Lightbulb, Settings, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { List, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Image from "next/image";
 import { getEventThumbnailUrl, getEventThumbnailPosition } from "@/lib/event-utils";
-import { COMPANY_INFO } from "@/lib/constants";
+import { FamilyCards } from "@/components/FamilyLinks";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { getCategoryDisplayName } from "@/lib/category-utils";
@@ -19,8 +20,6 @@ import { SHORTS_VIDEOS, getYouTubeVideoId, getYouTubeShortsUrl } from "@/lib/sho
 import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
-import { CategoryQuickNav } from "@/components/home/CategoryQuickNav";
-import { FamilyCards } from "@/components/FamilyLinks";
 import { HomeNoticeBar } from "@/components/home/HomeNoticeBar";
 import { HomePopup } from "@/components/home/HomePopup";
 import { MembershipBanner } from "@/components/home/MembershipBanner";
@@ -180,13 +179,51 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── 새로 올라온 프로그램(카드뉴스, 영상 첫 칸 통합) — A안: 첫 화면 바로 아래로 올림 ── */}
+      {/* ── 프로그램 8개 분야(사진) — 첫 화면 바로 아래에서 "이런 일을 합니다"를 한눈에. 예전 카드뉴스 자리(2026-11-19) ── */}
+      <section className="pt-6 pb-10 sm:pt-8 sm:pb-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-5 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
+              어떤 프로그램이 필요하신가요?
+            </h2>
+            <p className="mt-2 text-sm text-text-gray">프로그램을 선택하면 맞춤 견적을 받을 수 있습니다</p>
+          </div>
+          <CategoryGrid />
+          {/* 제휴 프로그램(아소·야나기가우라·하나투어)도 "이런 일을 합니다"의 일부라 8개 분야 바로 아래에 둔다 */}
+          <div className="mx-auto mt-8 max-w-3xl sm:mt-10">
+            <FamilyCards />
+          </div>
+          <div className="mt-6 text-center sm:mt-8">
+            <Button
+              asChild
+              size="lg"
+              className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white px-6 sm:px-8 text-sm sm:text-base rounded-xl shadow-sm min-h-11"
+            >
+              <Link href="/programs" className="inline-flex items-center justify-center gap-2">
+                <List className="w-4 h-4 sm:w-5 sm:h-5" />
+                전체 프로그램 보기
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 교사 멤버십 안내 ── */}
+      <MembershipBanner />
+
+      {/* ── Stats (숫자 애니메이션) ── */}
+      <StatsSection programCount={programCount} />
+
+      {/* ── 회사 소식 ── */}
+      <NewsTicker items={newsTickerItems} />
+
+      {/* ── 카드뉴스 (영상 첫 칸 통합) — 예전 8개 분야 자리로 내림(2026-11-19) ── */}
       {(cardNewsItems.length > 0 || SHORTS_VIDEOS.length > 0) && (
-        <section className="pt-2 pb-10 sm:pb-14 bg-white border-b border-gray-100">
+        <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex items-start justify-between mb-5 sm:mb-8">
               <div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">새로 올라온 프로그램</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">카드뉴스</h2>
                 <p className="mt-1 text-xs sm:text-sm text-text-gray">최신 교육여행 트렌드와 프로그램을 미리 확인하세요</p>
               </div>
               <Link
@@ -290,103 +327,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* ── 교사 멤버십 안내 ── */}
-      <MembershipBanner />
-
-      {/* ── Stats (숫자 애니메이션) ── */}
-      <StatsSection programCount={programCount} />
-
-      {/* ── 회사 소식 ── */}
-      <NewsTicker items={newsTickerItems} />
-
-      {/* ── SEO 소개 ── */}
-      <section className="py-8 sm:py-10 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto text-center">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark mb-4">
-              교육여행·수학여행·교사연수·해외연수 전문, 터치더월드
-            </h2>
-            <p className="mx-auto max-w-4xl text-sm sm:text-base text-text-gray leading-relaxed break-keep">
-              터치더월드(Touch The World, touchtheworld)는 학교와 지자체의 교육 목표에 맞춰{" "}
-              <br className="hidden sm:block" />
-              체험학습, 수학여행, 교사연수, 해외연수를 설계·운영하는 교육여행 전문 여행사입니다.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 프로그램 유형 ── */}
-      <section className="py-10 sm:py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-6 sm:mb-12">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
-              어떤 프로그램이 필요하신가요?
-            </h2>
-            <p className="mt-2 text-sm text-text-gray">프로그램을 선택하면 맞춤 견적을 받을 수 있습니다</p>
-          </div>
-          {/* 8개 분야 바로가기 — A안에서 첫 화면 대신 이 자리로 옮김 */}
-          <div className="mb-6 sm:mb-10">
-            <CategoryQuickNav />
-          </div>
-          <CategoryGrid />
-          <div className="mx-auto mt-8 max-w-3xl sm:mt-12">
-            <FamilyCards />
-          </div>
-        </div>
-      </section>
-
-      {/* ── 핵심 가치 ── */}
-      <section className="py-10 sm:py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto mb-6 sm:mb-10">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm">
-              <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
-                {COMPANY_INFO.founded} 설립
-              </span>
-              <span className="inline-flex items-center rounded-full border border-brand-green/20 bg-brand-green/5 px-3 py-1 text-text-dark">
-                학교·지자체 특화
-              </span>
-              <Link
-                href="/achievements"
-                className="inline-flex items-center rounded-full border border-brand-green/30 bg-white px-3 py-1 text-brand-green-primary hover:bg-brand-green/5 transition-colors"
-              >
-                실적 보기
-                <ChevronRight className="w-3 h-3 ml-0.5" />
-              </Link>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8">
-            {[
-              {
-                icon: Shield,
-                title: "안전 최우선",
-                desc: "사전 답사와 안전 점검을 바탕으로 참가자 전원의 안전을 최우선으로 운영합니다.",
-              },
-              {
-                icon: Lightbulb,
-                title: "교육 목표 지향",
-                desc: "학교의 교육 목표에 맞춰 현장 중심의 맞춤형 프로그램을 설계합니다.",
-              },
-              {
-                icon: Settings,
-                title: "운영 전문성",
-                desc: "기획부터 인솔, 사후 정리까지 전 과정을 체계적으로 관리합니다.",
-              },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="text-center p-4 sm:p-8">
-                <div className="w-14 h-14 sm:w-20 sm:h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6">
-                  <Icon className="w-7 h-7 sm:w-10 sm:h-10 text-brand-green-primary" />
-                </div>
-                <h3 className="text-lg sm:text-2xl font-medium text-text-dark mb-2 sm:mb-4">{title}</h3>
-                <p className="mx-auto max-w-[30ch] break-keep text-text-gray text-sm sm:text-base leading-relaxed">
-                  {desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── 함께한 학교들 ── */}
       <section className="py-10 sm:py-14 bg-gray-50 border-t border-gray-100">

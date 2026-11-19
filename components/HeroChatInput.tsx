@@ -7,7 +7,6 @@ import { Send, X } from "lucide-react";
 import { CategoryButtons, ChatMessages } from "@/components/chat/ChatMessages";
 import { useChatSession } from "@/components/chat/useChatSession";
 import { isEnded, parseEndDate } from "@/lib/news-utils";
-import { ServiceTiles } from "@/components/home/ServiceTiles";
 
 interface HeroChatInputProps {
   initialCategory?: string;
@@ -185,9 +184,6 @@ export function HeroChatInput({ initialCategory }: HeroChatInputProps) {
                 {item.label}
               </Link>
             ))}
-          </div>
-          <div className="mt-5">
-            <ServiceTiles />
           </div>
         </div>
       )}
