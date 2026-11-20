@@ -44,7 +44,7 @@ async function getStats() {
         },
       }).catch(() => 0),
       prisma.event.count().catch(() => 0),
-      prisma.inquiry.count({ where: { status: "pending" } }).catch(() => 0),
+      prisma.inquiry.count({ where: { status: "pending", archivedAt: null } }).catch(() => 0),
       prisma.document.count().catch(() => 0),
       prisma.event
         .count({
@@ -132,6 +132,7 @@ async function getMonthlyStats() {
         }).catch(() => 0),
         prisma.inquiry.count({
           where: {
+            archivedAt: null,
             createdAt: {
               gte: monthStart,
               lte: monthEnd,

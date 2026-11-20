@@ -20,25 +20,27 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentInquiry, setCurrentInquiry] = useState(inquiry);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const isArchived = Boolean(currentInquiry.archivedAt);
 
-  const handleDelete = async () => {
-    if (!confirm(`"${currentInquiry.schoolName}" 문의를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
-    setIsDeleting(true);
+  // "삭제"는 실제로 지우지 않고 보관함으로 옮긴다. 보관함에서는 "되돌리기"로 다시 목록에 올린다.
+  const handleArchiveToggle = async () => {
+    if (!isArchived && !confirm(`"${currentInquiry.schoolName}" 문의를 보관함으로 옮길까요?\n보관함에서 언제든 되돌릴 수 있습니다.`)) return;
+    setIsArchiving(true);
     try {
-      const response = await fetch(`/api/admin/inquiries/${currentInquiry.id}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(`/api/admin/inquiries/${currentInquiry.id}`, isArchived
+        ? { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ archived: false }) }
+        : { method: "DELETE" });
       if (response.ok) {
-        toast.success("문의가 삭제되었습니다.");
+        toast.success(isArchived ? "문의를 목록으로 되돌렸습니다." : "보관함으로 옮겼습니다.");
         router.refresh();
       } else {
-        toast.error("삭제에 실패했습니다.");
+        toast.error(isArchived ? "되돌리지 못했습니다." : "보관하지 못했습니다.");
       }
     } catch {
-      toast.error("삭제에 실패했습니다.");
+      toast.error(isArchived ? "되돌리지 못했습니다." : "보관하지 못했습니다.");
     } finally {
-      setIsDeleting(false);
+      setIsArchiving(false);
     }
   };
 
@@ -118,11 +120,11 @@ export function InquiryActions({ inquiry }: InquiryActionsProps) {
           type="button"
           size="sm"
           variant="outline"
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="text-red-500 hover:text-red-700 hover:border-red-300"
+          onClick={handleArchiveToggle}
+          disabled={isArchiving}
+          className={isArchived ? "text-brand-green-primary" : "text-gray-500 hover:text-gray-700"}
         >
-          {isDeleting ? "삭제 중..." : "삭제"}
+          {isArchiving ? "처리 중..." : isArchived ? "되돌리기" : "보관"}
         </Button>
       </div>
       <InquiryDetailModal

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { saveConsultingLog, sendConsultingSummaryEmail } from "@/lib/chat-actions";
+import { shouldAskForContact, withContactNudge } from "@/lib/chat-contact-nudge";
 import { buildChatKnowledge } from "@/lib/chat-knowledge";
 import { appendMissingSourceLinks, stripMarkdown } from "@/lib/chat-text";
 import { maybeCreateInquiryFromConsultingLog } from "@/lib/inquiry-conversion";
@@ -114,6 +115,7 @@ const getSystemPrompt = (knowledgeBlock: string, landingCategory?: string): stri
     "",
     "[상담 접수]",
     "- 견적·상담을 원하면 먼저 알맞은 프로그램이나 다음 단계를 짧게 안내하고, 담당자가 연락드릴 수 있게 성함과 연락처(전화 또는 이메일)를 자연스럽게 한 번 요청하세요.",
+    "- 학년·인원·일정처럼 견적에 필요한 내용을 들었는데 연락처가 아직 없으면, 일정 초안을 보여 준 뒤 그 답변 끝에 연락처를 한 번 요청하세요.",
     "- 상대가 연락처를 남기면 saveConsultingLog를 호출해 상담을 접수하세요. 연락처 없이 대화를 마치겠다고 하면 그때도 호출해 내용만 저장하세요.",
     "",
     `회사: 주식회사 터치더월드 / 대표전화 1800-8078 / 프로그램 분류: ${PROGRAM_CATEGORIES.map((c) => c.name).join(", ")}`,
@@ -629,9 +631,22 @@ export async function POST(request: NextRequest) {
     }
 
     // 일반 응답
-    const responseContent = appendMissingSourceLinks(
+    const baseContent = appendMissingSourceLinks(
       stripMarkdown(assistantMessage.content || "죄송합니다. 응답을 생성할 수 없습니다."),
       knowledge.sources
+    );
+    // 인원·일정 등을 들었는데 연락처가 아직 없으면 답변 끝에 연락처 요청을 한 번 붙인다(lib/chat-contact-nudge.ts)
+    const hasContact = Boolean(
+      inferredContact.contactPhone || inferredContact.contactEmail || currentUser?.phone || currentUser?.email
+    );
+    const responseContent = withContactNudge(
+      baseContent,
+      shouldAskForContact({
+        messages: effectiveMessages,
+        assistantContent: baseContent,
+        hasContact,
+        leadSignals: countLeadSignals(extractFallbackLeadDetails(effectiveMessages, landingCategory)),
+      })
     );
 
     void maybeAutoCaptureLead({

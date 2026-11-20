@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const pendingInquiries = await prisma.inquiry.findMany({
       where: {
         status: "pending",
+        archivedAt: null,
         createdAt: {
           gte: sevenDaysAgo,
         },

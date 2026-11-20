@@ -167,6 +167,7 @@ model Inquiry {
   attribution       Json?    // 유입 경로 { first, last } — lib/attribution.ts
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  archivedAt        DateTime? // 관리자가 "삭제"하면 지우지 않고 보관함으로 옮긴 시각 (2026-11-20)
 
   user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   consultingLog     ConsultingLog? @relation("ConsultingLogInquiry", fields: [consultingLogId], references: [id], onDelete: SetNull)
@@ -181,6 +182,7 @@ model Inquiry {
   @@unique([consultingLogId])
   @@index([status])
   @@index([createdAt])
+  @@index([archivedAt])
   @@index([departureDate])
 }
 

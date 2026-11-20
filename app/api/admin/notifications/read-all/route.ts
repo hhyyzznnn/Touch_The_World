@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest) {
 
     const [inquiries, events] = await Promise.all([
       prisma.inquiry.findMany({
-        where: { status: "pending", createdAt: { gte: sevenDaysAgo } },
+        where: { status: "pending", archivedAt: null, createdAt: { gte: sevenDaysAgo } },
         select: { id: true },
       }),
       prisma.event.findMany({

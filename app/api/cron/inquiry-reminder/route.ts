@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         status: "pending",
         createdAt: { lt: cutoff },
         reminderSentAt: null,
+        archivedAt: null,
       },
       select: {
         id: true,

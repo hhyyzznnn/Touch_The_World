@@ -32,6 +32,7 @@ type SearchParams = {
   q?: string;
   dateFrom?: string;
   dateTo?: string;
+  archived?: string; // "1"이면 보관함 보기
 };
 
 function buildWhere(
@@ -41,8 +42,10 @@ function buildWhere(
   q?: string,
   dateFrom?: string,
   dateTo?: string,
+  archived?: boolean,
 ): Prisma.InquiryWhereInput | undefined {
-  const conditions: Prisma.InquiryWhereInput[] = [];
+  // 기본 목록은 보관하지 않은 문의만, 보관함 보기는 보관한 문의만
+  const conditions: Prisma.InquiryWhereInput[] = [archived ? { archivedAt: { not: null } } : { archivedAt: null }];
 
   if (status && INQUIRY_STATUS_VALUES.includes(status as never)) {
     conditions.push({ status });
@@ -80,12 +83,12 @@ function buildWhere(
     conditions.push({ createdAt });
   }
 
-  return conditions.length > 0 ? { AND: conditions } : undefined;
+  return { AND: conditions };
 }
 
 async function getInquiries(params: SearchParams) {
   const page = params.page ? parseInt(params.page, 10) : 1;
-  const where = buildWhere(params.status, params.destType, params.level, params.q, params.dateFrom, params.dateTo);
+  const where = buildWhere(params.status, params.destType, params.level, params.q, params.dateFrom, params.dateTo, params.archived === "1");
   const orderBy = { createdAt: params.sort === "asc" ? ("asc" as const) : ("desc" as const) };
   const skip = (page - 1) * ITEMS_PER_PAGE;
 
@@ -98,13 +101,17 @@ async function getInquiries(params: SearchParams) {
 }
 
 async function getStatusCounts() {
-  const counts = await prisma.inquiry.groupBy({
-    by: ["status"],
-    _count: { _all: true },
-  });
+  const [counts, archived] = await Promise.all([
+    prisma.inquiry.groupBy({
+      by: ["status"],
+      where: { archivedAt: null },
+      _count: { _all: true },
+    }),
+    prisma.inquiry.count({ where: { archivedAt: { not: null } } }),
+  ]);
   const map: Record<string, number> = {};
   for (const row of counts) map[row.status] = row._count._all;
-  return map;
+  return { map, archived };
 }
 
 function buildFilterUrl(base: SearchParams, overrides: Partial<SearchParams>) {
@@ -128,7 +135,8 @@ export default async function AdminInquiriesPage({
   const activeLevel = params.level ?? "";
   const activeSort = params.sort ?? "desc";
 
-  const [{ inquiries, total, totalPages }, statusCounts] = await Promise.all([
+  const isArchiveView = params.archived === "1";
+  const [{ inquiries, total, totalPages }, { map: statusCounts, archived: archivedCount }] = await Promise.all([
     getInquiries(params),
     getStatusCounts(),
   ]);
@@ -167,7 +175,7 @@ export default async function AdminInquiriesPage({
       {/* 상태 필터 탭 */}
       <div className="flex flex-wrap gap-2 mb-4">
         {filterTabs.map((tab) => {
-          const isActive = activeStatus === tab.value;
+          const isActive = !isArchiveView && activeStatus === tab.value;
           return (
             <Button
               key={tab.value}
@@ -176,7 +184,7 @@ export default async function AdminInquiriesPage({
               variant={isActive ? "default" : "outline"}
               className={isActive ? "bg-brand-green-primary hover:bg-brand-green-primary/90" : ""}
             >
-              <Link href={buildFilterUrl(params, { status: tab.value })}>
+              <Link href={buildFilterUrl(params, { status: tab.value, archived: undefined })}>
                 {tab.label}
                 <span className={`ml-1.5 text-xs ${isActive ? "text-white/80" : "text-gray-400"}`}>
                   {tab.count}
@@ -185,7 +193,21 @@ export default async function AdminInquiriesPage({
             </Button>
           );
         })}
+        <Button
+          asChild
+          size="sm"
+          variant={isArchiveView ? "default" : "outline"}
+          className={isArchiveView ? "bg-gray-700 hover:bg-gray-700/90" : "text-gray-500"}
+        >
+          <Link href={buildFilterUrl(params, { archived: "1", status: undefined })}>
+            보관함
+            <span className={`ml-1.5 text-xs ${isArchiveView ? "text-white/80" : "text-gray-400"}`}>{archivedCount}</span>
+          </Link>
+        </Button>
       </div>
+      {isArchiveView && (
+        <p className="-mt-2 mb-4 text-xs text-gray-500">보관한 문의입니다. 알림·대시보드 숫자에서는 빠지고, &quot;되돌리기&quot;를 누르면 다시 목록에 나타납니다.</p>
+      )}
 
       {/* 2차 필터 — 목적지 유형 / 학교급 / 정렬 */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-sm">

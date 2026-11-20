@@ -36,6 +36,7 @@ export interface Inquiry {
   status: InquiryStatus;
   createdAt: Date;
   updatedAt: Date;
+  archivedAt?: Date | null; // 보관함으로 옮긴 시각 (null이면 목록에 보임)
 }
 
 // User Stats 타입

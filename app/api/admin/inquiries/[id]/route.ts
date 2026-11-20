@@ -13,12 +13,13 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    await prisma.inquiry.delete({ where: { id } });
-    return NextResponse.json({ success: true });
+    // 실수로 지워도 되돌릴 수 있도록 실제로 지우지 않고 보관함으로 옮긴다 (2026-11-20).
+    await prisma.inquiry.update({ where: { id }, data: { archivedAt: new Date() } });
+    return NextResponse.json({ success: true, archived: true });
   } catch (error) {
     console.error("Inquiry delete error:", error);
     return NextResponse.json(
-      { error: "문의 삭제에 실패했습니다." },
+      { error: "문의를 보관함으로 옮기지 못했습니다." },
       { status: 500 }
     );
   }
@@ -71,6 +72,12 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const { status } = body;
+
+    // 보관함에서 되돌리기: { archived: false }
+    if (body.archived === false) {
+      const restored = await prisma.inquiry.update({ where: { id }, data: { archivedAt: null } });
+      return NextResponse.json({ success: true, inquiry: restored });
+    }
 
     if (!status || !isValidInquiryStatus(status)) {
       return NextResponse.json(

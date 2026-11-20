@@ -40,6 +40,7 @@ async function getCalendarItems(gridStart: Date, gridEnd: Date, admin: boolean):
       where: {
         departureDate: { not: null, lte: gridEnd },
         linkedEventId: null,
+        archivedAt: null,
         OR: [{ returnDate: { gte: gridStart } }, { returnDate: null, departureDate: { gte: gridStart } }],
       },
       orderBy: { departureDate: "asc" },
