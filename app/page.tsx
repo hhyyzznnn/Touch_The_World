@@ -16,8 +16,6 @@ import { NewsTicker } from "@/components/NewsTicker";
 import { B2B_KEYWORDS, BRAND_KEYWORDS, CORE_TRAVEL_KEYWORDS, mergeKeywords } from "@/lib/seo";
 import { SchoolLogoMarquee } from "@/components/home/SchoolLogoMarquee";
 import { StatsSection } from "@/components/home/StatsSection";
-import { SHORTS_VIDEOS, getYouTubeVideoId, getYouTubeShortsUrl } from "@/lib/shorts-videos";
-import { LazyYouTubeEmbed } from "@/components/home/LazyYouTubeEmbed";
 import { isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CardNewsLink } from "@/components/home/CardNewsLink";
 import { HomeNoticeBar } from "@/components/home/HomeNoticeBar";
@@ -193,7 +191,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── 프로그램 8개 분야 — 첫 화면 바로 아래(예전 카드뉴스 자리, 2026-11-20) ── */}
-      <section className="py-10 sm:py-16 bg-gray-50">
+      <section className="pt-0 pb-10 sm:pb-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-6 sm:mb-12">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-medium text-text-dark">
@@ -214,8 +212,8 @@ export default async function HomePage() {
       {/* ── 회사 소식 ── */}
       <NewsTicker items={newsTickerItems} />
 
-      {/* ── 카드뉴스 (영상 첫 칸 통합) — 예전 8개 분야 자리(2026-11-20) ── */}
-      {(cardNewsItems.length > 0 || SHORTS_VIDEOS.length > 0) && (
+      {/* ── 카드뉴스 — 예전 8개 분야 자리(2026-11-20), 맨 앞 쇼츠 영상 칸은 2026-11-21 제거 ── */}
+      {cardNewsItems.length > 0 && (
         <section className="py-10 sm:py-14 bg-white border-b border-gray-100">
           <div className="container mx-auto px-4">
             <div className="flex items-start justify-between mb-5 sm:mb-8">
@@ -235,29 +233,6 @@ export default async function HomePage() {
             <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 scroll-px-4 [touch-action:pan-x] overscroll-x-contain [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-1rem),transparent)] lg:overflow-visible lg:mx-0 lg:px-0 lg:[mask-image:none]">
                 <div className="flex snap-x snap-mandatory flex-nowrap items-start gap-3 lg:gap-5 pb-2 lg:grid lg:grid-cols-4 lg:pb-0">
 
-              {/* 유튜브 쇼츠 — 첫 번째 칸 (9:16, 자동 재생, 클릭 시 유튜브로 이동) */}
-              {SHORTS_VIDEOS[0] && (() => {
-                const video = SHORTS_VIDEOS[0];
-                const videoId = getYouTubeVideoId(video.youtubeUrl);
-                return (
-                  <CardNewsLink
-                    key="shorts-video"
-                    href={getYouTubeShortsUrl(video.youtubeUrl)}
-                    title={video.title}
-                    isExternal
-                    className="snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto group relative block aspect-[9/16] overflow-hidden rounded-xl bg-gray-900 border border-gray-200 hover:shadow-md transition-shadow"
-                  >
-                    {videoId && (
-                      <LazyYouTubeEmbed videoId={videoId} title={video.title} className="absolute inset-0" />
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
-                    <p className="absolute inset-x-0 bottom-3 px-3 text-white text-sm font-medium line-clamp-2 leading-snug">
-                      {video.title}
-                    </p>
-                  </CardNewsLink>
-                );
-              })()}
-
               {cardNewsItems.map((item, cardIndex) => {
                 const href = item.link?.trim() || `/news/${item.id}`;
                 const isExternal = !!item.link?.trim()?.startsWith("http");
@@ -273,7 +248,7 @@ export default async function HomePage() {
                     href={href}
                     title={item.title}
                     isExternal={isExternal}
-                    className={`snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto aspect-[9/16] flex flex-col group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow${cardIndex === 3 ? " lg:hidden" : ""}`}
+                    className={`snap-start flex-shrink-0 w-[calc(50vw-2rem)] sm:w-[calc(33vw-1rem)] md:w-[calc(25vw-1rem)] lg:w-auto aspect-[9/16] flex flex-col group overflow-hidden rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow`}
                   >
                     <div className="relative flex-1 bg-gray-50 min-h-0">
                       {item.imageUrl ? (
