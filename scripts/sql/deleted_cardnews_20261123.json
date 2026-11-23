@@ -1,0 +1,175 @@
+{
+  "note": "2026-11-23 겹치는 카드뉴스 5건 삭제 전 원본. 복구 시 이 값으로 CompanyNews에 다시 넣고 middleware.ts의 이동 항목을 지울 것.",
+  "rows": [
+    {
+      "id": "cardnews_japan_study_strategic_choice_2026",
+      "type": "PROGRAM_CARD_NEWS",
+      "categories": [
+        "일본 유학"
+      ],
+      "title": "일본 유학·어학연수 전략적 선택 — AI 시대, 왜 지금 일본인가",
+      "summary": "엔저 시대 + 명문대 진학, 최고의 타이밍. 후쿠오카·아소전문학교그룹과 함께하는 일본 유학 핵심 요약입니다.",
+      "content": "## 일본 유학, 어학연수 대충 가지 마세요\n\n인생이 달라지는 전략적 선택 — 4가지 핵심 질문\n\n1. AI 시대, 왜 일본인가\n2. 왜 후쿠오카인가\n3. 왜 아소전문학교그룹인가\n4. 왜 터치더월드인가\n\n## PART 1 — AI 시대, 왜 지금 일본인가\n\n- 세계 3위 경제 대국\n- 로봇·기초과학 세계 최고\n- 박사까지 가능한 유일한 나라\n\n## 엔저 시대 + 명문대 = 최고의 타이밍\n\n- 미국·영국 대비 유학 비용 30~50% 절감\n- 도쿄대·교토대 등 아시아 최상위권 진학 가능\n- 취업률 150%, 스타트업 개척자가 되세요\n\n## PART 2 — 왜 후쿠오카인가\n\n- 한국에서 단 1시간, 후쿠오카 공항 → 시내 3분\n- 도쿄 대비 주거비 30~40% 절감\n- 안전하고 편리한 유학생 맞춤 도시\n\n지금 바로 1:1 상담을 신청하세요.\n\n문의: 터치더월드 1800-8078 | pjttw@naver.com",
+      "imageUrl": "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU6IbCCA8Ki6lvEAzSPyNtsMBx8dZ1fnhcp2g4",
+      "imageUrls": [
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU6IbCCA8Ki6lvEAzSPyNtsMBx8dZ1fnhcp2g4",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUorhPDRJaQEnRI6cKGiuSJO0MCP9lHe3s7LF2",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUA7bb6Yvpklq6Lh0DeGfR4xcS5EA2m1sVTQ7N",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUgJchsuVXJUlt9KLoPkdygb370m1TYGDOHecs",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUmlkP5wWVlRfzJYOHE5SByLtIgToQP6FxsZhk",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUhJLrCJaLkNMi0neZEwOQsfG7rDvx5BKbaFlg",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU8GYxsikvWPxgtROoySe7wrziGIMcaqHk6sLB",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoULH0DlBjtWT9kdC5A7mlgBvzQ6GDahr3Lyn2U",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU7nOJDEjdNFgObmhVnIuGCSqcij56QpZzA4Mt",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUZiiKSnb1lfBSWUbzQmR7gGvJVsNTPeHuy406"
+      ],
+      "hashtags": [
+        "#일본",
+        "#고등",
+        "#특성화고",
+        "#일본유학"
+      ],
+      "seasons": [],
+      "link": null,
+      "isPinned": false,
+      "endDate": null,
+      "createdAt": "2026-07-23T10:41:42.000Z",
+      "updatedAt": "2026-11-07T05:32:27.507Z"
+    },
+    {
+      "id": "cardnews_overseas_employment_study_abroad",
+      "type": "PROGRAM_CARD_NEWS",
+      "categories": [
+        "일본 유학"
+      ],
+      "title": "2026 해외취업·유학 프로그램",
+      "summary": "해외 진학과 취업을 꿈꾸는 학생을 위해 진로 설계부터 현지 연계와 정착 지원까지 함께하는 프로그램입니다. 일본·싱가포르 등 현지 학교·기업과의 협력을 통해 체계적인 진로 로드맵을 제시합니다. 단기 체험부터 장기 유학까지 학생 목표에 맞는 과정을 선택할 수 있습니다.",
+      "content": "해외취업·유학 프로그램은 경험이 아니라 미래를 설계하는 진로 프로그램입니다.\n\n글로벌 인재 수요는 증가하지만 국내 취업 시장의 한계, 정보 부족, 언어 적응 부담, 불확실한 진로 때문에 학생과 학교는 구체적인 경로를 필요로 합니다.\n\n터치더월드는 28년 글로벌 교육 네트워크, 일본·영어권 해외 진출 특화, 학교·기관과의 직접 연계 시스템을 기반으로 학생 맞춤 진학·취업 경로를 설계합니다.\n\n일본 전문학교 및 대학 진학 지원, 입학 준비부터 현지 적응까지의 밀착 관리, 현지 기업과의 직무 교육 및 취업 연계, 취업 이후 정착 지원까지 단계별로 운영합니다.",
+      "imageUrl": "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUmdMxhMWVlRfzJYOHE5SByLtIgToQP6FxsZhk",
+      "imageUrls": [
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUmdMxhMWVlRfzJYOHE5SByLtIgToQP6FxsZhk",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUumLAA5gqzJ9N6fjU7l1CMe4g83KvWERPTZox",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUk310Gjr7bST6wKN7BFrCA8PlOnQYXtGdVWhv",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUUPESEo60Pc7ZASpuNrlm6DkfMobB984w35eK",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUF255dQwgfawsy2XEATGp9mPCWbIe37dhq0n5",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU4eh5Puq7M1YQuaXdvgnmWLRxepATf9wIqbo4",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUFU6jq8wgfawsy2XEATGp9mPCWbIe37dhq0n5",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUjjxW50cBK8DaS6t3R29uH7U0qEZhrgAdocLY",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUQIM6OXsbAgdxsk6pRLel1vjPhUQ3NrwfaSXy",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUQlNDBUsbAgdxsk6pRLel1vjPhUQ3NrwfaSXy"
+      ],
+      "hashtags": [
+        "#일본",
+        "#고등",
+        "#특성화고",
+        "#해외취업"
+      ],
+      "seasons": [],
+      "link": "",
+      "isPinned": false,
+      "endDate": null,
+      "createdAt": "2026-03-28T01:39:15.590Z",
+      "updatedAt": "2026-11-07T05:32:25.269Z"
+    },
+    {
+      "id": "cardnews_specialized_highschool_dx_future_2026",
+      "type": "PROGRAM_CARD_NEWS",
+      "categories": [
+        "특성화고 프로그램"
+      ],
+      "title": "2026-27 특성화고 미래형 교육여행 — 학교는 안심하고, 학생은 성장하는",
+      "summary": "진로 탐색·전공 심화·미래 준비를 하나의 여행으로. DX·AI 시대에 맞춘 특성화고 교육여행 3대 핵심 방향을 소개합니다.",
+      "content": "## 학교는 안심하고, 학생은 성장하는\n\n2026-27 특성화고 미래형 교육여행 완전 가이드 — 진로 탐색·전공 심화·미래 준비를 하나의 여행으로.\n\n- 15년 전문 경력\n- 협력학교 450+\n- 안전만족도 98%\n\n## 왜 지금, 특성화고 교육여행인가\n\n- **진로 탐색**: 실제 직업 세계를 경험하고 적성을 발견하는 기회\n- **전공 심화**: 학교 이론을 현장에서 직접 확인하고 적용\n- **미래 준비**: 4차 산업혁명 시대 핵심 역량과 마인드 함양\n\n> 2026-27년은 DX·AI 기술이 모든 산업에 본격 적용되는 원년입니다.\n\n## 2026-27 교육여행 3대 핵심 방향\n\n1. **미래 산업 연계** — AI·빅데이터·스마트 제조·그린에너지 등 신산업 직접 체험\n2. **교육과정 직접 연결** — 전공 교과목 연계 현장실습, 사전-본활동-사후 유기적 구성, PBL 연계\n3. **안전·예산·성과 통합 관리** — 24시간 모니터링, 투명한 예산 집행, 학습성과 측정 도구, 보험 완비\n\n## (주)터치더월드 소개\n\n- 안전관리 만족도 98%, 협력 학교 450+, 전문 경력 15년\n- 1:1 맞춤 기획 / 전국 네트워크 / 24시간 안전 관리 / 사후 관리\n- 국내외 수학여행, 체험학습·수련활동, 해외 취업·유학 연계, 전공 실무체험, 리더십·인성 교육, 교사 연수, DX·AI 교육\n\n## 학교 맞춤형 교육여행, 지금 바로 상담하세요\n\n15년 이상 전문 경험 · 전국 450개 학교 협력 노하우 · 기획부터 사후관리까지 원스톱 서비스\n(초기상담 → 맞춤제안 → 계약·준비 → 실행·평가)\n\n지금 상담 신청 시 조기 예약 할인 + 무료 사전 답사 기회 제공\n\n문의: 1800-8078 (평일 09:00~18:00) | pjttw@naver.com | www.touchtheworld.co.kr",
+      "imageUrl": "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoURa9pubmuL4UEYHXyDAqQtaoOgSnmcFJlGTkj",
+      "imageUrls": [
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoURa9pubmuL4UEYHXyDAqQtaoOgSnmcFJlGTkj",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUCtPFj9A4iNT9WZywgO2XQDevaCVxqslIt3S1",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU1i247R98LMk4mWFoDtX9nQCjwhubGisxrRv1",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUfqlranYXJWu1oVDTHqP8vrcxMZCkl2Kis0fz",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUccoEh7iuKEt4biXQ9cYSVykWNO3sarhUqx76",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU3aNF2gfnblO97m2Vp6ZWGajcYqkgdnE1MNKo",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUf8ZChFYXJWu1oVDTHqP8vrcxMZCkl2Kis0fz",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUApp4thvpklq6Lh0DeGfR4xcS5EA2m1sVTQ7N",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUin44MNRmWtbG8ZzcQKndEYoT5sxaAJqjBk4h",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUt6uNH15Zk4bn7TUKSRE2LPNHv1s0qVD9gyxa"
+      ],
+      "hashtags": [
+        "#특성화고",
+        "#DX교육",
+        "#미래산업"
+      ],
+      "seasons": [],
+      "link": null,
+      "isPinned": false,
+      "endDate": null,
+      "createdAt": "2026-07-23T10:41:43.000Z",
+      "updatedAt": "2026-09-12T12:35:04.548Z"
+    },
+    {
+      "id": "cardnews_staff_training_incheon_custom_2026",
+      "type": "PROGRAM_CARD_NEWS",
+      "categories": [
+        "교직원 연수·혜택"
+      ],
+      "title": "2026 인천 교직원 연수 맞춤형 설계 안내",
+      "summary": "인천 지역 관광 자원을 활용해 당일형부터 1박 2일 프리미엄형까지 학교 일정에 맞춰 설계하는 교직원 연수 안내입니다. 차이나타운·월미도·인천상륙작전기념관·강화도 등 다양한 코스를 교직원 인원수와 예산에 맞게 조합합니다. 인천관광공사 지원사업 연계 시 추가 혜택을 받을 수 있습니다.",
+      "content": "인천 지역을 활용한 맞춤형 교직원 연수 프로그램입니다.\n\n당일형은 부담 없이 하루 안에 다녀오는 인천 원도심 및 해상 관광 코스로 구성됩니다. 차이나타운, 자유공원, 팔미도 유람선, 연안부두 하늘 특식 등 학교 일정에 맞춰 선택할 수 있습니다.\n\n1박 2일 숙박형은 인스파이어 엔터테인먼트 리조트와 스파·미디어아트·오로라 관람을 포함한 프리미엄 연수로 구성됩니다. 역사·문화 탐방, 섬 투어, 자연 힐링 트레킹, 문화 연계 코스를 조합해 교직원의 재충전과 팀 빌딩을 함께 지원합니다.\n\n터치더월드는 학교의 예산, 일정, 참가자 특성에 맞춰 교통·식사·관광·숙박을 통합 설계합니다.",
+      "imageUrl": "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUGDBL9n1lE4snd6Z9SMRJCIXcHVL0eGT1fYBQ",
+      "imageUrls": [
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUGDBL9n1lE4snd6Z9SMRJCIXcHVL0eGT1fYBQ",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUptAj9ZC3galydhriFfLwUM1evm2bDNCX6oQc",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoU8LriPmkvWPxgtROoySe7wrziGIMcaqHk6sLB",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUQgbT49sbAgdxsk6pRLel1vjPhUQ3NrwfaSXy",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUAjwmlVvpklq6Lh0DeGfR4xcS5EA2m1sVTQ7N",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUIFEmHqpITeqvUJojNsQ6BpgD8M53bRPCAK2Y",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUWmECdUFSlgJbqTfzrA6YP9vu8Gp1y74EtnIQ",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUpvHlDeGC3galydhriFfLwUM1evm2bDNCX6oQ"
+      ],
+      "hashtags": [
+        "#인천",
+        "#교직원",
+        "#인천연수"
+      ],
+      "seasons": [],
+      "link": "",
+      "isPinned": false,
+      "endDate": null,
+      "createdAt": "2026-04-18T11:31:31.316Z",
+      "updatedAt": "2026-10-28T11:05:19.403Z"
+    },
+    {
+      "id": "cardnews_teacher_training_program",
+      "type": "PROGRAM_CARD_NEWS",
+      "categories": [
+        "교직원 연수·혜택"
+      ],
+      "title": "2026 국내·외 교직원 연수 프로그램",
+      "summary": "교직원 역량 강화를 위한 국내외 맞춤 연수 프로그램입니다. 인천·포천·서울·경기 국내 코스와 일본·싱가포르 해외 코스를 당일형·1박 2일·다박 일정으로 제안합니다. 교직원 30명 기준 맞춤 견적을 무료로 받아보세요.",
+      "content": "교직원 연수 프로그램은 형식적인 연수가 아니라 학교 현장의 변화를 만드는 경험 중심 연수입니다.\n\nAI·디지털 전환 시대, 빠른 학생 변화, 교사의 역량이 곧 학교 경쟁력이 되는 상황에서 터치더월드는 국내외 목적에 맞는 교직원 연수를 설계합니다.\n\n국내 연수는 교육기관·기업·지역 연계 탐방, AI 미래교육 체험, 교사 워크숍 및 실습형 연수로 구성되며, 해외 연수는 글로벌 교육 선진 사례 탐방, 대학·기관·기업 방문, 국제 교육 트렌드 이해와 적용을 중심으로 운영됩니다.\n\n사전 기획, 맞춤 설계, 현장 운영, 사후 공유까지 통합 관리하며 강의, 체험, 토론을 혼합해 학교별 목적에 맞는 연수를 제공합니다.",
+      "imageUrl": "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUheo5NvaLkNMi0neZEwOQsfG7rDvx5BKbaFlg",
+      "imageUrls": [
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUheo5NvaLkNMi0neZEwOQsfG7rDvx5BKbaFlg",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUQWDpqzsbAgdxsk6pRLel1vjPhUQ3NrwfaSXy",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUp024cdC3galydhriFfLwUM1evm2bDNCX6oQc",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUgb3dtwVXJUlt9KLoPkdygb370m1TYGDOHecs",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUWrCq6JsFSlgJbqTfzrA6YP9vu8Gp1y74EtnI",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUk28HLA7bST6wKN7BFrCA8PlOnQYXtGdVWhvs",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUk3NBinA7bST6wKN7BFrCA8PlOnQYXtGdVWhv",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUWnpgbwFSlgJbqTfzrA6YP9vu8Gp1y74EtnIQ",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUwJiSYrHwFWdfylzRPVeq7KvU0rQ15C36OSAh",
+        "https://sutyyadzsr.ufs.sh/f/Y3X1UgzNMLoUbAoDlhILX1ljVw2Ud0ROP9CZk7sQvI3WbyuH"
+      ],
+      "hashtags": [
+        "#교사",
+        "#교직원",
+        "#국내외연수"
+      ],
+      "seasons": [],
+      "link": null,
+      "isPinned": false,
+      "endDate": null,
+      "createdAt": "2026-03-28T01:38:49.275Z",
+      "updatedAt": "2026-10-28T11:05:19.025Z"
+    }
+  ]
+}

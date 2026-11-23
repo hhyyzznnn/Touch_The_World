@@ -22,6 +22,19 @@ const DELETED_NEWS_REDIRECTS: Record<string, string> = {
   "/news/cardnews_touchtheworld_brand_intro_2026": "/news/cardnews_touchtheworld_company_profile_2026",
   "/news/cardnews_company_introduction_2026": "/news/cardnews_touchtheworld_company_profile_2026",
   "/news/cardnews_touchtheworld_9_differentiators": "/news/cardnews_touchtheworld_company_profile_2026",
+  // 2026-11-23 조회가 거의 없고 내용이 겹치던 카드뉴스 정리 — 더 자세한(또는 조회가 많은) 글로 이어받는다.
+  // 원본 백업: scripts/sql/deleted_cardnews_20261123.json
+  "/news/cardnews_specialized_highschool_dx_future_2026": "/news/cardnews_specialized_highschool_complete_guide_2026",
+  "/news/cardnews_japan_study_strategic_choice_2026": "/news/cardnews_japan_study_abroad_guide_2026",
+  "/news/cardnews_staff_training_incheon_custom_2026": "/news/cmr1zqv700000h5bsrh7u486q",
+};
+
+// 2026-11-23 같은 정리에서 지운 일반 소개 글 — 겹치는 단일 글이 없어 해당 분야 목록으로 보낸다(한글 쿼리라 여기서 처리).
+const DELETED_NEWS_TO_CATEGORY: Record<string, string> = {
+  "/news/cardnews_overseas_employment_study_abroad": "일본 유학",
+  "/news/cmn9nwop200021fdbfhzjqmnp": "일본 유학", // 이 글의 예전 주소
+  "/news/cardnews_teacher_training_program": "교직원 연수·혜택",
+  "/news/cmn9nw4e300011fdbrgkwo4ja": "교직원 연수·혜택", // 이 글의 예전 주소
 };
 
 // 예전 카테고리 이름(띄어쓰기 없는 표기, 개편 전 분류)으로 들어오는 /programs?category= 주소.
@@ -81,6 +94,10 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(programsUrl(request, replacement), { status: 308 });
       }
     }
+  }
+
+  if (pathname in DELETED_NEWS_TO_CATEGORY) {
+    return NextResponse.redirect(programsUrl(request, DELETED_NEWS_TO_CATEGORY[pathname]), { status: 308 });
   }
 
   if (pathname in DELETED_NEWS_REDIRECTS) {

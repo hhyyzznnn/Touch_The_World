@@ -42,8 +42,6 @@ const nextConfig: NextConfig = {
       { source: "/news/cmnsz4sos0000a2c1w3xtwof3",            destination: "/news/cardnews_ceo_introduction",                        permanent: true },
       { source: "/news/cmn9nxtii00041fdbmtijmmcc",            destination: "/news/cardnews_specialized_highschool_future_talent_2026", permanent: true },
       { source: "/news/cmn9nx6sv00031fdbjuq07tbr",            destination: "/news/cardnews_specialized_highschool_career_program",   permanent: true },
-      { source: "/news/cmn9nwop200021fdbfhzjqmnp",            destination: "/news/cardnews_overseas_employment_study_abroad",        permanent: true },
-      { source: "/news/cmn9nw4e300011fdbrgkwo4ja",            destination: "/news/cardnews_teacher_training_program",                permanent: true },
       { source: "/news/cmn9nvl8d00001fdbtcdwux7t",            destination: "/news/cardnews_overseas_edu_trip_program",               permanent: true },
       { source: "/news/cmn64a5tb0002duplnapkhglw",            destination: "/news/cardnews_company_introduction_2026",               permanent: true },
       { source: "/news/cmn649bph0001dupl5pb5j5o2",            destination: "/news/cardnews_programs_introduction_2026",              permanent: true },
