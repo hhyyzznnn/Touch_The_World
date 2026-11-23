@@ -1,211 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Activity,
-  BarChart2,
-  BookOpen,
-  Building2,
-  CalendarClock,
-  Globe2,
-  Mail,
-  Plus,
-  Search,
-} from "lucide-react";
+import { Activity, BookOpen, Inbox, Mail, Megaphone, Plus } from "lucide-react";
 import { GlobalSearchBar } from "@/components/GlobalSearchBar";
-import { AdminStatsChartWrapper } from "@/components/admin/AdminStatsChartWrapper";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 import { getCurrentUser } from "@/lib/auth-user";
 
+// 2026-11-21 정리: 진행 중 프로그램·이번 주 예정 행사·금월 진행 내역·통계 차트·해외/국내 비율·캘린더는
+// 쓰인 기록이 없어(진행 내역은 모두 완료 상태, 캘린더 일정 0건) 빼고, 실제로 쓰는 문의·카드뉴스 위주로 둔다.
 async function getStats() {
-  try {
-    const now = new Date();
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-
-    const [
-      programs,
-      events,
-      inquiries,
-      documents,
-      thisMonthEvents,
-      lastMonthEvents,
-      overseasEvents,
-      domesticEvents,
-    ] = await Promise.all([
-      prisma.companyNews.count({
-        where: {
-          imageUrl: {
-            not: null,
-          },
-        },
-      }).catch(() => 0),
-      prisma.event.count().catch(() => 0),
-      prisma.inquiry.count({ where: { status: "pending", archivedAt: null } }).catch(() => 0),
-      prisma.document.count().catch(() => 0),
-      prisma.event
-        .count({
-          where: {
-            date: {
-              gte: currentMonthStart,
-              lte: currentMonthEnd,
-            },
-          },
-        })
-        .catch(() => 0),
-      prisma.event
-        .count({
-          where: {
-            date: {
-              gte: lastMonthStart,
-              lte: lastMonthEnd,
-            },
-          },
-        })
-        .catch(() => 0),
-      prisma.event
-        .count({
-          where: { location: { contains: "해외", mode: "insensitive" } },
-        })
-        .catch(() => 0),
-      prisma.event
-        .count({
-          where: { location: { contains: "국내", mode: "insensitive" } },
-        })
-        .catch(() => 0),
-    ]);
-
-    const monthOverMonth = lastMonthEvents > 0
-      ? ((thisMonthEvents - lastMonthEvents) / lastMonthEvents * 100).toFixed(1)
-      : thisMonthEvents > 0 ? "100.0" : "0.0";
-    const monthOverMonthSign = parseFloat(monthOverMonth) >= 0 ? "+" : "";
-
-    return {
-      programs,
-      events,
-      inquiries,
-      documents,
-      thisMonthEvents,
-      monthOverMonth,
-      monthOverMonthSign,
-      overseasEvents,
-      domesticEvents,
-    };
-  } catch (error) {
-    console.error("Failed to fetch stats:", error);
-    return {
-      programs: 0,
-      events: 0,
-      inquiries: 0,
-      documents: 0,
-      thisMonthEvents: 0,
-      monthOverMonth: "0.0",
-      monthOverMonthSign: "+",
-      overseasEvents: 0,
-      domesticEvents: 0,
-    };
-  }
-}
-
-async function getMonthlyStats() {
-  try {
-    const now = new Date();
-    const months: { month: string; events: number; inquiries: number }[] = [];
-    
-    // 최근 6개월 데이터
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
-      const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59);
-      
-      const [events, inquiries] = await Promise.all([
-        prisma.event.count({
-          where: {
-            date: {
-              gte: monthStart,
-              lte: monthEnd,
-            },
-          },
-        }).catch(() => 0),
-        prisma.inquiry.count({
-          where: {
-            archivedAt: null,
-            createdAt: {
-              gte: monthStart,
-              lte: monthEnd,
-            },
-          },
-        }).catch(() => 0),
-      ]);
-      
-      months.push({
-        month: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
-        events,
-        inquiries,
-      });
-    }
-    
-    return months;
-  } catch (error) {
-    console.error("Failed to fetch monthly stats:", error);
-    return [];
-  }
-}
-
-async function getCategoryStats() {
-  try {
-    const programs = await prisma.program.groupBy({
-      by: ["category"],
-      _count: {
-        id: true,
-      },
-    }).catch(() => []);
-    
-    return programs.map((p) => ({
-      category: p.category.length > 10 ? p.category.substring(0, 10) + "..." : p.category,
-      count: p._count.id,
-    }));
-  } catch (error) {
-    console.error("Failed to fetch category stats:", error);
-    return [];
-  }
-}
-
-async function getOngoingPrograms() {
-  try {
-    return await prisma.event.findMany({
-      where: {
-        status: "in_progress",
-      },
-      include: {
-        school: true,
-        program: true,
-      },
-      orderBy: { date: "desc" },
-      take: 5,
-    });
-  } catch {
-    return [];
-  }
-}
-
-async function getUpcomingEvents() {
-  try {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekLater = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return await prisma.event.findMany({
-      where: { date: { gte: todayStart, lte: weekLater } },
-      include: { school: true, program: true },
-      orderBy: { date: "asc" },
-      take: 5,
-    });
-  } catch {
-    return [];
-  }
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const [programs, pendingInquiries, monthInquiries] = await Promise.all([
+    prisma.companyNews.count({ where: { type: "PROGRAM_CARD_NEWS" } }).catch(() => 0),
+    prisma.inquiry.count({ where: { status: "pending", archivedAt: null } }).catch(() => 0),
+    prisma.inquiry.count({ where: { archivedAt: null, createdAt: { gte: monthStart } } }).catch(() => 0),
+  ]);
+  return { programs, pendingInquiries, monthInquiries };
 }
 
 async function getRecentActivity() {
@@ -220,6 +30,7 @@ async function getRecentActivity() {
         .catch(() => []),
       prisma.inquiry
         .findMany({
+          where: { archivedAt: null },
           orderBy: { createdAt: "desc" },
           take: 3,
           select: { id: true, schoolName: true, contact: true, createdAt: true, status: true },
@@ -237,19 +48,14 @@ async function getRecentActivity() {
 export default async function AdminDashboard() {
   const currentUser = await getCurrentUser();
   const isAdmin = currentUser?.role === "admin";
-  const stats = await getStats();
-  const recent = await getRecentActivity();
-  const ongoingPrograms = await getOngoingPrograms();
-  const upcomingEvents = await getUpcomingEvents();
-  const monthlyStats = await getMonthlyStats();
-  const categoryStats = await getCategoryStats();
+  const [stats, recent] = await Promise.all([getStats(), getRecentActivity()]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-medium">대시보드</h1>
-          <p className="text-text-gray text-sm">운영 현황을 한눈에 확인하세요.</p>
+          <p className="text-text-gray text-sm">문의와 홈페이지 게시물을 한눈에 확인하세요.</p>
         </div>
         <div className="w-full md:w-96">
           <GlobalSearchBar />
@@ -258,6 +64,33 @@ export default async function AdminDashboard() {
 
       {/* 요약 지표 */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {isAdmin && (
+          <Link
+            href="/admin/inquiries?status=pending"
+            className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">대기 문의</span>
+              <Mail className="w-5 h-5 text-brand-green-primary" />
+            </div>
+            <div className="text-3xl font-medium">{stats.pendingInquiries}</div>
+            {stats.pendingInquiries > 0 && (
+              <div className="text-xs text-amber-700 bg-amber-50 inline-flex w-fit items-center px-2 py-1 rounded-full">처리 필요</div>
+            )}
+          </Link>
+        )}
+        {isAdmin && (
+          <Link
+            href="/admin/inquiries"
+            className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">이번 달 문의</span>
+              <Inbox className="w-5 h-5 text-brand-green-primary" />
+            </div>
+            <div className="text-3xl font-medium">{stats.monthInquiries}</div>
+          </Link>
+        )}
         <Link
           href="/admin/programs"
           className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
@@ -268,139 +101,6 @@ export default async function AdminDashboard() {
           </div>
           <div className="text-3xl font-medium">{stats.programs}</div>
         </Link>
-
-        <Link
-          href="/admin/events"
-          className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">금월 진행 내역</span>
-            <Activity className="w-5 h-5 text-brand-green-primary" />
-          </div>
-          <div className="text-3xl font-medium">{stats.thisMonthEvents}</div>
-          <div className={`text-xs ${parseFloat(stats.monthOverMonth) >= 0 ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"} inline-flex items-center px-2 py-1 rounded-full`}>
-            전월 대비 {stats.monthOverMonthSign}{stats.monthOverMonth}%
-          </div>
-        </Link>
-
-        {isAdmin && (
-          <Link
-            href="/admin/inquiries"
-            className="bg-white p-5 rounded-xl border hover:shadow-md transition flex flex-col gap-2"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">대기 문의</span>
-              <Mail className="w-5 h-5 text-brand-green-primary" />
-            </div>
-            <div className="text-3xl font-medium">{stats.inquiries}</div>
-            <div className="text-xs text-amber-700 bg-amber-50 inline-flex items-center px-2 py-1 rounded-full">
-              처리 필요
-            </div>
-          </Link>
-        )}
-      </div>
-
-      {/* 진행 중인 프로그램 */}
-      <div className="bg-white p-4 sm:p-5 rounded-xl border mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <Activity className="w-5 h-5 text-brand-green-primary" />
-            진행 중인 프로그램 ({ongoingPrograms.length}건)
-          </h2>
-          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-            <Link href="/admin/events">전체 보기</Link>
-          </Button>
-        </div>
-        {ongoingPrograms.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">진행 중인 프로그램이 없습니다.</div>
-        ) : (
-          <div className="space-y-3">
-            {ongoingPrograms.map((event) => (
-              <Link
-                key={event.id}
-                href={`/admin/events/${event.id}/edit`}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 border rounded-lg hover:bg-gray-50 transition"
-              >
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <div className="font-medium text-sm sm:text-base">{event.program.title}</div>
-                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-                      진행 중
-                    </span>
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">
-                    {event.school.name} · {event.location} · 학생 {event.studentCount}명
-                  </div>
-                </div>
-                <div className="text-xs sm:text-sm text-gray-500">
-                  {format(new Date(event.date), "yyyy-MM-dd", { locale: ko })}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 이번 주 예정 행사 */}
-      <div className="bg-white p-4 sm:p-5 rounded-xl border mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
-            <CalendarClock className="w-5 h-5 text-brand-green-primary" />
-            이번 주 예정 행사 ({upcomingEvents.length}건)
-          </h2>
-          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-            <Link href="/admin/calendar">캘린더 전체보기</Link>
-          </Button>
-        </div>
-        {upcomingEvents.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">이번 주 예정된 행사가 없습니다.</div>
-        ) : (
-          <div className="space-y-3">
-            {upcomingEvents.map((event) => (
-              <Link
-                key={event.id}
-                href={`/admin/events/${event.id}/edit`}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 border rounded-lg hover:bg-gray-50 transition"
-              >
-                <div className="flex-1">
-                  <div className="font-medium text-sm sm:text-base">
-                    {event.school.name} · {event.program.title}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-600">{event.location}</div>
-                </div>
-                <div className="text-xs sm:text-sm text-gray-500">
-                  {format(new Date(event.date), "M/d(EEE)", { locale: ko })}
-                  {event.endDate ? ` ~ ${format(new Date(event.endDate), "M/d(EEE)", { locale: ko })}` : ""}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 통계 차트 */}
-      {monthlyStats.length > 0 && categoryStats.length > 0 && (
-        <div className="mb-6">
-          <AdminStatsChartWrapper monthlyData={monthlyStats} categoryData={categoryStats} />
-        </div>
-      )}
-
-      {/* 해외/국내 비율 */}
-      <div className="grid md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-xl border">
-          <div className="text-sm text-gray-600 flex items-center gap-2">
-            <Globe2 className="w-4 h-4 text-brand-green-primary" />
-            해외 프로그램
-          </div>
-          <div className="text-2xl font-medium mt-2">{stats.overseasEvents}</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl border">
-          <div className="text-sm text-gray-600 flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-brand-green-primary" />
-            국내 프로그램
-          </div>
-          <div className="text-2xl font-medium mt-2">{stats.domesticEvents}</div>
-        </div>
       </div>
 
       {/* 빠른 링크 */}
@@ -419,23 +119,25 @@ export default async function AdminDashboard() {
             </Link>
           </Button>
           <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
+            <Link href="/admin/news/new" className="flex flex-col items-center gap-3">
+              <Megaphone className="w-5 h-5" />
+              새 회사 소식
+            </Link>
+          </Button>
+          <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
             <Link href="/admin/events/new" className="flex flex-col items-center gap-3">
               <Activity className="w-5 h-5" />
               새 진행 내역
             </Link>
           </Button>
-          <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
-            <Link href="/admin/documents/new" className="flex flex-col items-center gap-3">
-              <BarChart2 className="w-5 h-5" />
-              새 자료
-            </Link>
-          </Button>
-          <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
-            <Link href="/admin/achievements" className="flex flex-col items-center gap-3">
-              <Search className="w-5 h-5" />
-              사업 실적 관리
-            </Link>
-          </Button>
+          {isAdmin && (
+            <Button asChild size="lg" className="flex-col gap-3 py-10 px-6 text-sm">
+              <Link href="/admin/inquiries" className="flex flex-col items-center gap-3">
+                <Mail className="w-5 h-5" />
+                문의 관리
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 

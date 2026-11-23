@@ -83,22 +83,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // 임박한 자유 일정 (캘린더에 직접 등록한 일정)
-    const upcomingEntries = await prisma.calendarEntry.findMany({
-      where: {
-        startDate: { gte: todayStart, lte: threeDaysLater },
-      },
-      orderBy: { startDate: "asc" },
-      take: 10,
-      select: { id: true, title: true, startDate: true },
-    });
-
     // 읽음 상태 조회 (admin User가 있을 때만)
     const notificationIds = [
       ...pendingInquiries.map((i) => `inquiry-${i.id}`),
       ...recentEvents.map((e) => `event-${e.id}`),
       ...upcomingEvents.map((e) => `upcoming-event-${e.id}`),
-      ...upcomingEntries.map((e) => `upcoming-entry-${e.id}`),
     ];
     const readSet = new Set<string>();
     if (admin) {
@@ -152,19 +141,6 @@ export async function GET(request: NextRequest) {
           message: `${event.school.name} - ${event.program.title}`,
           link: `/admin/events/${event.id}/edit`,
           createdAt: event.date,
-          read: readSet.has(id),
-        };
-      }),
-      ...upcomingEntries.map((entry) => {
-        const id = `upcoming-entry-${entry.id}`;
-        const dDay = Math.max(0, Math.round((entry.startDate.getTime() - todayStart.getTime()) / dayMs));
-        return {
-          id,
-          type: "upcoming" as const,
-          title: dDay === 0 ? "오늘 예정 일정" : `일정 임박 (D-${dDay})`,
-          message: entry.title,
-          link: `/admin/calendar/entries/${entry.id}/edit`,
-          createdAt: entry.startDate,
           read: readSet.has(id),
         };
       }),
