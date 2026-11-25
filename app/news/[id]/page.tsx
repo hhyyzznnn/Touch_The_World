@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { cache, Children, cloneElement, isValidElement, type ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -19,6 +19,7 @@ import { MembershipInlineCta } from "@/components/membership/MembershipInlineCta
 import { RelatedProgramLink } from "@/components/news/RelatedProgramLink";
 import { getProgramCatalog } from "@/lib/program-catalog";
 import { pickRelated } from "@/lib/news-related";
+import { isOptionRow, optionLabel, rowCells, tableHasOptions, type HastLike } from "@/lib/news-option-rows";
 
 /** 해시태그에서 목적지 선택지 값을 추출 */
 const HASHTAG_DESTINATION_MAP: Record<string, string> = {
@@ -52,13 +53,17 @@ const CATEGORY_SCHOOL_LEVEL_MAP: Record<string, string> = {
   "지자체 및 대학 RISE 사업":   "대학교/기관",
 };
 
-function buildInquiryUrl(news: {
-  title: string;
-  categories: string[];
-  hashtags: string[];
-}): string {
+function buildInquiryUrl(
+  news: {
+    title: string;
+    categories: string[];
+    hashtags: string[];
+  },
+  option?: string,
+): string {
   const params = new URLSearchParams();
-  params.set("programRef", news.title);
+  // 본문 일정표에서 고른 줄이 있으면 "글 제목 — 고른 일정"으로 문의서에 들어간다
+  params.set("programRef", option ? `${stripBrandFromTitle(news.title)} — ${option}` : news.title);
 
   // 해시태그에서 목적지 추출 (첫 번째 매칭)
   for (const tag of news.hashtags) {
@@ -329,6 +334,50 @@ export default async function NewsDetailPage({
                   prose-hr:border-gray-200">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
+                    components={
+                      isCardNews && isConcreteProgram(news.categories)
+                        ? {
+                            // 번호로 시작하는 일정·프로그램 줄은 누르면 그 선택지로 바로 문의 (lib/news-option-rows.ts)
+                            table: ({ node, children }) => (
+                              <>
+                                {tableHasOptions(node as HastLike) && (
+                                  <p className="!mb-2 text-sm text-brand-green-primary break-keep">원하는 줄을 누르면 그 일정으로 바로 문의하실 수 있습니다.</p>
+                                )}
+                                <table>{children}</table>
+                              </>
+                            ),
+                            tr: ({ node, children }) => {
+                              const cells = rowCells(node as HastLike);
+                              if (!isOptionRow(cells)) return <tr>{children}</tr>;
+                              const label = optionLabel(cells);
+                              const href = buildInquiryUrl(news, label);
+                              // 칸마다 같은 문의 링크로 감싸 줄 어디를 눌러도 이동 (키보드·화면낭독은 첫 칸 하나만)
+                              let first = true;
+                              return (
+                                <tr className="cursor-pointer transition-colors hover:bg-brand-green-primary/[0.06]">
+                                  {Children.map(children, (child) => {
+                                    if (!isValidElement<{ children?: ReactNode }>(child) || child.type !== "td") return child;
+                                    const isFirst = first;
+                                    first = false;
+                                    return cloneElement(
+                                      child,
+                                      {},
+                                      <Link
+                                        href={href}
+                                        className={`block !no-underline ${isFirst ? "!text-brand-green-primary font-semibold" : "!text-inherit"}`}
+                                        {...(isFirst ? { "aria-label": `${label} 일정으로 문의하기` } : { tabIndex: -1, "aria-hidden": true })}
+                                      >
+                                        {child.props.children}
+                                        {isFirst && <ArrowRight aria-hidden className="ml-1 inline h-4 w-4 align-[-2px]" />}
+                                      </Link>,
+                                    );
+                                  })}
+                                </tr>
+                              );
+                            },
+                          }
+                        : undefined
+                    }
                     // 본문에 "www.touchtheworld.co.kr"만 적으면 http:// 링크로 걸리므로 자사 주소는 https로 맞춘다.
                     urlTransform={(url) =>
                       defaultUrlTransform(url).replace(
