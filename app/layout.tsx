@@ -33,8 +33,15 @@ const bonaNovaSC = Bona_Nova_SC({
 });
 
 const siteUrl = getSiteUrl();
-const naverSiteVerification =
-  process.env.NAVER_SITE_VERIFICATION || "7d713c24d0a2bc5a9a32549a03dcd7bd86348d87";
+// 네이버 서치어드바이저 소유확인 코드. 계정마다 따로 확인하므로 여러 개를 함께 둔다
+// (개인 계정 hy05s + 기업 계정 touchtheworld). 환경변수로 줄 때는 쉼표로 구분.
+const NAVER_VERIFICATION_CODES = [
+  "7d713c24d0a2bc5a9a32549a03dcd7bd86348d87", // 개인 계정 hy05s
+];
+const naverSiteVerification = [
+  ...NAVER_VERIFICATION_CODES,
+  ...(process.env.NAVER_SITE_VERIFICATION ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+].filter((v, i, a) => a.indexOf(v) === i);
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
 const socialLinks = [COMPANY_INFO.instagram, COMPANY_INFO.facebook].filter(Boolean) as string[];
 const SEO_TITLE = "터치더월드 | 교육여행·체험학습·AI 교육 프로그램";
@@ -62,7 +69,7 @@ export const metadata: Metadata = {
   verification: {
     ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
     other: {
-      ...(naverSiteVerification
+      ...(naverSiteVerification.length
         ? { "naver-site-verification": naverSiteVerification }
         : {}),
     },
