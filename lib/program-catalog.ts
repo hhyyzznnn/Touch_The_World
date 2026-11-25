@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getAudiences } from "@/lib/news-audience";
 
 /**
- * 추천용 프로그램 카드뉴스 목록 (글 하단 "함께 보면 좋은 프로그램"·추천 카드 API가 함께 쓴다).
+ * 추천용 프로그램 카드뉴스 목록 (글 하단 "함께 보면 좋은 프로그램"에서 쓴다).
  * 대상 학교급은 본문까지 보고 판정하고(lib/news-audience.ts), 본문 자체는 넘기지 않는다.
  * 고르는 필드를 바꾸면 캐시 키 버전도 올릴 것 — 예전 캐시 결과가 배포 후에도 남는다.
  */

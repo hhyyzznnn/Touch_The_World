@@ -24,9 +24,6 @@ export const GA_EVENTS = {
   // 메인 첫 화면 "터치더월드가 하는 일" 6칸 클릭 (2026-11-17 A안)
   CARD_NEWS_CLICK: "card_news_click",
   PROGRAM_VIEW: "program_view",
-  // 프로그램 추천 효과 측정 (2026-11-11): 글 하단 "함께 보면 좋은 프로그램" 클릭, 본 글 기록 기반 추천 카드 노출·클릭·닫기
+  // 글 하단 "함께 보면 좋은 프로그램" 클릭 (2026-11-11)
   RELATED_CLICK: "related_program_click",
-  RECO_SHOWN: "program_reco_shown",
-  RECO_CLICK: "program_reco_click",
-  RECO_DISMISS: "program_reco_dismiss",
 } as const;

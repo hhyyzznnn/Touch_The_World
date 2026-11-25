@@ -16,7 +16,6 @@ import remarkGfm from "remark-gfm";
 import { formatEndDate, isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/lib/news-utils";
 import { CompanyNewsType } from "@prisma/client";
 import { MembershipInlineCta } from "@/components/membership/MembershipInlineCta";
-import { ProgramRecommender } from "@/components/news/ProgramRecommender";
 import { RelatedProgramLink } from "@/components/news/RelatedProgramLink";
 import { getProgramCatalog } from "@/lib/program-catalog";
 import { pickRelated } from "@/lib/news-related";
@@ -469,7 +468,6 @@ export default async function NewsDetailPage({
           </div>
         )}
       </div>
-      {news.type === CompanyNewsType.PROGRAM_CARD_NEWS && <ProgramRecommender currentId={news.id} />}
     </div>
   );
 }

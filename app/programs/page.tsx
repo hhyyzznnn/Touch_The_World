@@ -87,61 +87,9 @@ type CardNewsItem = {
   endDate: Date | null;
 };
 
-async function getProgramCardNews(page: number, category?: string) {
-  const skip = (page - 1) * ITEMS_PER_PAGE;
-
-  const where = {
-    type: CompanyNewsType.PROGRAM_CARD_NEWS,
-    ...(category ? { categories: { has: category } } : {}),
-  };
-
-  const [items, total] = await Promise.all([
-    prisma.companyNews.findMany({
-      where,
-      orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-      skip,
-      take: ITEMS_PER_PAGE,
-      select: CARD_SELECT,
-    }),
-    prisma.companyNews.count({ where }),
-  ]);
-
-  return {
-    items,
-    totalPages: Math.max(1, Math.ceil(total / ITEMS_PER_PAGE)),
-  };
-}
-
-const getProgramCardNewsCached = unstable_cache(
-  getProgramCardNews,
-  ["programs-card-news"],
-  { revalidate: 600 },
-);
-
 // "전체" 탭 전용: 분야별 글 수(분야 타일)와 최근 글 8건.
 // 카드 한 건이 여러 분야에 걸칠 수 있어(예: 특성화고 프로그램 + 일본 교육여행) 분야별 수의 합은 전체보다 클 수 있다.
 const LATEST_LIMIT = 8;
-
-async function getProgramsOverview() {
-  const items = await prisma.companyNews.findMany({
-    where: { type: CompanyNewsType.PROGRAM_CARD_NEWS },
-    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-    select: CARD_SELECT,
-  });
-  const counts = Object.fromEntries(
-    PROGRAM_CATEGORIES.map((cat) => [cat, items.filter((item) => item.categories.includes(cat)).length]),
-  ) as Record<(typeof PROGRAM_CATEGORIES)[number], number>;
-  const latest = [...items]
-    .sort((x, y) => y.createdAt.getTime() - x.createdAt.getTime())
-    .slice(0, LATEST_LIMIT);
-  return { total: items.length, counts, latest };
-}
-
-const getProgramsOverviewCached = unstable_cache(
-  getProgramsOverview,
-  ["programs-overview"],
-  { revalidate: 600 },
-);
 
 // 인기 프로그램 (2026-10-28 취합): 7~10월 홈페이지 실사용자(GA4, 봇 영향이 큰 직접 유입 제외) +
 // 유튜브 쇼츠 조회수 + 문의 언급을 합산한 순위에서, 종료된 글을 빼고 분야가 겹치지 않게 6개를 골랐다.
@@ -155,30 +103,15 @@ const POPULAR_PROGRAM_IDS = [
   "cardnews_japan_edu_trip_2026", // 일본 에듀트립 교육여행 제안서
 ];
 
-async function getPopularPrograms() {
-  const items = await prisma.companyNews.findMany({
-    where: { id: { in: POPULAR_PROGRAM_IDS }, type: CompanyNewsType.PROGRAM_CARD_NEWS },
-    select: CARD_SELECT,
-  });
-  // DB 조회 순서가 아니라 클릭 순위 그대로 정렬
-  return POPULAR_PROGRAM_IDS.map((id) => items.find((item) => item.id === id)).filter(
-    (item): item is CardNewsItem => !!item
-  );
-}
-
-const getPopularProgramsCached = unstable_cache(
-  getPopularPrograms,
-  ["programs-popular"],
-  { revalidate: 600 },
-);
-
-// 대상·시기 고르기 전용 색인: 전체 글에 대상 학교급을 붙여 둔다.
+// 이 페이지가 쓰는 유일한 DB 조회 (2026-11-25): 전체 글을 한 번 읽어 대상 학교급을 붙여 두고,
+// 분야 목록·분야별 글 수·최근 글·인기 프로그램은 모두 이 목록에서 계산한다.
+// (예전엔 같은 표를 4번 따로 읽어, 캐시 갱신 때 연결이 몰려 P2024/P1001 오류가 났다.)
 // 대상은 해시태그 + 본문의 "초·중·고" 같은 표현으로 판정(lib/news-audience.ts), 시기는 CompanyNews.seasons(lib/news-seasons.ts).
 // 본문은 판정에만 쓰고 넘기지 않는다.
 async function getAudienceIndex() {
   const items = await prisma.companyNews.findMany({
     where: { type: CompanyNewsType.PROGRAM_CARD_NEWS },
-    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "asc" }], // 같은 시각에 올린 글끼리 순서가 바뀌지 않게
     select: { ...CARD_SELECT, content: true },
   });
   return items.map(({ content, ...item }) => ({ ...item, seasons: item.seasons ?? [], audiences: getAudiences({ ...item, content }) }));
@@ -393,10 +326,25 @@ export default async function ProgramsPage({
       totalPages: Math.max(1, Math.ceil(matched.length / ITEMS_PER_PAGE)),
     };
   } else if (f.category) {
-    flat = await getProgramCardNewsCached(currentPage, f.category);
+    const matched = byCategory(index);
+    flat = {
+      items: matched.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+      totalPages: Math.max(1, Math.ceil(matched.length / ITEMS_PER_PAGE)),
+    };
   }
-  const overview = listMode ? null : await getProgramsOverviewCached();
-  const popularPrograms = listMode ? null : await getPopularProgramsCached();
+  const overview = listMode
+    ? null
+    : {
+        total: index.length,
+        counts: Object.fromEntries(
+          PROGRAM_CATEGORIES.map((cat) => [cat, index.filter((item) => item.categories.includes(cat)).length]),
+        ) as Record<(typeof PROGRAM_CATEGORIES)[number], number>,
+        latest: [...index].sort((x, y) => new Date(y.createdAt).getTime() - new Date(x.createdAt).getTime()).slice(0, LATEST_LIMIT),
+      };
+  // 인기 프로그램은 클릭 순위 그대로 정렬
+  const popularPrograms = listMode
+    ? null
+    : POPULAR_PROGRAM_IDS.map((id) => index.find((item) => item.id === id)).filter((item): item is (typeof index)[number] => !!item);
 
   // ── 대상·시기·분야로 고른 목록 ──
   if (listMode) {
