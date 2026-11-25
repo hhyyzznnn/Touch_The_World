@@ -329,7 +329,6 @@ export default async function HomePage() {
                       key={event.id}
                       href={`/events/${event.id}`}
                       className="snap-start border-2 border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white min-w-[82vw] sm:min-w-[360px] md:min-w-[400px] max-w-[400px] flex-shrink-0"
-                      aria-label={`${event.school.name} 최근 행사 보기`}
                     >
                       {getEventThumbnailUrl(event) ? (
                         <div className="relative w-full h-36 sm:h-48 bg-gray-100">

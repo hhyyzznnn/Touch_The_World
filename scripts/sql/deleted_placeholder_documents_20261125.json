@@ -1,0 +1,34 @@
+[
+  {
+    "id": "cmirjvusu001k12c0sp5kz1ig",
+    "title": "체험학습 안내문 양식",
+    "fileUrl": "https://example.com/documents/field-trip-guide.pdf",
+    "category": "행정서류",
+    "createdAt": "2025-12-04T14:47:57.871Z",
+    "updatedAt": "2025-12-04T14:47:57.871Z"
+  },
+  {
+    "id": "cmirjvusu001l12c05tccjwrd",
+    "title": "수학여행 안전 관리 매뉴얼",
+    "fileUrl": "https://example.com/documents/safety-manual.pdf",
+    "category": "안전관리",
+    "createdAt": "2025-12-04T14:47:57.871Z",
+    "updatedAt": "2025-12-04T14:47:57.871Z"
+  },
+  {
+    "id": "cmirjvusu001j12c0ist6tco6",
+    "title": "교육과정 운영 계획서",
+    "fileUrl": "https://example.com/documents/curriculum-plan.pdf",
+    "category": "교육과정",
+    "createdAt": "2025-12-04T14:47:57.871Z",
+    "updatedAt": "2025-12-04T14:47:57.871Z"
+  },
+  {
+    "id": "cmirjvusu001i12c05m0s325q",
+    "title": "수학여행 공문 템플릿",
+    "fileUrl": "https://example.com/documents/official-letter-template.docx",
+    "category": "행정서류",
+    "createdAt": "2025-12-04T14:47:57.871Z",
+    "updatedAt": "2025-12-04T14:47:57.871Z"
+  }
+]

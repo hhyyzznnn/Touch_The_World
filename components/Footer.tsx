@@ -110,7 +110,7 @@ export function Footer() {
           <p className="text-text-gray text-sm">
             © {new Date().getFullYear()} TouchTheWorld. All rights reserved.
           </p>
-          <p className="mt-1 text-xs text-text-gray/80">
+          <p className="mt-1 text-xs text-text-gray">
             Website by{" "}
             <a
               href="https://github.com/hhyyzznnn"

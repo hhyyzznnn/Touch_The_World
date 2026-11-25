@@ -65,12 +65,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/documents`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    {
       url: `${baseUrl}/inquiry`,
       lastModified: SITE_LAUNCH,
       changeFrequency: "monthly",
@@ -93,6 +87,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 동적 페이지: 프로그램
   let programPages: MetadataRoute.Sitemap = [];
   try {
+    // 자료실은 실제 자료가 있을 때만 (비어 있는 목록을 색인시키지 않게)
+    if ((await prisma.document.count()) > 0) {
+      staticPages.push({ url: `${baseUrl}/documents`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 });
+    }
     const programs = await prisma.program.findMany({
       select: { id: true, updatedAt: true },
     });
@@ -126,10 +124,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let newsPages: MetadataRoute.Sitemap = [];
   try {
     const newsItems = await prisma.companyNews.findMany({
-      select: { id: true, updatedAt: true },
+      select: { id: true, updatedAt: true, link: true },
       orderBy: { createdAt: "desc" },
     });
-    newsPages = newsItems.map((news) => ({
+    // 다른 글로 안내하는 소식은 대표 주소가 원래 글이라 넣지 않는다 (app/news/[id] canonical과 같은 기준)
+    newsPages = newsItems.filter((news) => !/^\/news\/[\w-]+$/.test(news.link?.trim() ?? "")).map((news) => ({
       url: `${baseUrl}/news/${news.id}`,
       lastModified: news.updatedAt,
       changeFrequency: "monthly" as const,

@@ -148,7 +148,8 @@ export async function generateMetadata({
     description,
     keywords: mergeKeywords(BRAND_KEYWORDS, ["회사 소식", "공지", news.title]),
     alternates: {
-      canonical: `/news/${news.id}`,
+      // 다른 글로 안내하는 소식(팝업용 등)은 같은 내용의 원래 글을 대표 주소로 — 중복 문서로 잡히지 않게
+      canonical: /^\/news\/[\w-]+$/.test(news.link?.trim() ?? "") ? news.link!.trim() : `/news/${news.id}`,
     },
     openGraph: {
       title: `${news.title} | 터치더월드`,

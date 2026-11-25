@@ -7,13 +7,18 @@ import { Pagination } from "@/components/Pagination";
 
 const ITEMS_PER_PAGE = 10;
 
-export const metadata: Metadata = {
-  title: "자료실 | 터치더월드",
-  description: "공문 템플릿, 안내문, 안전 매뉴얼 등 교육여행 운영에 필요한 자료를 확인하세요.",
-  alternates: {
-    canonical: "/documents",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // 올린 자료가 없으면 빈 목록이 검색에 나오지 않게
+  const hasDocuments = (await prisma.document.count()) > 0;
+  return {
+    title: "자료실 | 터치더월드",
+    description: "공문 템플릿, 안내문, 안전 매뉴얼 등 교육여행 운영에 필요한 자료를 확인하세요.",
+    alternates: {
+      canonical: "/documents",
+    },
+    ...(hasDocuments ? {} : { robots: { index: false, follow: true } }),
+  };
+}
 
 async function getDocuments(category?: string, page: number = 1) {
   const where = category ? { category } : {};
