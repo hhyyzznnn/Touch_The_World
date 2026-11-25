@@ -146,7 +146,7 @@ export function parseMembershipInput(body: unknown): { data: MembershipInput } |
   const email = clean(b.email, 254).toLowerCase();
   const phone = clean(b.phone, 20).replace(/[^0-9-]/g, "");
   if (!name) return { error: "이름을 입력해주세요." };
-  if (!schoolName) return { error: "학교(기관)명을 입력해주세요." };
+  // 학교명은 선택 (2026-11-25): 담당자가 가입 단계에서 학교를 밝히는 걸 부담스러워할 수 있어 받지 못해도 가입되게
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "올바른 이메일을 입력해주세요." };
 
   const position = clean(b.position, 30);

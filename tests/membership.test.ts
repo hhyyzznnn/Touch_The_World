@@ -52,3 +52,9 @@ test("사이트 안 진입 자리는 정해 둔 값만 받는다", async () => {
   assert.equal(parseEntryPoint("evil<script>"), null);
   assert.equal(parseEntryPoint(undefined), null);
 });
+
+test("학교(기관)명은 비워도 가입된다", () => {
+  const result = parseMembershipInput({ ...valid, schoolName: "  " });
+  assert.ok("data" in result);
+  assert.equal(result.data.schoolName, "");
+});

@@ -316,7 +316,7 @@ export async function sendMembershipNotificationEmail(member: {
   const title = member.updated ? "멤버십 가입 정보가 수정되었습니다" : "새 멤버십 가입";
   const rows: [string, string | null | undefined][] = [
     ["이름", member.name],
-    ["학교(기관)", member.schoolName],
+    ["학교(기관)", member.schoolName || "(미입력)"],
     ["학교급", member.schoolLevel],
     ["직책", member.position],
     ["이메일", member.email],

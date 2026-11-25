@@ -157,12 +157,11 @@ export function MembershipJoinForm() {
           />
         </label>
         <label className="space-y-1.5">
-          <span className="block text-sm font-medium">학교(기관)명 *</span>
+          <span className="block text-sm font-medium">학교(기관)명 <span className="font-normal text-text-gray">(선택)</span></span>
           <input
             className={inputClass}
             value={form.schoolName}
             onChange={(e) => set("schoolName", e.target.value)}
-            required
             maxLength={100}
           />
         </label>
