@@ -23,9 +23,33 @@ const MERGED_ACHIEVEMENT_YEAR_START = 2019;
 const MERGED_ACHIEVEMENT_YEAR_END = 2022;
 
 async function getAchievementsByYear() {
-  const achievements = await prisma.achievement.findMany({
-    orderBy: [{ year: "desc" }, { institution: "asc" }],
-  });
+  const [recorded, events] = await Promise.all([
+    prisma.achievement.findMany({
+      orderBy: [{ year: "desc" }, { institution: "asc" }],
+    }),
+    // 실적 표(Achievement)는 2025년까지만 손으로 채워져 있어, 이미 시작된 행사(Event)도 실적으로 함께 보여 준다 (2026-11-25).
+    // 같은 해·같은 기관이 실적 표에 이미 있으면 중복으로 넣지 않는다.
+    prisma.event
+      .findMany({
+        where: { date: { lte: new Date() } },
+        select: { id: true, date: true, school: { select: { name: true } }, program: { select: { title: true } } },
+        orderBy: { date: "desc" },
+      })
+      .catch(() => []),
+  ]);
+  const recordedKeys = new Set(recorded.map((a) => `${a.year}|${a.institution}`));
+  const seenEvents = new Set<string>();
+  const fromEvents = events
+    .map((e) => ({ id: `event-${e.id}`, institution: e.school.name, year: e.date.getFullYear(), content: e.program.title }))
+    .filter((a) => {
+      const key = `${a.year}|${a.institution}|${a.content}`;
+      if (recordedKeys.has(`${a.year}|${a.institution}`) || seenEvents.has(key)) return false;
+      seenEvents.add(key);
+      return true;
+    });
+  const achievements = [...recorded, ...fromEvents].sort(
+    (a, b) => b.year - a.year || a.institution.localeCompare(b.institution, "ko"),
+  );
 
   const resolveGroupYear = (year: number) =>
     year >= MERGED_ACHIEVEMENT_YEAR_START && year <= MERGED_ACHIEVEMENT_YEAR_END
