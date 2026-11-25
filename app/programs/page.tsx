@@ -135,6 +135,14 @@ function filterHref(f: Filters, patch: Partial<Filters>) {
 type FilterOption = { value: string; label: string; count?: number; hint?: string; now?: boolean };
 
 /** 대상 → 시기 → 분야 고르기 한 줄 */
+/** 분야(+페이지)만 있는 주소만 색인 대상이다(generateMetadata). 대상·시기 조합처럼 noindex인 주소로 가는 링크는
+ * nofollow로 걸어 구글이 따라가 '제외됨' 주소를 계속 늘리지 않게 한다. */
+function noindexRel(href: string): "nofollow" | undefined {
+  const q = href.split("?")[1];
+  if (!q) return undefined;
+  return [...new URLSearchParams(q).keys()].every((k) => k === "category" || k === "page") ? undefined : "nofollow";
+}
+
 function FilterRow({
   id,
   label,
@@ -160,13 +168,13 @@ function FilterRow({
     <div className={className}>
       <p id={id} className="mb-2.5 text-sm sm:text-base font-bold text-text-dark">{label}</p>
       <nav aria-labelledby={id} className="flex flex-wrap gap-2">
-        <Link href={hrefFor(null)} aria-current={!current ? "page" : undefined} className={chip(!current)}>
+        <Link href={hrefFor(null)} rel={noindexRel(hrefFor(null))} aria-current={!current ? "page" : undefined} className={chip(!current)}>
           전체
         </Link>
         {options.map((o) => {
           const active = current === o.value;
           return (
-            <Link key={o.value} href={hrefFor(o.value)} aria-current={active ? "page" : undefined} className={chip(active)}>
+            <Link key={o.value} href={hrefFor(o.value)} rel={noindexRel(hrefFor(o.value))} aria-current={active ? "page" : undefined} className={chip(active)}>
               {o.label}
               {o.hint && <span className={active ? "text-white/80" : "text-text-gray"}>{o.hint}</span>}
               {o.count !== undefined && <span className={active ? "text-white/80" : "text-text-gray"}>{o.count}</span>}

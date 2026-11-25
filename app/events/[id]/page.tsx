@@ -374,7 +374,7 @@ export default async function EventDetailPage({
                 <Link href={programHref}>프로그램 자세히 보기</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href="/inquiry?type=quick">우리 학교도 문의하기</Link>
+                <Link rel="nofollow" href="/inquiry?type=quick">우리 학교도 문의하기</Link>
               </Button>
             </div>
           </div>
@@ -514,7 +514,7 @@ export default async function EventDetailPage({
           <p className="text-white/80 text-sm mt-0.5">일정·인원·예산만 알려주시면 맞춤 견적을 보내드립니다.</p>
         </div>
         <Link
-          href="/inquiry?type=quick"
+          rel="nofollow" href="/inquiry?type=quick"
           className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-white text-brand-green-primary font-semibold px-5 py-2.5 text-sm hover:bg-white/90 active:scale-[0.97] transition-all"
         >
           빠른 문의하기

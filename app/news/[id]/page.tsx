@@ -364,6 +364,7 @@ export default async function NewsDetailPage({
                                       {},
                                       <Link
                                         href={href}
+                                        rel="nofollow"
                                         className={`block !no-underline ${isFirst ? "!text-brand-green-primary font-semibold" : "!text-inherit"}`}
                                         {...(isFirst ? { "aria-label": `${label} 일정으로 문의하기` } : { tabIndex: -1, "aria-hidden": true })}
                                       >
@@ -424,7 +425,7 @@ export default async function NewsDetailPage({
                     asChild
                     className="bg-brand-green-primary hover:bg-brand-green-primary/90 text-white gap-2 flex-shrink-0 w-full sm:w-auto"
                   >
-                    <Link href={buildInquiryUrl(news)} className="flex items-center gap-2">
+                    <Link href={buildInquiryUrl(news)} rel="nofollow" className="flex items-center gap-2">
                       빠른 문의
                       <ArrowRight className="w-4 h-4" />
                     </Link>

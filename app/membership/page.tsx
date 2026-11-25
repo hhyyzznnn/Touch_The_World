@@ -94,7 +94,7 @@ export default async function MembershipPage() {
                       ~{d.endDate ? formatEndDate(d.endDate) : ""}
                     </span>
                     <Link
-                      href={`/inquiry?programRef=${encodeURIComponent(stripBrandFromTitle(d.title))}`}
+                      rel="nofollow" href={`/inquiry?programRef=${encodeURIComponent(stripBrandFromTitle(d.title))}`}
                       className="rounded-full border border-brand-green-primary px-3 py-1 text-xs font-semibold text-brand-green-primary hover:bg-brand-green-primary hover:text-white"
                     >
                       신청 문의

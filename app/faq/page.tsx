@@ -137,7 +137,7 @@ export default function FaqPage() {
             <p className="text-white/80 text-sm mt-0.5">담당자가 직접 상담해드립니다.</p>
           </div>
           <Link
-            href="/inquiry?type=quick"
+            rel="nofollow" href="/inquiry?type=quick"
             className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-white text-brand-green-primary font-semibold px-5 py-2.5 text-sm hover:bg-white/90 active:scale-[0.97] transition-all"
           >
             빠른 문의하기

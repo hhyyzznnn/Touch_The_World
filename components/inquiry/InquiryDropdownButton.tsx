@@ -48,7 +48,7 @@ export function InquiryDropdownButton({ dark }: { dark?: boolean } = {}) {
           onMouseLeave={scheduleClose}
         >
           <Link
-            href="/inquiry?type=quick"
+            rel="nofollow" href="/inquiry?type=quick"
             className="flex flex-col px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100"
             onClick={() => setOpen(false)}
           >
@@ -56,7 +56,7 @@ export function InquiryDropdownButton({ dark }: { dark?: boolean } = {}) {
             <span className="text-xs text-text-gray mt-0.5 break-keep">이름·연락처만으로 간단하게</span>
           </Link>
           <Link
-            href="/inquiry?type=detailed"
+            rel="nofollow" href="/inquiry?type=detailed"
             className="flex flex-col px-4 py-3 hover:bg-gray-50 transition-colors"
             onClick={() => setOpen(false)}
           >
