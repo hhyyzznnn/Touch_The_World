@@ -24,6 +24,7 @@ import path from "path";
 import sharp from "sharp";
 import { parseEndDate } from "../lib/news-utils";
 import { normalizeSeasons } from "../lib/news-seasons";
+import { submitIndexNow } from "./indexnow";
 
 const utapi = new UTApi({ token: process.env.UPLOADTHING_TOKEN! });
 const prisma = new PrismaClient();
@@ -254,6 +255,11 @@ async function main() {
   if (!fs.existsSync("scripts/sql")) fs.mkdirSync("scripts/sql", { recursive: true });
   fs.writeFileSync(sqlPath, sqlLines.join("\n"), "utf-8");
   console.log(`\n✅ 전체 완료 — DB 반영 끝, 기록 로그: ${sqlPath}`);
+  // 새 글과 목록을 Bing·네이버에 바로 알림 (IndexNow, 로그인 불필요). 실패해도 업로드 결과에는 영향 없음
+  await submitIndexNow([
+    ...NEWS_ITEMS.map((item) => `https://www.touchtheworld.co.kr/news/${item.id}`),
+    "https://www.touchtheworld.co.kr/programs",
+  ]).catch((e) => console.log("  IndexNow 알림 실패(무시):", e));
 }
 
 main()
