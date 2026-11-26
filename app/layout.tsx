@@ -43,7 +43,8 @@ const naverSiteVerification = [
   ...(process.env.NAVER_SITE_VERIFICATION ?? "").split(",").map((s) => s.trim()).filter(Boolean),
 ].filter((v, i, a) => a.indexOf(v) === i);
 const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION;
-const socialLinks = [COMPANY_INFO.instagram, COMPANY_INFO.facebook].filter(Boolean) as string[];
+// 공식 채널 전체 — 검색엔진·AI가 같은 회사로 묶어 이해하도록 Organization/TravelAgency sameAs에 함께 쓴다
+const socialLinks = [COMPANY_INFO.instagram, COMPANY_INFO.facebook, COMPANY_INFO.youtube, COMPANY_INFO.naverBlog, COMPANY_INFO.kakaoChannel].filter(Boolean) as string[];
 const SEO_TITLE = "터치더월드 | 교육여행·체험학습·AI 교육 프로그램";
 const SEO_DESCRIPTION =
   "1996년부터 학교·지자체 대상 교육여행과 체험학습을 기획·운영해온 전문 기업입니다. 안전 중심 운영과 맞춤형 설계로 현장 완성도를 높입니다.";
@@ -164,12 +165,7 @@ export default function RootLayout({
               areaServed: "KR",
               foundingDate: "1996",
               knowsAbout: mergeKeywords(CORE_TRAVEL_KEYWORDS, B2B_KEYWORDS),
-              sameAs: [
-                COMPANY_INFO.instagram,
-                COMPANY_INFO.facebook,
-                COMPANY_INFO.youtube,
-                COMPANY_INFO.kakaoChannel,
-              ].filter(Boolean),
+              sameAs: socialLinks,
             }),
           }}
         />

@@ -61,4 +61,5 @@ export const COMPANY_INFO = {
   instagram: "https://www.instagram.com/touch_tw_ai",
   facebook: "https://www.facebook.com/profile.php?id=61594076981446", // 터치더월드 공식 페이지(2026.09 신규 개설)
   youtube: "https://www.youtube.com/@ttw_ai",
+  naverBlog: "https://blog.naver.com/touchtheworld", // 교육여행 노트(2026.11 개설, 기업 계정)
 } as const;
