@@ -109,6 +109,23 @@ function renderSummary(summary: NoticeSummary): string {
 /**
  * 일일 알림 이메일 발송 (여러 공고를 하나의 메일로)
  */
+/**
+ * 같은 학교가 같은 제목·같은 마감으로 여러 번 올린 공고(재공고·분할 등, 공고번호만 다름)를 메일에서 한 건으로 묶는다.
+ * 2026-11-26 신정중 수학여행 공고가 4건 따로 와서 같은 내용이 네 번 보이던 문제. DB에는 공고별로 그대로 남긴다.
+ */
+export function groupSameNotices<T extends { title: string; agency: string; deadline: Date | null }>(
+  notices: T[],
+): Array<T & { sameCount: number }> {
+  const groups = new Map<string, T & { sameCount: number }>();
+  for (const n of notices) {
+    const key = `${n.agency}|${n.title.replace(/\s+/g, " ").trim()}|${n.deadline?.getTime() ?? ""}`;
+    const g = groups.get(key);
+    if (g) g.sameCount += 1;
+    else groups.set(key, { ...n, sameCount: 1 });
+  }
+  return [...groups.values()];
+}
+
 export async function sendDailyNotificationEmail(
   email: string,
   notices: Array<{
@@ -144,7 +161,7 @@ export async function sendDailyNotificationEmail(
   const dateDisplay = formatDateDisplay(dateRange.end);
 
   // 공고 목록 HTML 생성
-  const noticesHtml = notices.map((notice, index) => {
+  const noticesHtml = groupSameNotices(notices).map((notice, index) => {
     const budgetText = notice.budget
       ? `${(Number(notice.budget) / 100000000).toFixed(1)}억원`
       : "미정";
@@ -155,7 +172,7 @@ export async function sendDailyNotificationEmail(
 
     return `
       <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2E6D45;">
-        <h3 style="margin-top: 0; margin-bottom: 10px; color: #2E6D45;">${index + 1}. ${notice.title}</h3>
+        <h3 style="margin-top: 0; margin-bottom: 10px; color: #2E6D45;">${index + 1}. ${notice.title}${notice.sameCount > 1 ? ` <span style="font-size: 13px; color: #888; font-weight: normal;">(같은 내용 공고 ${notice.sameCount}건)</span>` : ""}</h3>
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
           <tr>
             <td style="padding: 4px 0; font-weight: bold; color: #333; width: 100px;">발주기관:</td>
@@ -196,14 +213,14 @@ export async function sendDailyNotificationEmail(
   const { data, error } = await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL || "no-reply@touchtheworld.co.kr",
     to: email,
-    subject: `[나라장터 알림] ${dateDisplay} 교육여행 입찰 공고 ${notices.length}건`,
+    subject: `[나라장터 알림] ${dateDisplay} 교육여행 입찰 공고 ${groupSameNotices(notices).length}건`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
         <h2 style="color: #2E6D45; border-bottom: 2px solid #2E6D45; padding-bottom: 10px;">
           나라장터 교육여행 입찰 공고 알림
         </h2>
         <p style="color: #666; font-size: 14px; margin: 15px 0;">
-          <strong>${dateDisplay}</strong> 기준으로 등록된 교육여행 관련 입찰 공고 <strong>${notices.length}건</strong>을 안내드립니다.
+          <strong>${dateDisplay}</strong> 기준으로 등록된 교육여행 관련 입찰 공고 <strong>${groupSameNotices(notices).length}건</strong>을 안내드립니다.
         </p>
         <div style="margin: 20px 0;">
           ${noticesHtml}
