@@ -109,3 +109,20 @@ export function buildCostTable(rows: { title: string; aiSummary: unknown }[]): C
 
 /** 만 원 단위 반올림 표기: 733,079 → "73만" */
 export const manwon = (n: number) => `${Math.round(n / 10_000).toLocaleString("ko-KR")}만`;
+
+/** 목적지·기간별 범위를 한 줄씩 — AI 상담 시스템 프롬프트와 가이드 페이지 요약에 함께 쓴다 */
+export function costLines(table: CostTable): string[] {
+  const lines: string[] = [];
+  for (const dest of TRIP_DESTINATIONS) {
+    const overall = table.overall[dest];
+    if (!overall) continue;
+    const byLen = TRIP_LENGTHS.filter((l) => table.byLength[dest]?.[l.key]).map((l) => {
+      const r = table.byLength[dest]![l.key]!;
+      return `${l.label} ${manwon(r.low)}~${manwon(r.high)} 원(공고 ${r.count}건)`;
+    });
+    lines.push(
+      `${dest}: 1인당 약 ${manwon(overall.low)}~${manwon(overall.high)} 원, 중간값 ${manwon(overall.mid)} 원(공고 ${overall.count}건)${byLen.length ? ` · 기간별 ${byLen.join(", ")}` : ""}`,
+    );
+  }
+  return lines;
+}

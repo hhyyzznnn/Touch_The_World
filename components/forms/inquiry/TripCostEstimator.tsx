@@ -65,7 +65,8 @@ export function TripCostEstimator({ table, onApplyAction }: { table: CostTable; 
         약 {manwon(range.low)}~{manwon(range.high)} 원
       </p>
       <p className="mt-1 break-keep text-xs text-text-gray">
-        최근 학교 입찰 공고 {range.count}건 기준 참고 금액입니다. 실제 견적은 일정·인원·숙소·포함 항목에 따라 달라집니다.
+        최근 학교 입찰 공고 {range.count}건 기준 참고 금액입니다. 실제 견적은 일정·인원·숙소·포함 항목에 따라 달라집니다.{" "}
+        <a href="/guides/trip-cost" className="font-medium text-brand-green-primary underline underline-offset-2">목적지별 비용 자세히 보기</a>
       </p>
 
       <button

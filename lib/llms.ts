@@ -63,6 +63,7 @@ function links(site: string): string {
     `- [프로그램 전체](${site}/programs): 분야·대상(초·중·고·교직원)·시기별로 고르는 프로그램 카드뉴스`,
     ...PROGRAM_CATEGORIES.map((cat) => `- [${cat}](${site}/programs?category=${encodeURIComponent(cat)})`),
     `- [현장체험학습·수학여행 준비 기준](${site}/guides/field-trip): 지역별 안전요원 기준, 교육청·지자체 지원, 업체 계약 방법, 교사 면책 규정(출처 포함)`,
+    `- [수학여행·체험학습 1인당 비용](${site}/guides/trip-cost): 학교 입찰 공고 금액을 목적지(제주·국내·수련활동·일본·해외)·기간별로 매일 다시 집계한 참고 금액`,
     `- [진행 행사 포트폴리오](${site}/events)`,
     `- [운영 실적](${site}/achievements)`,
     `- [교사 멤버십](${site}/membership): 업무 양식·지원사업 안내를 받는 무료 멤버십`,

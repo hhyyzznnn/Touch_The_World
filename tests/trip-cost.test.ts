@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildCostTable, classifyDestination, manwon, parseNights, parsePerPerson } from "@/lib/trip-cost";
+import { buildCostTable, classifyDestination, costLines, manwon, parseNights, parsePerPerson } from "@/lib/trip-cost";
 
 test("1인당 금액은 여러 표기를 읽고, 총액·말이 안 되는 값은 버린다", () => {
   assert.equal(parsePerPerson("약 733,079원"), 733079);
@@ -39,4 +39,11 @@ test("표본 5건 이상인 칸만 범위를 내고, 목적지 전체 범위도 
   assert.equal(t.overall.제주?.count, 6);
   assert.equal(t.overall.일본, undefined);
   assert.equal(manwon(733079), "73만");
+});
+
+test("AI 상담·가이드용 요약 줄은 목적지 전체 범위와 기간별 범위를 함께 담는다", () => {
+  const jeju = (per: number) => ({ title: "제주 수학여행", aiSummary: { "1인당": `약 ${per.toLocaleString()}원`, 기간: "2박 3일" } });
+  const lines = costLines(buildCostTable([600000, 700000, 750000, 800000, 900000].map(jeju)));
+  assert.equal(lines.length, 1);
+  assert.match(lines[0], /^제주: 1인당 약 70만~80만 원, 중간값 75만 원\(공고 5건\) · 기간별 2박 3일 70만~80만 원\(공고 5건\)$/);
 });

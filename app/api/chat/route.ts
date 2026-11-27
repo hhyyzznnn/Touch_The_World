@@ -3,6 +3,8 @@ import OpenAI from "openai";
 import { saveConsultingLog, sendConsultingSummaryEmail } from "@/lib/chat-actions";
 import { shouldAskForContact, withContactNudge } from "@/lib/chat-contact-nudge";
 import { buildChatKnowledge } from "@/lib/chat-knowledge";
+import { getCostReport } from "@/lib/trip-cost-data";
+import { costLines } from "@/lib/trip-cost";
 import { appendMissingSourceLinks, stripMarkdown } from "@/lib/chat-text";
 import { maybeCreateInquiryFromConsultingLog } from "@/lib/inquiry-conversion";
 import { prisma } from "@/lib/prisma";
@@ -89,7 +91,7 @@ function wantsCategoryRedisplay(messages: ChatRequestMessage[]): boolean {
 }
 
 
-const getSystemPrompt = (knowledgeBlock: string, landingCategory?: string): string => {
+const getSystemPrompt = (knowledgeBlock: string, landingCategory?: string, costBlock = ""): string => {
   const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Seoul" });
   const landing = landingCategory
     ? `\n- 상대는 "${landingCategory}" 페이지에서 들어왔습니다. 유형을 다시 묻지 말고 그 맥락에서 시작하세요.`
@@ -112,6 +114,11 @@ const getSystemPrompt = (knowledgeBlock: string, landingCategory?: string): stri
     "- 우리 프로그램의 일정·가격·혜택·신청 기간·대상은 게시물에 적힌 내용만 말하세요. 적혀 있지 않으면 '담당자가 확인해 드릴게요(1800-8078)'라고 하세요. 일반적인 여행지 정보나 준비 요령은 상식 수준에서 말해도 됩니다.",
     "- 게시물마다 구분해 말하고 서로 섞지 마세요. 특정 학교 사례는 '진행 사례'라고 밝히세요.",
     `- 오늘은 ${today}입니다. 마감·신청 기간이 지난 게시물을 말할 때는 그 사실을 먼저 알리세요.`,
+    "",
+    "[비용 질문]",
+    "- 비용·예산을 물으면 아래 '학교 입찰 공고 기준 1인당 금액'에서 맞는 목적지·기간 범위를 말해 주세요. 학교들이 실제로 올린 공고 금액을 모은 참고치이고 인원·숙소·포함 항목에 따라 달라진다고 덧붙이세요.",
+    "- 표에 없는 조합(예: 특정 지역 당일)은 추측하지 말고 가장 가까운 범위를 참고로만 말한 뒤 담당자 견적을 권하세요. 자세한 표는 https://www.touchtheworld.co.kr/guides/trip-cost 에 있습니다.",
+    costBlock,
     "",
     "[상담 접수]",
     "- 견적·상담을 원하면 먼저 알맞은 프로그램이나 다음 단계를 짧게 안내하고, 담당자가 연락드릴 수 있게 성함과 연락처(전화 또는 이메일)를 자연스럽게 한 번 요청하세요.",
@@ -402,6 +409,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 학교 입찰 공고 기준 1인당 금액 (하루 1회 계산, 실패해도 상담은 계속)
+    const costBlock = await getCostReport()
+      .then((r) => {
+        const lines = costLines(r.table);
+        return lines.length ? `학교 입찰 공고 기준 1인당 금액(공고 ${r.table.sampleSize}건, ${r.from}~${r.to} 수집):\n${lines.map((l) => `- ${l}`).join("\n")}` : "";
+      })
+      .catch(() => "");
+
     const knowledge = await buildChatKnowledge(
       effectiveMessages.filter((msg) => msg.role === "user").map((msg) => msg.content),
       landingCategory
@@ -411,7 +426,7 @@ export async function POST(request: NextRequest) {
     const openaiMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: getSystemPrompt(knowledge.promptBlock, landingCategory),
+        content: getSystemPrompt(knowledge.promptBlock, landingCategory, costBlock),
       },
       ...effectiveMessages.map(toOpenAIMessage),
     ];
