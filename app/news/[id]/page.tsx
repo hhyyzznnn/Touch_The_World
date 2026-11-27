@@ -18,6 +18,7 @@ import { CompanyNewsType } from "@prisma/client";
 import { MembershipInlineCta } from "@/components/membership/MembershipInlineCta";
 import { RelatedProgramLink } from "@/components/news/RelatedProgramLink";
 import { MobileContactBar } from "@/components/news/MobileContactBar";
+import { NewsReadTracker } from "@/components/news/NewsReadTracker";
 import { getKakaoChannelUrl } from "@/lib/contact";
 import { getProgramCatalog } from "@/lib/program-catalog";
 import { pickRelated } from "@/lib/news-related";
@@ -357,7 +358,7 @@ export default async function NewsDetailPage({
                               // 칸마다 같은 문의 링크로 감싸 줄 어디를 눌러도 이동 (키보드·화면낭독은 첫 칸 하나만)
                               let first = true;
                               return (
-                                <tr className="cursor-pointer transition-colors hover:bg-brand-green-primary/[0.06]">
+                                <tr data-contact-place="news_option_row" className="cursor-pointer transition-colors hover:bg-brand-green-primary/[0.06]">
                                   {Children.map(children, (child) => {
                                     if (!isValidElement<{ children?: ReactNode }>(child) || child.type !== "td") return child;
                                     const isFirst = first;
@@ -410,7 +411,7 @@ export default async function NewsDetailPage({
 
               {/* 빠른 문의 CTA — 구체적인 프로그램 카드뉴스에만 표시 */}
               {isCardNews && isConcreteProgram(news.categories) && (
-                <div className="mt-8 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div data-contact-place="news_cta" className="mt-8 rounded-xl border border-brand-green-primary/25 bg-brand-green-primary/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 rounded-full bg-brand-green-primary/15 p-2.5 mt-0.5">
                       <MessageCircle className="w-5 h-5 text-brand-green-primary" />
@@ -441,6 +442,7 @@ export default async function NewsDetailPage({
             </div>
           </div>
 
+          <NewsReadTracker />
           {isCardNews && (
             <MobileContactBar
               inquiryHref={isConcreteProgram(news.categories) ? buildInquiryUrl(news) : "/inquiry"}

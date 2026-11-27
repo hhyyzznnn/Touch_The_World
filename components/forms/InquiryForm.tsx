@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type FocusEvent } from "react";
 import { FormProvider, useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { ErrorMessage } from "@/components/ErrorMessage";
 import { useToast } from "@/components/ui/toast";
 import { inquirySchema, type InquiryFormData } from "@/lib/inquiry-schema";
 import { CheckCircle2, Bookmark, History, X } from "lucide-react";
-import { trackEvent, GA_EVENTS } from "@/lib/gtag";
+import { trackEvent, trackLeaveEvent, clarityTag, GA_EVENTS } from "@/lib/gtag";
 import { classifyTouch } from "@/lib/attribution";
 import { readAttribution } from "@/components/tracking/AttributionCapture";
 import { BasicInfoSection } from "./inquiry/BasicInfoSection";
@@ -55,11 +55,34 @@ export function InquiryForm({
   const [pendingDraft, setPendingDraft] = useState<InquiryDraft | null>(null);
   // 폼에 처음 손댄 순간 한 번만 보낸다 — inquiry_submit과 비교하면 작성 도중 이탈한 비율이 나온다.
   const startTrackedRef = useRef(false);
-  const handleFormFocus = () => {
+  // 마지막으로 손댄 칸 — 작성하다 제출 없이 떠나면 inquiry_abandon { field, inquiry_mode } (2026-11-27)
+  const lastFieldRef = useRef<string>("");
+  const submittedRef = useRef(false);
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+  const handleFormFocus = (e: FocusEvent<HTMLFormElement>) => {
+    const t = e.target as unknown as HTMLInputElement;
+    if (t?.name || t?.id) lastFieldRef.current = t.name || t.id;
     if (startTrackedRef.current) return;
     startTrackedRef.current = true;
     trackEvent(GA_EVENTS.INQUIRY_START, { inquiry_mode: mode });
+    clarityTag("inquiry", "started");
   };
+  useEffect(() => {
+    let sent = false;
+    const send = () => {
+      if (sent || !startTrackedRef.current || submittedRef.current) return;
+      sent = true;
+      trackLeaveEvent(GA_EVENTS.INQUIRY_ABANDON, { field: lastFieldRef.current || "(none)", inquiry_mode: modeRef.current });
+      clarityTag("inquiry", "abandoned");
+    };
+    const onHide = () => document.visibilityState === "hidden" && send();
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      send();
+    };
+  }, []);
 
   const form = useForm<InquiryFormData>({
     resolver: zodResolver(inquirySchema),
@@ -156,6 +179,8 @@ export function InquiryForm({
           expectedReply: result?.expectedReply,
         });
         setIsSuccess(true);
+        submittedRef.current = true;
+        clarityTag("inquiry", "submitted");
         reset();
         clearDraft();
         toast.success("문의가 접수되었습니다.");

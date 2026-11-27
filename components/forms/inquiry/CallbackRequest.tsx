@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PhoneCall, CheckCircle2 } from "lucide-react";
-import { trackEvent, GA_EVENTS } from "@/lib/gtag";
+import { trackEvent, clarityTag, GA_EVENTS } from "@/lib/gtag";
 import { classifyTouch } from "@/lib/attribution";
 import { readAttribution } from "@/components/tracking/AttributionCapture";
 import { formatPhoneNumber } from "./shared";
@@ -44,6 +44,7 @@ export function CallbackRequest({ context }: { context?: string }) {
         return;
       }
       setState("done");
+      clarityTag("inquiry", "submitted");
       trackEvent(GA_EVENTS.INQUIRY_SUBMIT, { inquiry_mode: "callback", first_channel: classifyTouch(attribution?.first) });
     } catch {
       setError("잠시 후 다시 시도해 주세요.");

@@ -42,7 +42,7 @@ export function TripCostEstimator({ table, onApplyAction }: { table: CostTable; 
 
       <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="목적지">
         {destinations.map((d) => (
-          <button key={d} type="button" aria-pressed={d === dest} onClick={() => { setDest(d); setLengthKey(null); }} className={chip(d === dest)}>
+          <button key={d} type="button" aria-pressed={d === dest} onClick={() => { setDest(d); setLengthKey(null); trackEvent(GA_EVENTS.COST_ESTIMATE_SELECT, { destination: d }); }} className={chip(d === dest)}>
             {d}
           </button>
         ))}
@@ -50,7 +50,7 @@ export function TripCostEstimator({ table, onApplyAction }: { table: CostTable; 
       {lengths.length > 1 && (
         <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="기간">
           {lengths.map((l) => (
-            <button key={l.key} type="button" aria-pressed={l.key === activeLength?.key} onClick={() => setLengthKey(l.key)} className={chip(l.key === activeLength?.key)}>
+            <button key={l.key} type="button" aria-pressed={l.key === activeLength?.key} onClick={() => { setLengthKey(l.key); trackEvent(GA_EVENTS.COST_ESTIMATE_SELECT, { destination: dest, length: l.label }); }} className={chip(l.key === activeLength?.key)}>
               {l.label}
             </button>
           ))}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { trackLeaveEvent, GA_EVENTS } from "@/lib/gtag";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -26,6 +27,28 @@ interface Props {
 export function CardNewsImageViewer({ images, title, className }: Props) {
   const [current, setCurrent] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 카드를 몇 장째까지 넘겨 봤는지 — 페이지를 떠날 때 한 번 card_slide_depth { slide, slide_total } (2026-11-27)
+  const maxSeenRef = useRef(1);
+  useEffect(() => {
+    maxSeenRef.current = Math.max(maxSeenRef.current, current + 1);
+  }, [current]);
+  useEffect(() => {
+    if (images.length < 2) return;
+    const pagePath = location.pathname; // 다른 페이지로 넘어간 뒤 보내도 원래 글 주소로 남게
+    let sent = false;
+    const send = () => {
+      if (sent) return;
+      sent = true;
+      trackLeaveEvent(GA_EVENTS.CARD_SLIDE_DEPTH, { slide: maxSeenRef.current, slide_total: images.length, page: pagePath });
+    };
+    const onHide = () => document.visibilityState === "hidden" && send();
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      send(); // 사이트 안에서 다른 페이지로 이동할 때
+    };
+  }, [images.length]);
 
   const scrollTo = (index: number) => {
     const el = containerRef.current;
