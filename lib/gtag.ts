@@ -39,7 +39,6 @@ export const GA_EVENTS = {
   CATEGORY_CLICK: "category_click",
   // 메인 첫 화면 "터치더월드가 하는 일" 6칸 클릭 (2026-11-17 A안)
   CARD_NEWS_CLICK: "card_news_click",
-  PROGRAM_VIEW: "program_view",
   // 글 하단 "함께 보면 좋은 프로그램" 클릭 (2026-11-11)
   RELATED_CLICK: "related_program_click",
   // 문의 페이지 '예상 비용 먼저 보기'에서 "이 조건으로 견적 받기" (2026-11-27)

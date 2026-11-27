@@ -26,17 +26,6 @@ export type ProgramCategory = (typeof PROGRAM_CATEGORIES)[number];
  * 색상값이 Tailwind 기본 팔레트에 없어 임의값(bg-[#RRGGBB]) 문법을 쓰는데,
  * 클래스명을 조합하지 않고 완성된 문자열 그대로 둬야 Tailwind가 정적으로 스캔해 인식한다.
  */
-export const CATEGORY_COLORS: Record<ProgramCategory, string> = {
-  "국내 교육여행": "bg-[#1B4332] text-white",
-  "일본 교육여행": "bg-[#245A3B] text-white",
-  "해외 교육여행": "bg-[#2E6D45] text-white",
-  "체험학습": "bg-[#3D8361] text-white",
-  "수련활동": "bg-[#4A7A5C] text-white",
-  "교직원 연수·혜택": "bg-[#5C7A68] text-white",
-  "특성화고 프로그램": "bg-[#6E7673] text-white",
-  "일본 유학": "bg-[#64748B] text-white",
-};
-
 /**
  * 카드뉴스 해시태그 고정 목록.
  * PROGRAM_CATEGORIES(카테고리 8개 분류)와는 별도로, 지역·대상을 보충하는 용도.
