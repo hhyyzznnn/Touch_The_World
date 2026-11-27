@@ -26,4 +26,6 @@ export const GA_EVENTS = {
   PROGRAM_VIEW: "program_view",
   // 글 하단 "함께 보면 좋은 프로그램" 클릭 (2026-11-11)
   RELATED_CLICK: "related_program_click",
+  // 문의 페이지 '예상 비용 먼저 보기'에서 "이 조건으로 견적 받기" (2026-11-27)
+  COST_ESTIMATE_APPLY: "cost_estimate_apply",
 } as const;

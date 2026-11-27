@@ -54,7 +54,7 @@ export default async function InquiryStatsPage() {
     },
   });
   const stats = buildInquiryStats(rows);
-  const maxMonth = Math.max(1, ...stats.monthly.map((m) => m.form + m.chatbot));
+  const maxMonth = Math.max(1, ...stats.monthly.map((m) => m.form + m.chatbot + m.direct));
   const statusItems = stats.status.map((s) => ({ ...s, label: getInquiryStatusMeta(s.label).label }));
 
   return (
@@ -86,15 +86,16 @@ export default async function InquiryStatsPage() {
 
       <section className="rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="font-semibold text-text-dark">월별 문의</h2>
-        <p className="mt-0.5 text-xs text-text-gray">진한 색: 문의 폼 · 연한 색: 챗봇 상담에서 자동 접수</p>
+        <p className="mt-0.5 text-xs text-text-gray">진한 색: 홈페이지 문의(전화 요청 포함) · 중간: 챗봇 상담 · 연한 색: 직접 기록한 전화·카톡 문의</p>
         <div className="mt-4 flex h-40 items-end gap-1.5 sm:gap-3">
           {stats.monthly.map((m) => {
-            const total = m.form + m.chatbot;
+            const total = m.form + m.chatbot + m.direct;
             return (
               <div key={m.month} className="flex flex-1 flex-col items-center gap-1">
                 <span className="text-xs tabular-nums text-text-gray">{total || ""}</span>
                 <div className="flex w-full flex-col justify-end" style={{ height: `${(total / maxMonth) * 100}%` }}>
-                  <div className="w-full rounded-t bg-brand-green-primary/40" style={{ flex: m.chatbot }} />
+                  <div className="w-full rounded-t bg-brand-green-primary/20" style={{ flex: m.direct }} />
+                  <div className="w-full bg-brand-green-primary/50" style={{ flex: m.chatbot }} />
                   <div className="w-full bg-brand-green-primary" style={{ flex: m.form }} />
                 </div>
                 <span className="text-[10px] sm:text-xs text-text-gray">{Number(m.month.slice(5))}월</span>
@@ -105,6 +106,7 @@ export default async function InquiryStatsPage() {
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
+        <BarList title="문의 채널" items={stats.source} total={stats.total} note="홈페이지·챗봇·전화·카톡 등 문의가 들어온 방법" />
         <BarList title="처음 들어온 경로" items={stats.firstChannel} total={stats.tracked} note="문의한 분이 사이트를 처음 알게 된 경로" />
         <BarList title="문의 직전 들어온 경로" items={stats.lastChannel} total={stats.tracked} note="문의를 남긴 방문의 직전 유입 경로" />
         <BarList title="처음 들어온 페이지" items={stats.landing} total={stats.tracked} note="어떤 글·페이지가 첫 접점이었는지 (상위 10개)" />

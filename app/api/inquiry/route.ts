@@ -92,6 +92,17 @@ export async function POST(request: NextRequest) {
     const currentUser = await getCurrentUser();
     const body = await request.json();
 
+    // "전화번호만 남기기"(2026-11-27): 바쁜 선생님은 번호만 받고 담당자가 전화한다. 학교명·이름은 통화하며 확인.
+    const isCallback = body?.callback === true;
+    if (isCallback) {
+      if (typeof body.phone !== "string" || !body.phone.trim()) {
+        return NextResponse.json({ error: "전화번호를 입력해주세요." }, { status: 400 });
+      }
+      body.schoolName = (typeof body.schoolName === "string" && body.schoolName.trim()) || "(미입력)";
+      body.contact = (typeof body.contact === "string" && body.contact.trim()) || "(미입력)";
+      body.message = (typeof body.message === "string" && body.message.trim()) || "홈페이지에서 전화 상담을 요청하셨습니다.";
+    }
+
     // 필수 필드 검증
     const schoolNameV = validateAndSanitize(body.schoolName || "", { maxLength: 100, minLength: 1, required: true });
     if (!schoolNameV.valid) return NextResponse.json({ error: `학교명: ${schoolNameV.error}` }, { status: 400 });
@@ -189,6 +200,7 @@ export async function POST(request: NextRequest) {
     const inquiry = await prisma.inquiry.create({
       data: {
         userId: currentUser?.id || null,
+        ...(isCallback ? { sourceType: "callback" } : {}),
         schoolName: data.schoolName,
         contact: data.contact,
         position: data.position ?? null,

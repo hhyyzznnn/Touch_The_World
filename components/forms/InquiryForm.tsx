@@ -18,6 +18,9 @@ import { LodgingSection } from "./inquiry/LodgingSection";
 import { ProgramSection } from "./inquiry/ProgramSection";
 import { SafetySection } from "./inquiry/SafetySection";
 import { ContactOptions } from "./inquiry/ContactOptions";
+import { CallbackRequest } from "./inquiry/CallbackRequest";
+import { TripCostEstimator, type CostSelection } from "./inquiry/TripCostEstimator";
+import { DESTINATION_TO_FORM, manwon, type CostTable } from "@/lib/trip-cost";
 import { clearDraft, readDraft, writeDraft, type InquiryDraft } from "./inquiry/draft";
 import { formatPhoneNumber, type InquiryMode } from "./inquiry/shared";
 
@@ -32,10 +35,12 @@ export function InquiryForm({
   initialMode,
   presets,
   kakaoUrl = null,
+  costTable = null,
 }: {
   initialMode: InquiryMode;
   presets?: InquiryPresets;
   kakaoUrl?: string | null;
+  costTable?: CostTable | null;
 }) {
   const toast = useToast();
   const [mode, setMode] = useState<InquiryMode>(initialMode);
@@ -68,6 +73,18 @@ export function InquiryForm({
     },
   });
   const { handleSubmit, reset, watch } = form;
+
+  // '예상 비용 먼저 보기'에서 고른 조건을 빠른 문의에 채우고 양식으로 이동
+  const applyCostSelection = ({ destination, lengthLabel, range }: CostSelection) => {
+    const formDestination = DESTINATION_TO_FORM[destination];
+    if (formDestination) form.setValue("destination", formDestination, { shouldDirty: true });
+    const line = `예상 비용(${destination}${lengthLabel ? ` ${lengthLabel}` : ""}, 1인당 약 ${manwon(range.low)}~${manwon(range.high)} 원)을 보고 문의드립니다.`;
+    const current = form.getValues("message") ?? "";
+    if (!current.includes("예상 비용(")) form.setValue("message", current ? `${line}\n${current}` : `${line}\n\n`, { shouldDirty: true });
+    setMode("quick");
+    document.getElementById("inquiry-form-start")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => document.getElementById("schoolName")?.focus({ preventScroll: true }), 400);
+  };
 
   // 이전에 작성하다 만 문의가 있으면 배너로 복구 제안
   useEffect(() => {
@@ -230,6 +247,10 @@ export function InquiryForm({
             setTimeout(() => document.getElementById("schoolName")?.focus({ preventScroll: true }), 400);
           }}
         />
+
+        {costTable && <TripCostEstimator table={costTable} onApplyAction={applyCostSelection} />}
+
+        <CallbackRequest context={presets?.programRef ? `참고 프로그램: ${presets.programRef}` : undefined} />
 
         {/* 임시저장 복구 배너 */}
         {pendingDraft && (

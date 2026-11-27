@@ -7,6 +7,8 @@ import { AiSummaryBackfillButton } from "@/components/admin/AiSummaryBackfillBut
 import { Pagination } from "@/components/Pagination";
 import { getInquiryStatusMeta, INQUIRY_STATUS_VALUES } from "@/lib/inquiry-status";
 import { InquirySearchBar } from "@/components/admin/InquirySearchBar";
+import { ManualInquiryForm } from "@/components/admin/ManualInquiryForm";
+import { sourceLabel } from "@/lib/inquiry-source";
 import Link from "next/link";
 
 const ITEMS_PER_PAGE = 20;
@@ -160,6 +162,7 @@ export default async function AdminInquiriesPage({
           <Link href="/admin/inquiries/stats" className="text-sm font-medium text-brand-green-primary hover:underline">
             문의 통계
           </Link>
+          <ManualInquiryForm />
           <AiSummaryBackfillButton />
           <span className="text-sm text-gray-500">총 {total}건</span>
         </div>
@@ -307,7 +310,14 @@ export default async function AdminInquiriesPage({
                           {format(new Date(inquiry.createdAt), "MM.dd HH:mm")}
                         </td>
                         <td className="px-4 py-3 text-sm">
-                          <div className="font-medium text-gray-900">{inquiry.schoolName}</div>
+                          <div className="font-medium text-gray-900">
+                            {inquiry.schoolName}
+                            {inquiry.sourceType !== "manual" && (
+                              <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-normal text-gray-500">
+                                {sourceLabel(inquiry.sourceType)}
+                              </span>
+                            )}
+                          </div>
                           {inquiry.aiSummary && (
                             <div className="mt-0.5 text-xs text-gray-400 line-clamp-1 max-w-[180px]" title={inquiry.aiSummary}>
                               {inquiry.aiSummary}

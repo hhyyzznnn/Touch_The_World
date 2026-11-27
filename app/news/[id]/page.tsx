@@ -17,6 +17,8 @@ import { formatEndDate, isEnded, isRecentlyAdded, stripBrandFromTitle } from "@/
 import { CompanyNewsType } from "@prisma/client";
 import { MembershipInlineCta } from "@/components/membership/MembershipInlineCta";
 import { RelatedProgramLink } from "@/components/news/RelatedProgramLink";
+import { MobileContactBar } from "@/components/news/MobileContactBar";
+import { getKakaoChannelUrl } from "@/lib/contact";
 import { getProgramCatalog } from "@/lib/program-catalog";
 import { pickRelated } from "@/lib/news-related";
 import { isOptionRow, optionLabel, rowCells, tableHasOptions, type HastLike } from "@/lib/news-option-rows";
@@ -438,6 +440,13 @@ export default async function NewsDetailPage({
               {isCardNews && <MembershipInlineCta hasDeadline={!!news.endDate} postId={news.id} />}
             </div>
           </div>
+
+          {isCardNews && (
+            <MobileContactBar
+              inquiryHref={isConcreteProgram(news.categories) ? buildInquiryUrl(news) : "/inquiry"}
+              kakaoUrl={getKakaoChannelUrl()}
+            />
+          )}
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <Button asChild variant="outline">

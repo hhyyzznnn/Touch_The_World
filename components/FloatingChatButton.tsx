@@ -31,7 +31,7 @@ export function FloatingChatButton() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 w-14 h-14 bg-brand-green-primary hover:bg-brand-green-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-40 ${
+        className={`floating-chat fixed bottom-6 right-6 w-14 h-14 bg-brand-green-primary hover:bg-brand-green-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 z-40 ${
           isOpen || isAnyChatOpen ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
         aria-label="AI 채팅 열기"

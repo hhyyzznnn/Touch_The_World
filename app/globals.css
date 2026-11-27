@@ -96,3 +96,9 @@
   to { transform: translateX(-25%); }
 }
 
+
+/* 휴대폰 카드뉴스 하단 고정 문의 바(components/news/MobileContactBar)가 있을 때 — 본문 끝·상담 버튼이 바에 가리지 않게 */
+@media (max-width: 767px) {
+  body.has-bottom-bar { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+  body.has-bottom-bar .floating-chat { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+}

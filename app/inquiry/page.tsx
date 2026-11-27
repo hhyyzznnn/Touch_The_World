@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { InquiryForm } from "@/components/forms/InquiryForm";
 import { getKakaoChannelUrl } from "@/lib/contact";
+import { getCostTable } from "@/lib/trip-cost-data";
 
 type InquirySearchParams = {
   type?: string;
@@ -49,5 +50,6 @@ export default async function InquiryPage({
   const presets = programRef || destination || schoolLevel || purpose
     ? { programRef, destination, schoolLevel, purpose }
     : undefined;
-  return <InquiryForm initialMode={initialMode} presets={presets} kakaoUrl={getKakaoChannelUrl()} />;
+  const costTable = await getCostTable().catch(() => null);
+  return <InquiryForm initialMode={initialMode} presets={presets} kakaoUrl={getKakaoChannelUrl()} costTable={costTable} />;
 }

@@ -1,4 +1,7 @@
 import { classifyTouch, sanitizeAttribution, type Channel } from "./attribution";
+import { MANUAL_RECORD_SOURCES, sourceLabel } from "./inquiry-source";
+
+const isDirect = (s: string) => (MANUAL_RECORD_SOURCES as readonly string[]).includes(s);
 
 /** 통계에 필요한 문의 필드만 */
 export interface InquiryStatRow {
@@ -42,8 +45,10 @@ export function monthlyCounts(rows: InquiryStatRow[], months: number, now = new 
     const inMonth = rows.filter((r) => monthKey(r.createdAt) === month);
     return {
       month,
-      form: inMonth.filter((r) => r.sourceType !== "ai_consulting").length,
+      // 홈페이지 폼(전화 요청 포함) · 챗봇 · 관리자가 기록한 전화·카톡 문의
+      form: inMonth.filter((r) => r.sourceType !== "ai_consulting" && !isDirect(r.sourceType)).length,
       chatbot: inMonth.filter((r) => r.sourceType === "ai_consulting").length,
+      direct: inMonth.filter((r) => isDirect(r.sourceType)).length,
     };
   });
 }
@@ -69,6 +74,7 @@ export function buildInquiryStats(rows: InquiryStatRow[], now = new Date()) {
   return {
     total: rows.length,
     tracked: withAttribution.length,
+    source: tally(rows.map((r) => sourceLabel(r.sourceType))),
     monthly: monthlyCounts(rows, 12, now),
     firstChannel: tally(firstChannels) as (Count & { label: Channel | string })[],
     lastChannel: tally(lastChannels),
